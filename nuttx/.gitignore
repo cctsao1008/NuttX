@@ -1,6 +1,5 @@
 /.config
 /.config.old
-/.config-e
 /.version
 /Make.defs
 /setenv.sh
@@ -16,6 +15,3 @@
 /*.ihx
 /*.hex
 /pcode
-/cmpit.sh
-/cmporig.sh
-/tstit.sh

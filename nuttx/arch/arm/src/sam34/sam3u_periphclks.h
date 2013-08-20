@@ -51,7 +51,7 @@
 /* Helper macros */
 
 #define sam_enableperipheral(s)    putreg32((1 << (s)), SAM_PMC_PCER)
-#define sam_disableperipheral(s)   putreg32((1 << (s)), SAM_PMC_PDER)
+#define sam_disableperipheral(s)   putreg32((1 << (s)), SAM_PMC_PCDR)
 
 #define sam_supc_enableclk()       sam_enableperipheral(SAM_PID_SUPC)
 #define sam_rstc_enableclk()       sam_enableperipheral(SAM_PID_RSTC)
@@ -73,7 +73,7 @@
 #define sam_hsmci_enableclk()      sam_enableperipheral(SAM_PID_HSMCI)
 #define sam_twi0_enableclk()       sam_enableperipheral(SAM_PID_TWI0)
 #define sam_twi1_enableclk()       sam_enableperipheral(SAM_PID_TWI1)
-#define sam_spi_enableclk()        sam_enableperipheral(SAM_PID_SPI)
+#define sam_spi0_enableclk()       sam_enableperipheral(SAM_PID_SPI0)
 #define sam_ssc_enableclk()        sam_enableperipheral(SAM_PID_SSC)
 #define sam_tc0_enableclk()        sam_enableperipheral(SAM_PID_TC0)
 #define sam_tc1_enableclk()        sam_enableperipheral(SAM_PID_TC1)
@@ -103,7 +103,7 @@
 #define sam_hsmci_disableclk()     sam_disableperipheral(SAM_PID_HSMCI)
 #define sam_twi0_disableclk()      sam_disableperipheral(SAM_PID_TWI0)
 #define sam_twi1_disableclk()      sam_disableperipheral(SAM_PID_TWI1)
-#define sam_spi_disableclk()       sam_disableperipheral(SAM_PID_SPI)
+#define sam_spi0_disableclk()      sam_disableperipheral(SAM_PID_SPI0)
 #define sam_ssc_disableclk()       sam_disableperipheral(SAM_PID_SSC)
 #define sam_tc0_disableclk()       sam_disableperipheral(SAM_PID_TC0)
 #define sam_tc1_disableclk()       sam_disableperipheral(SAM_PID_TC1)

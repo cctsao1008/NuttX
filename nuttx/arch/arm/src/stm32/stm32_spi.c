@@ -37,7 +37,7 @@
  * The external functions, stm32_spi1/2/3select and stm32_spi1/2/3status must be
  * provided by board-specific logic.  They are implementations of the select
  * and status methods of the SPI interface defined by struct spi_ops_s (see
- * include/nuttx/spi.h). All other methods (including up_spiinitialize())
+ * include/nuttx/spi/spi.h). All other methods (including up_spiinitialize())
  * are provided by common STM32 logic.  To use this common SPI logic on your
  * board:
  *
@@ -69,7 +69,7 @@
 #include <debug.h>
 
 #include <nuttx/arch.h>
-#include <nuttx/spi.h>
+#include <nuttx/spi/spi.h>
 
 #include <arch/board/board.h>
 
@@ -200,7 +200,7 @@ struct stm32_spidev_s
   sem_t            exclsem;    /* Held while chip is selected for mutual exclusion */
   uint32_t         frequency;  /* Requested clock frequency */
   uint32_t         actual;     /* Actual clock frequency */
-  uint8_t          nbits;      /* Width of word in bits (8 or 16) */
+  int8_t           nbits;      /* Width of word in bits (8 or 16) */
   uint8_t          mode;       /* Mode 0,1,2,3 */
 #endif
 };
@@ -1153,14 +1153,24 @@ static void spi_setbits(FAR struct spi_dev_s *dev, int nbits)
 
       switch (nbits)
         {
+        case -8:
+          setbits = SPI_CR1_LSBFIRST;
+          clrbits = SPI_CR1_DFF;
+          break;
+
         case 8:
           setbits = 0;
-          clrbits = SPI_CR1_DFF;
+          clrbits = SPI_CR1_DFF|SPI_CR1_LSBFIRST;
+          break;
+
+        case -16:
+          setbits = SPI_CR1_DFF|SPI_CR1_LSBFIRST;
+          clrbits = 0;
           break;
 
         case 16:
           setbits = SPI_CR1_DFF;
-          clrbits = 0;
+          clrbits = SPI_CR1_LSBFIRST;
           break;
 
         default:

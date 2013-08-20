@@ -1,7 +1,7 @@
 /************************************************************************************
  * arch/arm/src/stm32/stm32_otgfs.h
  *
- *   Copyright (C) 2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2012-2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,8 @@
 #include "stm32.h"
 #include "chip/stm32_otgfs.h"
 
+#ifdef CONFIG_STM32_OTGFS
+
 /************************************************************************************
  * Pre-processor Definitions
  ************************************************************************************/
@@ -65,9 +67,40 @@
 #undef EXTERN
 #if defined(__cplusplus)
 #define EXTERN extern "C"
-extern "C" {
+extern "C"
+{
 #else
 #define EXTERN extern
+#endif
+
+/*******************************************************************************
+ * Name: stm32_otgfshost_initialize
+ *
+ * Description:
+ *   Initialize USB host device controller hardware.
+ *
+ * Input Parameters:
+ *   controller -- If the device supports more than USB host controller, then
+ *     this identifies which controller is being intialized.  Normally, this
+ *     is just zero.
+ *
+ * Returned Value:
+ *   And instance of the USB host interface.  The controlling task should
+ *   use this interface to (1) call the wait() method to wait for a device
+ *   to be connected, and (2) call the enumerate() method to bind the device
+ *   to a class driver.
+ *
+ * Assumptions:
+ * - This function should called in the initialization sequence in order
+ *   to initialize the USB device functionality.
+ * - Class drivers should be initialized prior to calling this function.
+ *   Otherwise, there is a race condition if the device is already connected.
+ *
+ *******************************************************************************/
+
+#ifdef CONFIG_USBHOST
+struct usbhost_connection_s;
+FAR struct usbhost_connection_s *stm32_otgfshost_initialize(int controller);
 #endif
 
 /************************************************************************************
@@ -89,5 +122,6 @@ void stm32_usbsuspend(FAR struct usbdev_s *dev, bool resume);
 #endif
 
 #endif /* __ASSEMBLY__ */
+#endif /* CONFIG_STM32_OTGFS */
 #endif /* __ARCH_ARM_SRC_STM32_STM32_OTGFS_H */
 

@@ -33,10 +33,8 @@
 #
 ############################################################################
 
--include $(TOPDIR)/.config
 -include $(TOPDIR)/Make.defs
-
-DELIM ?= "/"
+include $(APPDIR)$(DELIM)Make.defs
 
 SPAWN_DIR = $(APPDIR)$(DELIM)examples$(DELIM)posix_spawn
 FILESYSTEM_DIR = $(SPAWN_DIR)$(DELIM)filesystem

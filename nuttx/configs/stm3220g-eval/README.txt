@@ -60,7 +60,7 @@ GNU Toolchain Options
     CONFIG_STM32_DEVKITARM=y      : devkitARM under Windows
     CONFIG_STM32_RAISONANCE=y     : Raisonance RIDE7 under Windows
     CONFIG_STM32_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
-    CONFIG_ARMV7M_TOOLCHAIN_GNU_EABI : Generic arm-none-eabi toolchain
+    CONFIG_ARMV7M_TOOLCHAIN_GNU_EABIL : Generic arm-none-eabi toolchain
 
   If you change the default toolchain, then you may also have to modify the PATH in
   the setenv.h file if your make cannot find the tools.
@@ -540,13 +540,13 @@ STM3220G-EVAL-specific Configuration Options
     CONFIG_ENDIAN_BIG - define if big endian (default is little
        endian)
 
-    CONFIG_DRAM_SIZE - Describes the installed DRAM (SRAM in this case):
+    CONFIG_RAM_SIZE - Describes the installed DRAM (SRAM in this case):
 
-       CONFIG_DRAM_SIZE=0x00010000 (64Kb)
+       CONFIG_RAM_SIZE=0x00010000 (64Kb)
 
-    CONFIG_DRAM_START - The start address of installed DRAM
+    CONFIG_RAM_START - The start address of installed DRAM
 
-       CONFIG_DRAM_START=0x20000000
+       CONFIG_RAM_START=0x20000000
 
     In addition to internal SRAM, SRAM may also be available through the FSMC.
     In order to use FSMC SRAM, the following additional things need to be

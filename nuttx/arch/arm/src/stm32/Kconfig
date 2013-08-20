@@ -665,6 +665,7 @@ config STM32_SDIO
 	bool "SDIO"
 	default n
 	depends on !STM32_CONNECTIVITYLINE && !STM32_VALUELINE
+	select ARCH_HAVE_SDIO
 
 config STM32_SPI1
 	bool "SPI1"
@@ -675,7 +676,7 @@ config STM32_SPI1
 config STM32_SPI2
 	bool "SPI2"
 	default n
-	depends on STM32_CONNECTIVITYLINE || STM32_STM32F20XX || STM32_STM32F40XX || (STM32_VALUELINE && STM32_HIGHDENSITY) || (STM32_STM32F10XX && (STM32_HIGHDENSITY || STM32_MEDIUMDENSITY))
+	depends on STM32_CONNECTIVITYLINE || STM32_STM32F20XX || STM32_STM32F40XX || (STM32_VALUELINE && STM32_HIGHDENSITY) || (STM32_STM32F10XX && (STM32_HIGHDENSITY || STM32_MEDIUMDENSITY)) || STM32_STM32F30XX
 	select SPI
 	select STM32_SPI
 
@@ -1121,7 +1122,7 @@ config ARCH_BOARD_STM32_CUSTOM_CLOCKCONFIG
 
 config STM32_CCMEXCLUDE
 	bool "Exclude CCM SRAM from the heap"
-	depends on STM32_STM32F20XX || STM32_STM32F40XX
+	depends on STM32_STM32F20XX || STM32_STM32F40XX || STM32_STM32F30XX
 	default y if  ARCH_DMA || ELF
 	---help---
 		Exclude CCM SRAM from the HEAP because (1) it cannot be used for DMA
@@ -2202,6 +2203,60 @@ config STM32_TIM14_DAC2
 
 endchoice
 
+menu "DAC Configuration"
+	depends on STM32_DAC1 || STM32_DAC2
+
+config STM32_DAC1_DMA
+	bool "DAC1 DMA"
+	depends on STM32_DAC1
+	default n
+	---help---
+		If DMA is selected, then a timer and output frequency must also be
+		provided to support the DMA transfer.  The DMA transfer could be
+		supported by and EXTI trigger, but this feature is not currently
+		supported by the driver.
+
+if STM32_DAC1_DMA
+
+config STM32_DAC1_TIMER
+	int "DAC1 timer"
+	range 2 7
+
+config STM32_DAC1_TIMER_FREQUENCY
+	int "DAC1 timer frequency"
+	default 0
+
+endif
+
+config STM32_DAC2_DMA
+	bool "DAC2 DMA"
+	depends on STM32_DAC2
+	default n
+	---help---
+		If DMA is selected, then a timer and output frequency must also be
+		provided to support the DMA transfer.  The DMA transfer could be
+		supported by and EXTI trigger, but this feature is not currently
+		supported by the driver.
+
+if STM32_DAC2_DMA
+
+config STM32_DAC2_TIMER
+	int "DAC2 timer"
+	default 0
+	range 2 7
+
+config STM32_DAC2_TIMER_FREQUENCY
+	int "DAC2 timer frequency"
+	default 0
+
+endif
+
+config STM32_DAC_DMA_BUFFER_SIZE
+	int "DAC DMA buffer size"
+	default 256
+
+endmenu
+
 config STM32_USART
 	bool
 
@@ -2424,7 +2479,7 @@ config SERIAL_DISABLE_REORDERING
 	---help---
 		NuttX per default reorders the serial ports (/dev/ttySx) so that the
 		console is always on /dev/ttyS0. If more than one UART is in use this
-		can have however the side-effect that all port mappings
+		can, however, have the side-effect that all port mappings
 		(hardware USART1 -> /dev/ttyS0) change if the console is moved to another
 		UART. This is in particular relevant if a project uses the USB console
 		in some configs and a serial console in other configs, but does not
@@ -2528,6 +2583,21 @@ config SDIO_WIDTH_D1_ONLY
 	default n
 	---help---
 		Select 1-bit transfer mode.  Default: 4-bit transfer mode.
+
+endmenu
+
+menu "CAN Configuration"
+	depends on STM32_CAN
+
+config CAN1_BAUD
+	int "Baud rate for CAN1"
+	default 250000
+	depends on STM32_CAN1
+
+config CAN2_BAUD
+	int "Baud rate for CAN2"
+	default 250000
+	depends on STM32_CAN2
 
 endmenu
 
@@ -2812,22 +2882,3 @@ config STM32_USB_ITRMP
 		either retain the legacy F1 behavior or to map the USB interupts to
 		there own dedicated vectors.  The option is available only for the
 		F3 family and selects the use of the dedicated USB interrupts.
-
-menu "CAN driver configuration"
-	depends on STM32_CAN1 || STM32_CAN2
-
-config CAN1_BAUD
-        int "CAN1 BAUD"
-        default 250000
-        depends on STM32_CAN1
-        ---help---
-                CAN1 BAUD rate.  Required if STM32_CAN1 is defined.
-
-config CAN2_BAUD
-        int "CAN2 BAUD"
-        default 250000
-        depends on STM32_CAN2
-        ---help---
-                CAN2 BAUD rate.  Required if STM32_CAN2 is defined.
-
-endmenu

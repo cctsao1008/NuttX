@@ -1,6 +1,5 @@
 .depend
 Make.dep
-.DS_Store
 *.o
 *.a
 *.d

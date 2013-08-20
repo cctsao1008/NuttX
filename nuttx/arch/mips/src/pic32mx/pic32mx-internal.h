@@ -47,7 +47,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <nuttx/spi.h>
+#include <nuttx/spi/spi.h>
 
 #include "up_internal.h"
 #include "chip.h"
@@ -390,7 +390,7 @@ EXTERN void pic32mx_dumpgpio(uint32_t pinset, const char *msg);
  * Description:
  *   These external functions must be provided by board-specific logic.  They are
  *   implementations of the select, status, and cmddata methods of the SPI interface
- *   defined by struct spi_ops_s (see include/nuttx/spi.h). All other methods
+ *   defined by struct spi_ops_s (see include/nuttx/spi/spi.h). All other methods
  *   including up_spiinitialize()) are provided by common PIC32MX logic.  To use
  *   this common SPI logic on your board:
  *
@@ -453,7 +453,6 @@ EXTERN int pic32mx_spi3cmddata(FAR struct spi_dev_s *dev, enum spi_dev_e devid,
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_dmainitialize
  *
  * Description:
@@ -464,13 +463,11 @@ EXTERN int pic32mx_spi3cmddata(FAR struct spi_dev_s *dev, enum spi_dev_e devid,
  *
  ************************************************************************************/
 
-
 #ifdef CONFIG_PIC32MX_DMA
 EXTERN void pic32mx_dmainitilaize(void);
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_dmachannel
  *
  * Description:
@@ -484,13 +481,11 @@ EXTERN void pic32mx_dmainitilaize(void);
  *
  ************************************************************************************/
 
-
 #ifdef CONFIG_PIC32MX_DMA
 EXTERN DMA_HANDLE pic32mx_dmachannel(void);
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_dmafree
  *
  * Description:
@@ -502,20 +497,17 @@ EXTERN DMA_HANDLE pic32mx_dmachannel(void);
  *
  ************************************************************************************/
 
-
 #ifdef CONFIG_PIC32MX_DMA
 EXTERN void pic32mx_dmafree(DMA_HANDLE handle);
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_dmasetup
  *
  * Description:
  *   Configure DMA for one transfer.
  *
  ************************************************************************************/
-
 
 #ifdef CONFIG_PIC32MX_DMA
 EXTERN int pic32mx_dmarxsetup(DMA_HANDLE handle,
@@ -525,7 +517,6 @@ EXTERN int pic32mx_dmarxsetup(DMA_HANDLE handle,
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_dmastart
  *
  * Description:
@@ -533,13 +524,11 @@ EXTERN int pic32mx_dmarxsetup(DMA_HANDLE handle,
  *
  ************************************************************************************/
 
-
 #ifdef CONFIG_PIC32MX_DMA
 EXTERN int pic32mx_dmastart(DMA_HANDLE handle, dma_callback_t callback, void *arg);
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_dmastop
  *
  * Description:
@@ -549,20 +538,17 @@ EXTERN int pic32mx_dmastart(DMA_HANDLE handle, dma_callback_t callback, void *ar
  *
  ************************************************************************************/
 
-
 #ifdef CONFIG_PIC32MX_DMA
 EXTERN void pic32mx_dmastop(DMA_HANDLE handle);
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_dmasample
  *
  * Description:
  *   Sample DMA register contents
  *
  ************************************************************************************/
-
 
 #ifdef CONFIG_PIC32MX_DMA
 #ifdef CONFIG_DEBUG_DMA
@@ -573,14 +559,12 @@ EXTERN void pic32mx_dmasample(DMA_HANDLE handle, struct pic32mx_dmaregs_s *regs)
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_dmadump
  *
  * Description:
  *   Dump previously sampled DMA register contents
  *
  ************************************************************************************/
-
 
 #ifdef CONFIG_PIC32MX_DMA
 #ifdef CONFIG_DEBUG_DMA
@@ -592,7 +576,6 @@ EXTERN void pic32mx_dmadump(DMA_HANDLE handle, const struct pic32mx_dmaregs_s *r
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_usbpullup
  *
  * Description:
@@ -604,14 +587,12 @@ EXTERN void pic32mx_dmadump(DMA_HANDLE handle, const struct pic32mx_dmaregs_s *r
  *
  ************************************************************************************/
 
-
 #ifdef CONFIG_PIC32MX_USBDEV
 struct usbdev_s;
 EXTERN int pic32mx_usbpullup(FAR struct usbdev_s *dev,  bool enable);
 #endif
 
 /************************************************************************************
-
  * Name: pic32mx_usbsuspend
  *
  * Description:
@@ -621,7 +602,6 @@ EXTERN int pic32mx_usbpullup(FAR struct usbdev_s *dev,  bool enable);
  *   the USB is suspended.
  *
  ************************************************************************************/
-
 
 #ifdef CONFIG_PIC32MX_USBDEV
 EXTERN void pic32mx_usbsuspend(FAR struct usbdev_s *dev, bool resume);
@@ -636,7 +616,6 @@ EXTERN void pic32mx_usbsuspend(FAR struct usbdev_s *dev, bool resume);
  *   calling one of these functions.
  *
  ************************************************************************************/
-
 
 #ifdef CONFIG_PIC32MX_USBDEV
 EXTERN void pic32mx_usbattach(void);

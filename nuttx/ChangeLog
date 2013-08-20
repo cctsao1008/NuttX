@@ -4636,7 +4636,7 @@
 	  out of task_delete.c into its own C file.  This should prevent
 	  dragging task_delete() into the link when it is never called.
 
-6.28 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+6.28 2013-06-14 Gregory Nutt <gnutt@nuttx.org>
 
 	* arch/arm/src/lpc17xx/lpc17_i2c.c:  Interrupts were not being
 	  re-enabled in the I2C intialization function (2013-4-30).
@@ -4652,7 +4652,7 @@
 	  partitions (2013-4-30).
 	* configs/sim/mkroe-stm32f4:  Support for the MikroElektronika
 	  Mikromedia for STM32F4 development board (from Ken Pettit, 2013-4-30).
-	* fs/smartfs:  Add Ken Pettits SMART FS (2013-4-30).
+	* fs/smartfs:  Add Ken Pettit SMART FS (2013-4-30).
 	* include/nuttx/mtd.h and most MTD drivers:  Add support for
 	  (optional) method to perform byte oriented writes if so configured
 	  (2013-5-1).
@@ -4661,7 +4661,7 @@
 	  (2013-5-2).
 	* drivers/mtd/mtd_partition.c:  Fix a few bugs and add support for the
 	  (option) byte write method (2013-5-3).
-	* arch/arm/src/kl:  Repartitioning of definitions in headef files
+	* arch/arm/src/kl:  Repartitioning of definitions in header files
 	  from Alan Carvalho de Assis (2013-5-3).
 	* drivers/mtd/smart.c, fs/smart, and other files:  SMART file system
 	  now makes use of the MTD byte write capabilities when present (from
@@ -4688,7 +4688,7 @@
 	  to prevent the debug session from begin disconnected.  From Ken Pettit
 	  (2013-5-7).
 	* configs/mikroe-stm32f4/fulldemo/, nx/, nxlines/, nxtext/:  Add more
-	  configurationsf for the Mikroelektronika Multimedia STM32-M4 board.
+	  configurations for the Mikroelektronika Multimedia STM32-M4 board.
 	  From Ken Pettit (2013-5-7).
 	* configs/mikroe-stm32f4/src/up_mio283qt2.c and other files:  Integrate the
 	  MIO283QT2 display on the Mikroelektronika Multimedia STM32-M4 board.
@@ -4746,7 +4746,7 @@
 	* include/nuttx/usb/audio.h:  Typo- and bug-fixes from Ken Pettit
 	  (2013-5-19)
 	* audio/, drivers/audio, include/nuttx/audio.h:  Add a new audio subsystem
-	  and jVS1053 driver to NuttX.  Contributed by Ken Pettit (2013-5-19).
+	  and VS1053 driver to NuttX.  Contributed by Ken Pettit (2013-5-19).
 	* configs/miroe-stm32f4/:  Add audio logic to NSH configuration.  From Ken
 	  Petty (2013-5-19).
 	* nuttx/arch/arm/src/lm/chip/lm_flash.h and nuttx/arch/arm/src/lm/lm_flash.c:
@@ -4759,7 +4759,7 @@
 	* arch/arm/src/stm32/chip/stm32_lcd.h: Add definitions for STM32L15X
 	  segment LCD (2013-5-21).
 	* configs/lm3s6965-ek/discover: Add an example configuration for UDP
-	  discovery tool on the lm3s6965-ek board.  From Max Holtberg
+	  discovery tool on the lm3s6965-ek board.  From Max Holtzberg
 	  (2013-5-21).
 	* audio/, drivers/audio, include/nuttx/audio:  Added a callback interface
 	  to the Audio upperhalf driver for dequeueing, reporting async events,
@@ -4774,12 +4774,12 @@
 	  STM32L-Discovery's segment LCD (2013-5-22).
 	* fs/fs_poll.c:  Poll setup/teardown logic should ignore invalid (i.e.,
 	  negative) file descriptors.  Max Holtzberg (2013-5-23).
-	* net/net_poll.c: When readahead data is availalbe, the network poll
+	* net/net_poll.c: When readahead data is available, the network poll
 	  logic should set POLLIN (or POLLRDNORM), not POLLOUT.  Max Holtzberg
 	  (2013-5-23)
 	* fs/fs_poll.c:  Actually, it should also set revents == 0. (2013-5-23).
 	* libc/misc/lib_slcdencode.c and lib_slcddecode.c:  Add logic to marshal
-	  and serialized special SLCD intermixed with normal ASCII data (2013-5-23)
+	  and serialize special SLCD intermixed with normal ASCII data (2013-5-23)
 	* configs/stm32ldiscovery/src/stm32_lcd.c:  STM32L-Discovery's segment LCD
 	  is code complete but completely untested (2013-5-23).
 	* include/nuttx/fs/ioctl.h, include/nuttx/lcd/slcd_codec.h, and
@@ -4827,7 +4827,7 @@
 	  and src/stm32/chip/stm32f103c_pinmap.h: STM32F103C4 and F103C8 chip
 	  support from Laurent Latil (2013-5-28)
 	* configs/stm32_tiny: Add support for the STM32 Tiny development board
-	  based on th STM32 F103C8T6 MCU (2013-5-28).
+	  based on the STM32 F103C8T6 MCU (2013-5-28).
 	* arch/arm/src/stm32/stm32_usbdev.c:  Fix an error in NULL packet
 	  handling:  If the NULL-packet needed flag ever gets set, then
 	  it is not cleared and inifinite NULL packets result.  This only
@@ -4962,3 +4962,462 @@
 	* arch/arm/src/sam34/sam_periphclks.h:  A header file that just
 	  includes the right header file.  This cleans up the messy logic
 	  in all of the C files and puts the mess in one place (2013-6-12).
+	* arch/arm/src/arm*/Toolchain.mk, Kconfig (and lots of configuration
+	  files):  Add support for a generic Windows EABI toolchain (2013-6-13).
+
+6.29 2013-07-31 Gregory Nutt <gnutt@nuttx.org>
+
+	* arch/arm/src/sam34/chip/sam4l_pinmap.h: Change naming of some pin
+	  configurations to match names used with other SAM part (2013-6-15).
+	* arch/arm/src/sam34/sam4l_clockconfig.c: Corrected some typos
+	  (2013-6-15).
+	* configs/sam4l-xplained/src/sam_buttons.c: Eliminate a warning
+	  (2013-6-15).
+	* configs/sam4l-xplained/src/sam_mmcsd.c, sam_nsh.c, sam_spi.c,
+	  sam3u-ek.h, Kconfig, Makefile, sam4l-xplained.h,
+	  configs/sam4l-xplained/README.txt, and
+	  configs/sam4l-xplained/include/board.h:  Add support for the SPI-
+	  based SD card on the I/O1 module (2013-6-15).
+	* arch/arm/src/sam34/sam_spi.c:  Re-architect the SAM3/4 SPI driver
+	  so that is it compatible with the SPI drivers of other MCUs
+	  (2013-6-16).
+	* configs/sam3u-ek/src/up_touchscreen.c and configs/sam4l-xplained/src/sam_mmcsd.c:
+	  Changed needed because of the above change the the SAM3/4 SPI
+	  interface (2013-6-16).
+	* drivers/input/ads7843e.c:  Remove the wait for the touchscreen busy
+	  bit.  I don't see the busy bit changing on the SAM3U-EK board.  But
+	  maybe it is not supposed to.  From my reading of the ADS7843 spec, it
+	  would not be appropriate to wait for the BUSY bit to de-asserted
+	  anyway (since it is only de-asserted when we read the data)
+	  (2013-6-16).
+	* configs/sam3u-ek/src/up_touchscreen.c: Fix polarity of the /PENIRQ
+	  signal (it is active low) (2013-6-16).
+	* configs/sam3u-ek/include/board.h:  The SAM3U-EK board now runs at
+	  96MHz.  This might have broken some things? (2013-6-17).
+	* drivers/mmcsd/mmcsd-spi.c:  Driver need to make sure that the SPI mode
+	  and data width are correct (2013-6-17).
+	* arch/arm/src/kinetis/kinetis_tsi.h:  Corrections to the Kinetis
+	  (2013-6-18)
+	* arch/arm/src/sam34/sam_spi.c:  Fix SPI mode setting.  In the SAM3/4
+	  family, the clock phase control (CPHA) is inverted (NPHA) (2013-6-18).
+	* arch/arm/src/kl/chip/kl_tsi.h: Freescale KL25Z TSI register
+	  definitions from Alan Carvalho de Assis (2013-6-18).
+	* configs/freedom-kl25z/src/kl_tsi.c:  Example TSI driver for the
+	  Freedom KL25Z board from Alan Carvalho de Assis (2013-6-18).
+	* arch/arm/src/sam34/sam_spi.c:  Correct an incorrect pointer test.
+	  Was checking if the wrong pointer was NULL (2013-6-18).
+	* arch/arm/src/kl/kl_spi.c and chip/kl_spi.h:  Add SPI driver and
+	  register definitions for the Freescale KL25Z (2013-6-19).
+	* arm/src/sam34/chip/sam4l_lcdca.h:  Register definition file for
+	  the SAM4L LCD peripheral (2013-6-19).
+	* arm/src/sam34/chip/sam_spi.h:  SPI register definition file updated
+	  to include a few differences for the SAM4L (2013-6-19)
+	* arm/src/sam34/chip/sam4l_pdca.h: Add SAM4L PDCA register definition
+	  file; also renamed sam_dmac.* files to sam3u_dmac.* to identify
+	  them as SAM4U/4S only files (2013-6-19).
+	* configs/freedom-lk25z/src/kl_spi.c:  Add the framework for
+	  controlling SPI-related discrete inputs and outputs.  Taken from
+	  work by Alan Carvalho de Assis (2013-6-20).
+	* arch/arm/src/kl/kl_dumpgpio.c:  Now compiles (2013-6-20).
+	* configs/:  Several defconfig files were changed that had
+	  CONFIG_HAVE_CXXINITIALIZE=y.  Because of recent changes to
+	  apps/examples, these configurations may need to have
+	  CONFIG_EXAMPLES_NSH_CXXINITIALIZE=y so that they behave as they did
+	  before, i.e., so that C++ initializers will be called when NSH starts
+	  up (2013-6-21).
+	* configs/sam4l-xplained/src/sam_slcd.c:  Beginning of a driver for the
+	  LED1 segment LCD module.  This driver is incomplete on initial check-
+	  in (2013-6-21).
+	* drivers/net/enc28j60.c:  Change buffer ordering to work around Errata
+	  #5.  From Dave (ziggurat29, 2013-6-22).
+	* configs/sam4l-xplained/src/sam_slcd.c:  LED1 segment LCD module is now
+	  functional (2013-6-23).
+	* drivers/lcd/ssd1306.c and include/nuttx/lcd/ssd1306.h.  Renamed
+	  ug-2864hsweg01.c and .h to ssd1306.c and .h.  Extended to support the
+	  UG-2832HSWEG04 which is very similar and also based on the SSD1306
+	  controller (2013-6-23).
+	* configs/sam4l-xplained/src/sam_ug2832hsweg04.c: Add support for the
+	  UG-2832HSWEG04 OLED on the SAM4L Xplained Pro's OLED1 module
+	  (2013-6-23).
+	* include/debug.h:  Added macro DEBUGPANIC for forces crashes when debug
+	  is enabled.
+	* drivers/lcd/ssd1306.c:  Driver now appears to be function for the
+	  UG-2832HSWEG04 in landscape mode (2013-6-24).
+	* drivers/lcd/ug-2864ambag01.c and ug-9664hswag01.c:  Add/updated
+	  support for reverse portrait mode from lessons learned with the
+	  UG-2832HSWEG04.  Untested changes! (2013-6-24).
+	* arch/arm/src/stm32/stm32_ccm.c and .h:  Add support for a seperate CCM
+	  heap.  This may be useful for segregating allocations for CCM (which
+	  cannot be used for DMA) from other allocations (that may be used used
+	  for DMA) (2013-6-25).
+	* arch/arm/src/sam32/sam3u_gpio.h:  Correct configuration of PIO pins
+	  for SAM4S B and C peripherals (2013-6-26)
+	* configs/sam4s-xplained/src/sam_sram.c:  Added support for on-board
+	  1MB SRAM (2013-6-26).
+	* arch/arm/include/sam34/chip.h and sam3x_irq.h:  Add support for
+	  SAM3X and SAM3A chips (2013-6-26).
+	* arch/arm/src/sam34/chip/sam3x_vectors.h:  Add support for SAM3X/3A
+	  interrupt vectors (2013-6-26).
+	* arch/arm/src/sam34/sam3x_periphclks.h:  Add peripheral clock
+	  controls for the SAM3X/3A (2013-6-26).
+	* arch/arm/src/sam34/chip/sam3x_memorymap.h:  Add SAM3X/3A memory map
+	  (2013-6-26).
+	* arch/arm/src/sam34/chip/sam3x_pinmap.h:  Add SAM3X/3A pin
+	  multi-plexing definitions (2013-6-26).
+	* arch/arm/src/sam34/sam3x_gpio.h:  Add SAM3X/3A gpio encoding
+	  macros.  These differ from the SAM3U only in because of the
+	  6 PIOs:  PIOA-PIOF (2013-6-26).
+	* configs/arduino-due:  This is an empty directory now with only
+	  a README file in it but this directory will eventually hold a port
+	  for the Arduino Due (2013-6-26).
+	* arch/arm/src/sam34/Kconfig:  Add SAM3X/3A peripherals to the SAM3/4
+	  configuration logic (2013-6-26).
+	* arch/arm/src and include/ and configs/sam*/:  Large rename of all
+	  references to SPI with SPI0.  This is because all other SAMs have
+	  only SPI but the 3X/3A have SPI0 and SPI1 (2013-6-26).
+	* configs/arduino-due:  Complete the basic board configuration and
+	  integrate this into the configuration and build system.  The Arduino
+	  Due is now ready to begin test (2013-6-17).
+	* configs/arduino-due/nsh:  Add an NSH configuration for the Arduino
+	  Due.  Both the OS test and NSH configuration are now functional
+	  (2013-6-28).
+	* configs/arduino-due/src:  Add support for the "L" LED (2013-6-28).
+	* arch/arm/src/sam34/sam_allocateheap.c:  Clocking must be applied
+	  to the SMC module for the 3X and 3A family in order for the NFC
+	  SRAM to be functional (2013-6-28).
+	* arch/arm/src/sam34/sam3u_gpio.c:  Need to disable write
+	  protection before configuring PIO pins.
+	* configs/sam3u-ek/nsh:  The touchscreen is now functional.  The above
+	  fix to the sam3u_gpio.c write protection also fixed the touchscreen
+	  problem (2013-6-28).
+	* confgis/sam3u_ek/nxwm:  Created a configuration for the NxWM
+	  window manager for the SAM3U-EK board (2013-6-29).
+	* drivers/spi and include/nuttx/spi:  New sub-directories to hold
+	  SPI-related files.  includes/nuttx/spi.h moved to include/nuttx/spi/.;
+	  SPI-related Kconfig info moved from drivers/Kconfig to drivers/spi/kconfig
+	  (2013-7-1).
+	* drivers/spi/spi_bitbang.c and include/nuttx/spi/spi_bitbang.h:  Add
+	  support for a generic bit-bang SPI driver.  This checkout is the
+	  common upper-half logic.  Still missing the lower half (2013-7-1).
+	* include/nuttx/spi/spi_bitbang.c:  This is the common lower-half bit-
+	  bang SPI logic (2013-7-1).
+	* configs/arduino-due/src/sam_nsh.c and sam_mmcsd.c:  Add NSH customize
+	  initialization.  If so configured, initialize the SPI bit bang
+	  interface to the MMC/SD slot on the ITEAD shield (2013-7-1).
+	* fs/fs_mount.c:  Fix compilation error if no file systems are enabled:
+	  Change error to ERROR (2013-7-3).
+	* arch/arm/src/sam34/sam_gpioirq.c:  Fix some errors for interrupts
+	  on ports D-F (2013-7-3).
+	* /drivers/usbdev/composite.c: Fix a typo in the composite device
+	  driver unitialization logic.  DEV1 should be DEV2 in one case
+	  (2013-7-4).
+	* arch/arm/src/sam34/sam3u_gpio.c:  sam_configgpio() must protect
+	  against re-entrancy (2013-7-5).
+	* libc/misc/lib_crc16.c and include/crc16.h:  Add CRC16 support
+	  (2013-7-7).
+	* arch/arm/src/stm32/stm32_otgfsdev.c:  SourceForge bug #16:  Fix
+	  to the endpoint allocation logic.  Apparently the same endpoint can
+	  be allocated as both an IN or an OUT endpoint.  The existing
+	  implementation only supported one allocation, either IN or OUT.  This
+	  resulted in failures to allocate enpoints when used with the CDC/ACM +
+	  MSC composite driver (From Chia Cheng Tsao, 2013-7-8).
+	* arch/arm/src/stm32/stm32_sdio.c:  SourceForge bug #17:  Add
+	  support for the data block end (DBCKEND) interrupt to terminate
+	  transfers (From Chia Cheng Tsao, 2013-7-8)
+	* drivers/rwbuffer.c: SourceForge bug #17: Correct typos that can cause
+	  failures in some configurations (From Chia Cheng Tsao, 2013-7-8).
+	* include/nuttx/usb/usbdev.h: Fix some typos that cause compiler errors
+	  when CONFIG_USBDEV_DMA and CONFIG_USBDEV_DMAMEMORY are selected (From
+	  Chia Cheng Tsao, 2013-7-12).
+	* nuttx/configs/olimex-lpc1766stk/zmodem:  Add a new configuration to
+	  test the Zmodem sz and rz commands (which don't actually exist yet,
+	  but will). (2013-7-12).
+	* arch/arm/include/armv7-a and src/armv7-a:  Beginning to add support
+	  for the ARMv7-A, the Cortex-A5 in particular.  The initial checkin
+	  is only fragmentary:  A few header files and some copied ARM9
+	  assembly files.  More to come (2013-7-18).
+	* arch/arm/include/sama5, arch/arm/src/sama5, and configs/sama5d3x-e:
+	  Add a directory framework to support the Atmel AT91SAMA5D3 family and
+	  the SAMA5D3x-EK board(s) in particular.  There is very little here on
+	  the first check-in, this structure is being used now primarily to
+	  create the Cortex-A5 support (2013-7-19).
+	* arch/arm/src/armv7-a/arm_cache.S:  Cortex-A5 cache operations
+	  (2013-7-20).
+	* /arch/arm/src/armv7-a/arm_fpuconfig.S and fpu.h: A few more files for
+	  the ARMv7-A/Cortex-A5 port (2013-7-21).
+	* arch/arm/src/sama5/sam_boot.c, sam_clockconfig.h, sam_lowputc.h, and
+	  sam_timerisr.c:  A few  more files for the SAMA5D3 port (2013-7-21).
+	* configs/sama5d3x-ek/src/sam_autoleds.c:  A few more files for the port
+	  to the SAMA5D3x-EK board (2013-7-21).
+	* arch/arm/src/sama5/sam_irq.c: SAMA5 interrupt handling logic
+	  (2013-7-22).
+	* arch/arm/src/sama5/sam_clockconfig.c:  Add SAMA5 PLL configuration
+	  logic (plus associated header files).  Initiali checkin is for the
+	  SAM3U which is very similar but needs to be verified (2013-7-22).
+	* arch/arm/src/sama5/sam_periphclks.h:  Add macros to enable and
+	  disable SAMA5 peripheral clocks (2013-7-22).
+	* arch/arm/src/sama5/sam_lowputc.c and sam_serial.c:  Add support
+	  for SAMA5 UARTs.  Does not even compile as of initial checkin.
+	  (2013-7-22).
+	* arch/arm/src/sama5/sam_gpio.c:  Add GPIO configuration support
+	  for the SAMA5.  Still compilation issues.  (2013-7-22).
+	* arch/arm/src/sama5/chip/sama5d3x_pinmap.h:  Add pin multiplexing
+	  definitions for the SAMA5D3 (2013-7-23).
+	* arch/arm/src/sama5/chip/:  New header files for SAMA5 AXI Matrix
+	  SFR, and BSC blocks (2013-7-23).
+	* arch/arm/src/armv7-a/arm_vectors.S:  Force 8-byte stack alignment
+	  in interrupt handlers before calling C code.  Other ARM
+	  architectures need to do this as well (2013-7-23).
+	* arm/src/armv7-m/up_copyarmstate.c and armv7-a/up_copyarmstate.c:
+	  Added a new form of the register copy function that should save quit a
+	  bit of time for armv7-m (without common vectors) and with armv7-a
+	  (2013-7-23).
+	* arch/arm/src/armv7-a/arm_restorefpu.S, arm_savefpu.S, arm_doirq.c,
+	  arm_fullcontextrestore.S, arm_saveusercontext.S:  Add hardware
+	  floating point register save/restore logic for the Cortex-A5\
+	  (2013-7-23).
+	* arch/Kconfig:  Attempt at generic external memory configuration is not
+	  flexible enough, especially for the SAMA5.  Move external memory
+	  configuration options from arch/Kconfig to
+	  arch/arm/src/lpc17xx/Kconfig, lpc31xx/Kconfig, sam34/Kconfig, and
+	  sama5/Kconfig and renamed each from CONFIG_ARCH_ to, for example,
+	  CONFIG_LPC31_.  This renaming also affect many defconfig files
+	  (2013-7-24).
+	* arch/arm/src/sama5/Kconfig and sam_allocateheap.c:  Set up
+	  configuration options for SAMA5 external memory regions; add a custom
+	  sam_allocateheap.c to add the various configured memory regions to the
+	  heap (2013-7-24).
+	* configs/sama5d3x-ek/src/sam_buttons.c, sam_userleds.c, and
+	  sam_autoleds.c:  Add support for the buttons and LEDs on-board the
+	  SAMA5D3x-EK (2013-7-24).
+	* configs/sama5d3x-ek/ostest/defconfig:  Switch console to USART1
+	  (2013-7-4).
+	* arch/arm/src/sam34/Kconfig and drivers/serial/Kconfig:  All serial
+	  configuration logic for USARTs needs to depend on if the USART is
+	  configured as a UART or not.  And this is for all CPUS, not just
+	  SAM3/4 (2013-7-24).
+	* arch/arm/src/arm/up_head.S and arch/arm/src/armv7-a/arm_head.S:
+	  Fix a bug (uninitialized register error) that crept in the ARM9
+	  boot-up code several years ago and was cloned into the Cortex-A5
+	  code.  Obviously no one has used the ARM9 NuttX port for years!
+	* Many files:  Finally... I changed the naming of configuration
+	  variables like CONFIG_DRAM_ to CONFIG_RAM_.  This has bothered
+	  me for a long time since most boards don't have DRAM.  The more
+	  generic RAM naming should not produce so much cognitive dissonance
+	  (2013-7-26).
+	* configs/sama5d3x-ek/hello:  Added a tiny hello world configuration
+	  to simplify bring up of the SAMA5 (it will probably be removed
+	  later) (2013-7-26).
+	* The sama5d3x-ek/hello now runs correctly (2013-7-28).
+	* configs/sama5d3x-ek/ostest/:  This configuration has been modified
+	  to run out NOR flash.  More work is still needed to reconfigure the
+	  SMC so the the NOR flash can work with the high clock (2013-7-28).
+	* arch/arm/src/sama5/sam_clockconfig.c/h and
+	  configs/sama5d3x-ek/src/sam_norflash.c:  Add a file structure that
+	  will (eventually) support reconfiguration of NOR flash when NuttX
+	  boots from NOR FLASH (2013-7-29).
+	* arch/arm/src/sama5/chip/sam_hsmc/h:  SAMA5 HSMC register
+	  defintion file (2013-7-29)
+	* configs/sama5d3x-ek/src/sam_norflash.c:  Add board specific
+	  logic to re-configure the SAMA5D3x-EK NOR FLASH before while
+	  running out of NOR FLASH.  We need to change the NOR FLASH
+	  timing BEFORE increasing the main clock (2013-7-29).
+	* configs/sama5d3-ek/norboot and src/nor_main.c:  The norboot
+	  configuration to help debug NuttX in NOR flash.  It runs
+	  out of ISRAM, configures NOR FLASH, then waits for you to
+	  break in with a debugger to start the program in NOR FLASH
+	  (2013-7-29).
+	* arch/arm/src/armv7-a/arm_cache.S:  Separate the bigger cache
+	  operations into separater files (2013-7-29).
+	* arch/arm/src/stm32/stm32_dac.c:  Fixed numerous DAC driver
+	  errors and added support for DAC DMA (contributed by John
+	  Wharington, 2013-7-30).
+	* arch/arm/src/stm32/stm32f30xx_i2c.c:  An I2C driver for
+	  the STM32 F3 family from John Wharington (2013-7-30).
+	* arch/arm/include/armv7-m:  Add irqdisable() (2013-7-30);
+	* configs/sama5d3-ek/src/nor_main.c:  Now disables interrupts
+	  before jumping to NOR flash (2013-7-30).
+	* configs/sama5d3-ek/nsh:  Add an NSH configuration for the
+	  SAMA5D3x-EK (2013-7-31)
+	* configs/sama5d3-ek/src/sam_cxxinitialize.c:  Add C++ support
+	  (2013-7-31).
+
+6.30 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+
+	* arch/arm/src/sama5/arm_pghead.S:  Separate the logic that is
+	  enabled by CONFIG_PAGING out of arm_head.S.  That was just
+	  too much conditional compilation to be supportable
+	  (2013-8-1).
+	* arch/arm/src/sama5/arm_head.S: Setup page table mappings for
+	  all of .text, .bss, .data, stacks and heap before enabling
+	  the MMU and caching.  This is safer because it avoids the
+	  caching issues (and much less redundant) (2013-8-1)
+	* arch/arm/src/sama5/chip/sam_mpddrc.h:  Add DDR controller
+	  registers definitions for the SAMA5 (2013-8-1).
+	* nuttx/configs/sama5d3x-ek/src/sam_sdram.c:  Add logic which
+	  will (eventually) support the SDRAM on the SAMA5D3x-EK
+	  board.  Initial commit is untested and incomplete (2013-8-1).
+	* arch/arm/src/armv7-a/arm_mmu.c:  Move some generic MMU logic
+	  out of SAMA5-specific code into this share-able file (2013-8-2)
+	* arch/arm/src/armv7-a/mmu.h:  Add inline functions to invalidate
+	  a single TLB.
+	* arch/arm/src/sama5/sam_allocateheap.c and chip/sama5d3x_memorymap.h:
+	  Add logic to handle signed overflow when a memory region is
+	  greater than or equal to 2GB (2013-8-2).
+	* arch/arm/src/sama5/sam_boot.c:  Boot logic now initially
+	  configures DRAM as strongly ordered so that it can be initialized.
+	  After initialization, the page table entries are modified so
+	  that DRAM is fully cache-able (2018-8-2).
+	* arch/arm/src/sama5/chip/sam_mpddrc.h:  Correct typos in the
+	  SAMA5 DDR controller register definitions (2013-8-2).
+	* arch/arm/src/sama5/sam_irq.c:  Correct handling of spurious
+	  interrupts (2013-8-3).
+	* arch/*/src/*/*_irq.c:  Standardize configuration variables used
+	  to enable interrupt controller debug output (2013-8-3).
+	* arch/arm/src/sama5/chip/sam_dmac.h: Add register definitions for the
+	  SAMA5 DMA controller (2013-8-3).
+	* arch/arm/src/sama5/sam_dmac.c and sam_dmac.h:  Add support for the
+	  SAMA5 DMAC controllers.  Initial check-in is untested and is a
+	  straight leverage from the SAM3/4 (2013-8-4).
+	* arch/arm/src/sama5/sam_spi.c, sam_spi.h, and chip/sam_spi.h:
+	  Leverage SPI support from SAM/3/4.  Initial check-in is untested
+	  and have several limitations:  No DMA, no SPI1 support (2013-8-4).
+	* arch/arm/src/sama5/sam_spi.c and sam_spi.h:  Now supports SPI1
+	  and a register access debug option (2013-8-4).
+	* configs/sama5d3x-ek/src/sam_spi.c:  Add board support for the
+	  AT25 serial flash (2013-8-4).
+	* configs/sama5d3x-ek/nsh/defconfig:  FAT file system support is
+	  now enabled by default (2013-8-5)
+	* confgis/sama5d3x-ek/src/sam_nsh.c:  Automatically mount AT25
+	  file system for NSH if so configured (2013-8-5).
+	* confgis/sama5d3x-ek/src/sam_nsh.c:  Verified that the AT25 FLASH
+	  works on the SAMA5D3x-EK boards and can support a FAT file system
+	  (2013-8-5).
+	* arch/arm/src/sam34/sam_spi.c:  Corrected an error in the SAM3/4
+	  SPI driver while testing the SAMA5 SPI driver:  If CONFIG_SPI_OWNBUS
+	  is not set, the driver will not configure the SPI mode correctly
+	  (2013-8-5).
+	* configs/sama5d3x-ek/src/sam_at25.c: Move AT25 initialization logic
+	  out of sam_nsh.c and into a separate file where it can be better
+	  shared (2013-8-5).
+	* arch/arm/src/sama5/sam_hsmci.c, sam_hsmci.h, and chip.sam_hsmci.h:
+	  Add register definitions and a driver for the (3) HSMCI memory card
+	  interfaces provided by the SAMA5.  Leveraged from the SAM3/4 and
+	  untested on initial commit (2013-8-5).
+	* nuttx/configs/sama5d3x-ek/src/sam_hsmci.c and sam_nsh.c:  Add support
+	  for the (2) SD card slots provided on the SAMA5D3x-EK boards.
+	  Untested on initial commit (2013-8-5).
+	* arch/arm/src/sama5 and nuttx/configs/sama5d3x-ek:  Massive renaming
+	  to get consistent once and for in the usage of PIO vs GPIO.  Other
+	  platforms use the term GPIO more, but Atmel prefers PIO.  I prefer
+	  consistency.  Also fixed CONFIG_PIO vs CONFIG_SAMA5_PIO and renamed
+	  files sam_gpio.* to sam_pio.* (2013-8-6).
+	* arch/arm/src/sama5/sam_pioirq.c:  Add support for SAMA5 PIO interrupts
+	  (2013-8-6).
+	* configs/sama5d3x-ek/src/sam_hsmci.c:  Add support for SD slot card
+	  detection PIO interrupts (2013-8-6).
+	* arch/arm/src/sam34/sam_hsmci.c and sama5/sam_hsmci.c:  Fix handling
+	  of some masked status conditions that can cause false-alarm errors
+	  (2013-8-6).
+	* arch/arm/src/sama5/sam_dmac.c and sam34/sam34_dmac.c:  For SAMA5,
+	  correct some bad register address and some bad assertions that caused
+	  false alarms.  These latter were backported to the SAM34 DMAC driver
+	  as well (2013-8-6).
+	* arch/arm/src/sama5/sam_dmac.c and sam34/sam34_dmac.c: Correct
+	  some parameters reversed in function call (2013-8-6).
+	* arch/arm/src/sama5/sam_spi.c:  The SAMA5 SPI driver now supports
+	  DMA transfers (2013-8-9).
+	* arch/arm/src/sama5/sam_dmac.c:  Finally after many bugfixes (the
+	  last being caching issues), the SAMA5 DMA support has been
+	  verified (with SPI) (2013-8-9).
+	* arch/arm/src/sama5/sam_memories.c and .h:  Centralize logic for
+	  conversions between physical and virtual addresses (2013-8-9).
+	* arch/arm/src/sama5/sam_hsmci.c and sam34/sam_hsmci.c:  Correct a
+	  race condition in the SAMA5 HSCMI driver:  The tranfer done
+	  interrupt was firing before the wait was started.  Fix this and
+	  also backported the changes to SAM3/4 (untested).  Now HSCMI is
+	  functional on the SAMA5 with DMA! (2013-8-10).
+	* arch/arm/src/sam34/sam3u_periphclks.h: Correct a typo in a register
+	  name (2013-8-10).
+	* drivers/mmcsd/mmcsd_sdio.c:  Correction for a bad return value
+	  when multiple block SDIO transfers are suppressed.  By Andrew Tridgell
+	  via Lorenz Meier (2013-8-10).
+	* drivers/serial/serial.c, drivers/usbdev/cdcacm.c, and
+	  include/nuttx/fs/ioctl.h: Added support for FIONREAD and FIONWRITE,
+	  added TERMIOS input / output processing support for UART and CDCACM
+	  serial ports. Implemented by Mike Smith, Andrew Tridgell and Lorenz
+	  Meier (2013-8-10).
+	* drivers/usbdev/cdcacm.c:  Added FIONREAD and FIONWRITE to CDC/ACM
+	  driver based on serial.c implementation. From Lorenz Meier
+	  (2013-8-10).
+	* arch/arm/src/stm32/Kconfig and stm32_serial.c:  Added option to
+	  disable serial port reordering.  From Lorenz Meier (2013-8-10).
+	* arch/arm/src/sama5/Kconfig, sam_ohci.c, and
+	  arch/arm/src/sama5/sam_clockconfig.c:  Add a OHCI driver for the SAMA5.
+	  Untested on initial check-in (2013-8-11).
+	* include/nuttx/usb/usbhost.h, arch/arm/src/stm32, arch/arm/src/lpc17xx,
+	  and include/nuttx/usb/usbhost.h, and nuttx/configs/<stm32-boards>:
+	  Move prototype of usbhost_initialize() of usbhost.h and into
+	  architecture specific files.  This is necessasrybecause some chips
+	  (like the SAMA5) have multiple, different USB host interfaces
+	  (2013-8-11).
+	* drivers/usbhost/usbhost_hidkbd.c and usbhost_storage.c:  Correct some
+	  compilation errors when pre-allocated class structures are used.  Also
+	  eliminate some warnings about uninitialized variables (2013-8-11).
+	* configs/sama5d3x-ek/src/sam_usb.c and related files:  Add support for
+	  initialization of the USB host and mass storage class device (2013-8-11).
+	* arch/arm/src/sama5/sam_ohci.c and sam_usbhost.h (was sam_ohci.h), and
+	  configs/sama5d3x-ek/src/sam_usb.c, and sama5d3x-ek.h:  Add controls
+	  to enable VBUS power in OHCI host most (2013-8-12).
+	* includes/nuttx/usb/usbhost.h, all USB host drivers in arch/, and all
+	  USB host-side connection monitoring threads in configs/*/src:  The
+	  SAMA5 has three downstream ports; all of the other USB host
+	  implementations have only one.  This will require significant changes
+	  to the USB host interfaces starting with these chnages to monitor
+	  connections on a port-by-port basis.  This effects a lot of files and
+	  more changes are coming for this issues.  Changes are being blindly
+	  incorporated into other architrectures.  I am being careful to avoid
+	  breakage, but I expect some (2013-8-12).
+	* configs/olimex-stm32-p107/nsh/defconfig and appconfig:  Converted to
+	  use the kconfig-frontends tool. From Max Holtzberg (2013-8-12).
+	* includes/nuttx/usb/usbhost.h, et al:  Continued changes to the USB
+	  host interface to support multiple downstream ports.  When a class
+	  is disconnected, it needs to provide the FunctionAddress to the
+	  USB HCD disconnect method so that the HCD will know which port
+	  is being disconnected (2013-8-12).
+	* nuttx/arch/arm/src/stm32/Kconfig, Make.defs, and /stm32f30xxx_i2c.c:
+	  STM32 F3 I2C fixes from John Wharington (2013-8-13).
+	* nuttx/arch/arm/src/sama5/sam_serial.c:  Fix a re-entrancy problem
+	  in up_putc().  I think all architectures have this re-entrancy
+	  than can result in serial interrupt being disabled, but I have only
+	  seen the symptom on SAMA5 (2013-8-13).
+	* includes/nuttx/usb/usbhost.h and many other affected files:  Separate
+	  wait() and enumerate() methods from struct usbhost_driver_s and move
+	  to new interface, struct usbhost_connection_s.  This is part of the
+	  necessary restructuring of the USB host interface to support multiple
+	  root hub ports (2013-8-13).
+	* arch/arm/src/sama5/sam_ohci.c:  Major restructuring of the driver due
+	  in order to handle multiple root hub ports.  Basically instead of one
+	  driver structure with an arrayof root hub port structures, there is no
+	  one container structure with an array of driver structures, one for
+	  each root hub port.  The advantage is that each class->driver call not
+	  passes information associated with the RHport implicitly.  The klugey,
+	  procedural alternative was to add the function address to every
+	  interface method (which I started to do but backed above) (2013-8-13).
+	* arch/arm/src/sama5/sam_memories.c and .h:  Extended logic so do
+	  conversions from physical to virtual addresses (2013-8-14).
+	* arch/arm/src/sama5/sam_ohci.c:  Add D cache contols and conversion
+	  between physical and virtual address (2013-8-14).
+	* arch/arm/src/stm32/stm32_spi.c:  nbits() interface extended to
+	  control bit order as well as bit width (from Teemu Pirinen)
+	  (2013-8-16)
+	* arch/arm/src/sama5/sam_ohci.c:  More to be tested, but the SAMA5
+	  OHCI driver is now basically funtional (2013-8-16).
+	* include/nuttx/usb/ehci.h:  EHCI header file (2013-8-17).
+	* arch/arm/src/stm32/stm32_i2c.c:  Correct an error that crept into
+	  the STM32 F1 I2C driver with some recent changes.  From Yiran Liao
+	  (2013-8-18).
+	* drivers/usbhost/usbhost_devaddr.c and include/nuttx/usb/usbhost_devaddr.h:
+	  Add logic for management of device addresses.  This logic does not
+	  currently hook into into anything.  It will someday be a part of the
+	  NuttX USB hub implementation (2013-8-18).

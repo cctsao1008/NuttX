@@ -358,8 +358,10 @@ static void stm32_txfe_enable(FAR struct stm32_usbhost_s *priv, int chidx);
 
 /* USB host controller operations **********************************************/
 
-static int stm32_wait(FAR struct usbhost_driver_s *drvr, bool connected);
-static int stm32_enumerate(FAR struct usbhost_driver_s *drvr);
+static int stm32_wait(FAR struct usbhost_connection_s *conn,
+                      FAR const bool *connected);
+static int stm32_enumerate(FAR struct usbhost_connection_s *conn, int rhpndx);
+
 static int stm32_ep0configure(FAR struct usbhost_driver_s *drvr, uint8_t funcaddr,
                               uint16_t maxpacketsize);
 static int stm32_epalloc(FAR struct usbhost_driver_s *drvr,
@@ -406,8 +408,6 @@ static struct stm32_usbhost_s g_usbhost =
 {
   .drvr             =
     {
-      .wait         = stm32_wait,
-      .enumerate    = stm32_enumerate,
       .ep0configure = stm32_ep0configure,
       .epalloc      = stm32_epalloc,
       .epfree       = stm32_epfree,
@@ -421,6 +421,14 @@ static struct stm32_usbhost_s g_usbhost =
       .disconnect   = stm32_disconnect,
     },
   .class            = NULL,
+};
+
+/* This is the connection/enumeration interface */
+
+static struct usbhost_connection_s g_usbconn =
+{
+  .wait             = stm32_wait,
+  .enumerate        = stm32_enumerate,
 };
 
 /*******************************************************************************
@@ -3011,10 +3019,10 @@ static void stm32_txfe_enable(FAR struct stm32_usbhost_s *priv, int chidx)
  *   Wait for a device to be connected or disconneced.
  *
  * Input Parameters:
- *   drvr - The USB host driver instance obtained as a parameter from the call to
- *      the class create() method.
- *   connected - TRUE: Wait for device to be connected; FALSE: wait for device
- *      to be disconnected
+ *   conn - The USB host connection instance obtained as a parameter from the call to
+ *      the USB driver initialization logic.
+ *   connected - A pointer to a boolean value.  TRUE: Wait for device to be
+ *      connected; FALSE: wait for device to be disconnected
  *
  * Returned Values:
  *   Zero (OK) is returned when a device in connected. This function will not
@@ -3028,15 +3036,16 @@ static void stm32_txfe_enable(FAR struct stm32_usbhost_s *priv, int chidx)
  *
  *******************************************************************************/
 
-static int stm32_wait(FAR struct usbhost_driver_s *drvr, bool connected)
+static int stm32_wait(FAR struct usbhost_connection_s *conn,
+                      FAR const bool *connected)
 {
-  FAR struct stm32_usbhost_s *priv = (FAR struct stm32_usbhost_s *)drvr;
+  FAR struct stm32_usbhost_s *priv = &g_usbhost;
   irqstate_t flags;
 
   /* Are we already connected? */
 
   flags = irqsave();
-  while (priv->connected == connected)
+  while (priv->connected == *connected)
     {
       /* No... wait for the connection/disconnection */
 
@@ -3064,8 +3073,9 @@ static int stm32_wait(FAR struct usbhost_driver_s *drvr, bool connected)
  *   charge of the sequence of operations.
  *
  * Input Parameters:
- *   drvr - The USB host driver instance obtained as a parameter from the call to
- *      the class create() method.
+ *   conn - The USB host connection instance obtained as a parameter from the call to
+ *      the USB driver initialization logic.
+ *   rphndx - Root hub port index.  0-(n-1) corresponds to root hub port 1-n.
  *
  * Returned Values:
  *   On success, zero (OK) is returned. On a failure, a negated errno value is
@@ -3078,12 +3088,14 @@ static int stm32_wait(FAR struct usbhost_driver_s *drvr, bool connected)
  *
  *******************************************************************************/
 
-static int stm32_enumerate(FAR struct usbhost_driver_s *drvr)
+static int stm32_enumerate(FAR struct usbhost_connection_s *conn, int rhpndx)
 {
-  struct stm32_usbhost_s *priv = (struct stm32_usbhost_s *)drvr;
+  FAR struct stm32_usbhost_s *priv = &g_usbhost;
   uint32_t regval;
   int chidx;
   int ret;
+
+  DEBUGASSERT(priv && rhpndx == 0);
 
   /* Are we connected to a device?  The caller should have called the wait()
    * method first to be assured that a device is connected.
@@ -3149,7 +3161,7 @@ static int stm32_enumerate(FAR struct usbhost_driver_s *drvr)
 
   uvdbg("Enumerate the device\n");
   priv->smstate = SMSTATE_ENUM;
-  ret = usbhost_enumerate(drvr, 1, &priv->class);
+  ret = usbhost_enumerate(&g_usbhost.drvr, 1, &priv->class);
 
   /* The enumeration may fail either because of some HCD interfaces failure
    * or because the device class is not supported.  In either case, we just
@@ -3805,6 +3817,8 @@ static int stm32_transfer(FAR struct usbhost_driver_s *drvr, usbhost_ep_t ep,
 static void stm32_disconnect(FAR struct usbhost_driver_s *drvr)
 {
   struct stm32_usbhost_s *priv = (struct stm32_usbhost_s *)drvr;
+  DEBUGASSERT(priv);
+
   priv->class = NULL;
 }
 
@@ -4193,7 +4207,7 @@ static inline int stm32_hw_initialize(FAR struct stm32_usbhost_s *priv)
  *******************************************************************************/
 
 /*******************************************************************************
- * Name: usbhost_initialize
+ * Name: stm32_otgfshost_initialize
  *
  * Description:
  *   Initialize USB host device controller hardware.
@@ -4217,7 +4231,7 @@ static inline int stm32_hw_initialize(FAR struct stm32_usbhost_s *priv)
  *
  *******************************************************************************/
 
-FAR struct usbhost_driver_s *usbhost_initialize(int controller)
+FAR struct usbhost_connection_s *stm32_otgfshost_initialize(int controller)
 {
   /* At present, there is only support for a single OTG FS host. Hence it is
    * pre-allocated as g_usbhost.  However, in most code, the private data
@@ -4291,7 +4305,7 @@ FAR struct usbhost_driver_s *usbhost_initialize(int controller)
   /* Enable interrupts at the interrupt controller */
 
   up_enable_irq(STM32_IRQ_OTGFS);
-  return &priv->drvr;
+  return &g_usbconn;
 }
 
 #endif /* CONFIG_USBHOST && CONFIG_STM32_OTGFS */
