@@ -185,6 +185,7 @@
 #if defined(CONFIG_STM32_STM32F10XX)
 #  define SDIO_RXDMA32_CONFIG    (CONFIG_SDIO_DMAPRIO|DMA_CCR_MSIZE_32BITS|\
                                   DMA_CCR_PSIZE_32BITS|DMA_CCR_MINC)
+
 #  define SDIO_TXDMA32_CONFIG    (CONFIG_SDIO_DMAPRIO|DMA_CCR_MSIZE_32BITS|\
                                   DMA_CCR_PSIZE_32BITS|DMA_CCR_MINC|DMA_CCR_DIR)
 
@@ -195,6 +196,7 @@
                                   DMA_SCR_PSIZE_32BITS|DMA_SCR_MSIZE_32BITS|\
                                   CONFIG_SDIO_DMAPRIO|DMA_SCR_PBURST_INCR4|\
                                   DMA_SCR_MBURST_INCR4)
+
 #  define SDIO_TXDMA32_CONFIG    (DMA_SCR_PFCTRL|DMA_SCR_DIR_M2P|DMA_SCR_MINC|\
                                   DMA_SCR_PSIZE_32BITS|DMA_SCR_MSIZE_32BITS|\
                                   CONFIG_SDIO_DMAPRIO|DMA_SCR_PBURST_INCR4|\
@@ -226,31 +228,37 @@
 #define SDIO_RECV_MASK     (SDIO_MASK_DCRCFAILIE|SDIO_MASK_DTIMEOUTIE|\
                             SDIO_MASK_DATAENDIE|SDIO_MASK_RXOVERRIE|\
                             SDIO_MASK_RXFIFOHFIE|SDIO_MASK_STBITERRIE)
+                            
 #define SDIO_SEND_MASK     (SDIO_MASK_DCRCFAILIE|SDIO_MASK_DTIMEOUTIE|\
                             SDIO_MASK_DATAENDIE|SDIO_MASK_TXUNDERRIE|\
                             SDIO_MASK_TXFIFOHEIE|SDIO_MASK_STBITERRIE)
+                            
 #define SDIO_DMARECV_MASK  (SDIO_MASK_DCRCFAILIE|SDIO_MASK_DTIMEOUTIE|\
-                            SDIO_MASK_DATAENDIE|SDIO_MASK_RXOVERRIE|\
-                            SDIO_MASK_STBITERRIE)
+                            SDIO_MASK_RXOVERRIE|SDIO_MASK_DATAENDIE|\
+                            SDIO_MASK_STBITERRIE|SDIO_MASK_DBCKENDIE)
+                            
 #define SDIO_DMASEND_MASK  (SDIO_MASK_DCRCFAILIE|SDIO_MASK_DTIMEOUTIE|\
-                            SDIO_MASK_DATAENDIE|SDIO_MASK_TXUNDERRIE|\
-                            SDIO_MASK_STBITERRIE)
+                            SDIO_MASK_TXUNDERRIE|SDIO_MASK_DATAENDIE|\
+                            SDIO_MASK_STBITERRIE|SDIO_MASK_DBCKENDIE)
 
 /* Event waiting interrupt mask bits */
 
 #define SDIO_CMDDONE_STA   (SDIO_STA_CMDSENT)
 #define SDIO_RESPDONE_STA  (SDIO_STA_CTIMEOUT|SDIO_STA_CCRCFAIL|\
                             SDIO_STA_CMDREND)
+                            
 #define SDIO_XFRDONE_STA   (0)
 
 #define SDIO_CMDDONE_MASK  (SDIO_MASK_CMDSENTIE)
 #define SDIO_RESPDONE_MASK (SDIO_MASK_CCRCFAILIE|SDIO_MASK_CTIMEOUTIE|\
                             SDIO_MASK_CMDRENDIE)
+                            
 #define SDIO_XFRDONE_MASK  (0)
 
 #define SDIO_CMDDONE_ICR   (SDIO_ICR_CMDSENTC|SDIO_ICR_DBCKENDC)
 #define SDIO_RESPDONE_ICR  (SDIO_ICR_CTIMEOUTC|SDIO_ICR_CCRCFAILC|\
                             SDIO_ICR_CMDRENDC|SDIO_ICR_DBCKENDC)
+                            
 #define SDIO_XFRDONE_ICR   (SDIO_ICR_DATAENDC|SDIO_ICR_DCRCFAILC|\
                             SDIO_ICR_DTIMEOUTC|SDIO_ICR_RXOVERRC|\
                             SDIO_ICR_TXUNDERRC|SDIO_ICR_STBITERRC|\
