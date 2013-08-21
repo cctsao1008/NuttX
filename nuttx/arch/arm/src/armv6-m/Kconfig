@@ -7,6 +7,7 @@ comment "ARMV6M Configuration Options"
 
 choice
 	prompt "Toolchain Selection"
+	default ARMV6M_TOOLCHAIN_GNU_EABI if !HOST_WINDOWS
 	default ARMV6M_TOOLCHAIN_GNU_EABIW if HOST_WINDOWS
 	default ARMV6M_TOOLCHAIN_GNU_EABIL if !HOST_WINDOWS
 

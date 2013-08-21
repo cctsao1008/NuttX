@@ -186,13 +186,13 @@ struct sam_eplist_s
   struct sam_gtd_s *tail;      /* Tail transfer descriptor (TD) */
 };
 
-/* This structure retins the state of one root hub port */
+/* This structure retains the state of one root hub port */
 
 struct sam_rhport_s
 {
   /* Common device fields.  This must be the first thing defined in the
    * structure so that it is possible to simply cast from struct usbhost_s
-   * to structsam_usbhost_s.
+   * to struct sam_rhport_s.
    */
 
   struct usbhost_driver_s drvr;
@@ -215,8 +215,6 @@ struct sam_rhport_s
 
 struct sam_ohci_s
 {
-  /* Driver status */
-
   volatile bool rhswait;       /* TRUE: Thread is waiting for Root Hub Status change */
 
 #ifndef CONFIG_USBHOST_INT_DISABLE
@@ -611,7 +609,7 @@ static void sam_putle16(uint8_t *dest, uint16_t val)
  * Name: sam_edalloc
  *
  * Description:
- *   Return an endpoint descriptor to the free list
+ *   Allocate an endpoint descriptor by removing it from the free list
  *
  *******************************************************************************/
 
@@ -634,7 +632,7 @@ static struct sam_ed_s *sam_edalloc(void)
  * Name: sam_edfree
  *
  * Description:
- *   Return an endpoint descriptor to the free list
+ *   Free an endpoint descriptor by returning to the free list
  *
  *******************************************************************************/
 
@@ -686,7 +684,7 @@ static struct sam_gtd_s *sam_tdalloc(void)
  * Name: sam_tdfree
  *
  * Description:
- *   Return an transfer descriptor to the free list
+ *   Free a transfer descriptor by returning it to the free list
  *
  * Assumptions:
  *   - Only called from the WDH interrupt handler (and during initialization).
@@ -2792,9 +2790,6 @@ static int sam_transfer(FAR struct usbhost_driver_s *drvr, usbhost_ep_t ep,
   struct sam_ed_s *ed;
   uint32_t dirpid;
   uint32_t regval;
-#if SAM_IOBUFFERS > 0
-  uint8_t *origbuf = NULL;
-#endif
   bool in;
   int ret;
 
@@ -3015,7 +3010,7 @@ FAR struct usbhost_connection_s *sam_ohci_initialize(int controller)
 
   /* Enable OHCI clocks */
 
-  regval = getreg32(SAM_PMC_SCER);
+  regval  = getreg32(SAM_PMC_SCER);
   regval |= PMC_UHP;
   putreg32(regval, SAM_PMC_SCER);
   irqrestore(flags);
@@ -3035,7 +3030,7 @@ FAR struct usbhost_connection_s *sam_ohci_initialize(int controller)
    * dedicated function
    */
 
-  udbg("Initializing Host Stack\n");
+  udbg("Initializing OHCI Stack\n");
 
   /* Initialize all the HCCA to 0 */
 

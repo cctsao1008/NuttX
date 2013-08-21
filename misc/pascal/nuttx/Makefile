@@ -33,9 +33,9 @@
 #
 ############################################################################
 
--include $(TOPDIR)/.config
 -include $(TOPDIR)/Make.defs
-include $(APPDIR)/Make.defs
+include $(APPDIR)$(DELIM)Make.defs
+DELIM ?= $(strip /)
 
 ifeq ($(CONFIG_WINDOWS_NATIVE),y)
   PCODEDIR := ${shell echo %CD%}
