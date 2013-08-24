@@ -370,7 +370,7 @@ config SAMA5_OHCI_REGDEBUG
 	default n
 	depends on DEBUG
 
-endif # OHCI
+endif # SAMA5_OHCI
 
 config SAMA5_EHCI
 	bool "High speed EHCI support"
@@ -386,14 +386,14 @@ config SAMA5_EHCI_NQHS
 	default 4
 	---help---
 		Configurable number of Queue Head (QH) structures.  The default is
-		one per Root hub port plus one for EP0.
+		one per Root hub port plus one for EP0 (4).
 
 config SAMA5_EHCI_NQTDS
 	int "Number of Queue Element Transfer Descriptor (qTDs)"
-	default 4
+	default 6
 	---help---
 		Configurable number of Queue Element Transfer Descriptor (qTDs).
-		The default is one per root hub plus three from EP0.
+		The default is one per root hub plus three from EP0 (6).
 
 config SAMA5_EHCI_BUFSIZE
 	int "Size of one request/descriptor buffer"
@@ -408,7 +408,75 @@ config SAMA5_EHCI_REGDEBUG
 	default n
 	depends on DEBUG
 
-endif # EHCI
+endif # SAMA5_EHCI
+
+if SAMA5_OHCI && SAMA5_EHCI
+
+config SAMA5_OHCI_RHPORT1
+	bool "Use Port A for OHCI"
+	default n
+	depends on !SAMA5_UDPHS
+
+config SAMA5_OHCI_RHPORT2
+	bool "Use Port B for OHCI"
+	default n
+
+config SAMA5_OHCI_RHPORT3
+	bool "Use Port C for OHCI"
+	default y
+
+config SAMA5_EHCI_RHPORT1
+	bool
+	default y if !SAMA5_OHCI_RHPORT1
+	default n if SAMA5_OHCI_RHPORT1
+	depends on !SAMA5_UDPHS
+
+config SAMA5_EHCI_RHPORT2
+	bool
+	default y if !SAMA5_OHCI_RHPORT2
+	default n if SAMA5_OHCI_RHPORT2
+
+config SAMA5_EHCI_RHPORT3
+	bool
+	default y if !SAMA5_OHCI_RHPORT3
+	default n if SAMA5_OHCI_RHPORT3
+
+endif # SAMA5_OHCI && SAMA5_EHCI
+
+if SAMA5_OHCI && !SAMA5_EHCI
+
+config SAMA5_OHCI_RHPORT1
+	bool
+	default y
+	depends on !SAMA5_UDPHS
+
+config SAMA5_OHCI_RHPORT2
+	bool
+	default y
+
+config SAMA5_OHCI_RHPORT3
+	bool
+	default y
+
+endif # SAMA5_OHCI && !SAMA5_EHCI
+
+if !SAMA5_OHCI && SAMA5_EHCI
+
+config SAMA5_EHCI_RHPORT1
+	bool
+	default y
+	depends on !SAMA5_UDPHS
+
+config SAMA5_EHCI_RHPORT2
+	bool
+	default y
+
+config SAMA5_EHCI_RHPORT3
+	bool
+	default y
+
+endif # !SAMA5_OHCI && SAMA5_EHCI
+
 endmenu # USB High Speed Host driver option
 endif # SAMA5_UHPHS
 
