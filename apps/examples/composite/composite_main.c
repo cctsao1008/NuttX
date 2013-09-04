@@ -439,7 +439,7 @@ static int open_serial(void)
 /****************************************************************************
  * Name: echo_serial
  ****************************************************************************/
-
+#if !defined(CONFIG_NSH_BUILTIN_APPS) && !defined(CONFIG_DISABLE_SIGNALS)
 static int echo_serial(void)
 {
   ssize_t bytesread;
@@ -476,6 +476,7 @@ static int echo_serial(void)
     }
   return OK;
 }
+#endif
 
 /****************************************************************************
  * Public Functions
@@ -809,7 +810,7 @@ errout:
 #endif
   composite_uninitialize(g_composite.cmphandle);
   final_memory_usage("Final memory usage");
-  return 1;
+  return EXIT_SUCCESS;
 }
 
 /****************************************************************************
@@ -838,13 +839,13 @@ int disconn_main(int argc, char *argv[])
   /* Then disconnect the device and uninitialize the USB mass storage driver */
 
    composite_uninitialize(g_composite.cmphandle);
-   g_composite.mshandle = NULL;
+   g_composite.mschandle = NULL;
    message("disconn_main: Disconnected\n");
    check_test_memory_usage("After composite_uninitialize()");
 
    /* Dump debug memory usage */
 
    final_memory_usage("Final memory usage");
-   return 0;
+   return EXIT_SUCCESS;
 }
 #endif

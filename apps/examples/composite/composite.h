@@ -210,7 +210,7 @@ struct composite_state_s
 
   /* Serial file descriptors */
 
-#if !defined(CONFIG_NSH_BUILTIN_APPS) || defined(CONFIG_DISABLE_SIGNALS)
+#if !defined(CONFIG_NSH_BUILTIN_APPS) && !defined(CONFIG_DISABLE_SIGNALS)
   int outfd;                  /* Blocking write-only */
   int infd;                   /* Non-blockig read-only */
 #endif
@@ -227,7 +227,7 @@ struct composite_state_s
 
   /* Serial I/O buffer */
 
-#if !defined(CONFIG_NSH_BUILTIN_APPS) || defined(CONFIG_DISABLE_SIGNALS)
+#if !defined(CONFIG_NSH_BUILTIN_APPS) && !defined(CONFIG_DISABLE_SIGNALS)
   uint8_t serbuf[CONFIG_EXAMPLES_COMPOSITE_BUFSIZE];
 #endif
 };
