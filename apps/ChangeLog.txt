@@ -82,12 +82,12 @@
 	* apps/examples/nximage:  Another super simple  graphics example:  It just puts
 	  the NuttX logo in the center of the display. This example can also be
 	  built as an NSH "built-in" command.
-	* apps/examples/usbstorage: Can now be built as two NSH "built-in" commands:
+	* apps/examples/usbmsc: Can now be built as two NSH "built-in" commands:
 	  'msconn' will connect the USB mass storage device; 'msdis' will disconnect
 	  the USB storage device.
 	* apps/examples/nx*:  All NX header files moved from nuttx/include/nuttx to
 	  nuttx/include/nuttx/nx.
-	* apps/examples/usbstorage: Added instrumentation to monitor memory usage
+	* apps/examples/usbmsc: Added instrumentation to monitor memory usage
 	  to check for memory leaks in the USB storage driver.
 	* apps/examples/nxhello/nxhello_bkgd.c:  Fix handling of allocated glyph
 	  memory.

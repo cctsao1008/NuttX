@@ -1829,7 +1829,7 @@ examples/usbmsc
 
     void usbmsc_archinitialize(void);
 
-  This function will be called by the example/usbstorage in order to
+  This function will be called by the example/usbmsc in order to
   do the actual registration of the block device drivers.  For examples
   of the implementation of usbmsc_archinitialize() see
   configs/mcu123-lpc124x/src/up_usbmsc.c or
