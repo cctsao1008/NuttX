@@ -128,7 +128,7 @@
 #  define DEV1_STRIDBASE      CONFIG_CDCACM_STRBASE
 #  define DEV1_NSTRIDS        CDCACM_NSTRIDS
 #  define DEV1_CFGDESCSIZE    SIZEOF_CDCACM_CFGDESC
-#elif defined(CONFIG_CDCACM_COMPOSITE)
+#elif defined(CONFIG_USBMSC_COMPOSITE)
 #  define DEV1_IS_USBMSC     1
 #  define DEV1_MKCFGDESC      usbmsc_mkcfgdesc
 #  define DEV1_MKSTRDESC      usbmsc_mkstrdesc

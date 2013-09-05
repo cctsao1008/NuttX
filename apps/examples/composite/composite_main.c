@@ -55,9 +55,13 @@
 
 #include "composite.h"
 
+#include <termios.h>
+
 /****************************************************************************
  * Definitions
  ****************************************************************************/
+#define CDCACM_DEVNAME_FORMAT      "/dev/ttyACM%d"
+#define CDCACM_DEVNAME_SIZE        16
 
 /****************************************************************************
  * Private Data
@@ -676,6 +680,13 @@ int conn_main(int argc, char *argv[])
 {
   int ret;
 
+  /* Try to set baud rate */
+  struct termios uart_config;
+  int termios_state;
+  char devname[CDCACM_DEVNAME_SIZE];
+  uint8_t retries = 0;
+  int fd = -1;
+
   /* If this program is implemented as the NSH 'msconn' command, then we need to
    * do a little error checking to assure that we are not being called re-entrantly.
    */
@@ -741,6 +752,58 @@ int conn_main(int argc, char *argv[])
    * Also, if signals are not enabled (and, hence, sleep() is not supported.
    * then we have not real option but to exit now.
    */
+
+#if 1
+
+     while (retries < 50) {
+        /* the retries are to cope with the behaviour of /dev/ttyACM0 */
+        /* which may not be ready immediately. */
+        fd = open(CONFIG_EXAMPLES_COMPOSITE_SERDEV, O_RDWR);
+        if (fd != -1) {
+            break;
+        }
+        usleep(100000);
+        retries++;
+    }
+
+    if (fd == -1) {
+        message("open %s failed \n", CONFIG_EXAMPLES_COMPOSITE_SERDEV);
+        exit(1);
+    }
+
+    /* set up the serial port with output processing */
+    
+    
+
+    /* Back up the original uart configuration to restore it after exit */
+    if ((termios_state = tcgetattr(fd, &uart_config)) < 0) {
+        message("ERROR get termios config %s: %d\n", "%s \n", termios_state, CONFIG_EXAMPLES_COMPOSITE_SERDEV);
+        close(fd);
+        return -1;
+    }
+
+    /* Set ONLCR flag (which appends a CR for every LF) */
+    uart_config.c_oflag |= (ONLCR | OPOST/* | OCRNL*/);
+
+    if ((termios_state = tcsetattr(fd, TCSANOW, &uart_config)) < 0) {
+        message("ERROR setting baudrate / termios config for %s (tcsetattr)\n", "%s \n",CONFIG_EXAMPLES_COMPOSITE_SERDEV);
+        close(fd);
+        return -1;
+    }
+
+    /* setup standard file descriptors */
+    close(0);
+    close(1);
+    close(2);
+    dup2(fd, 0);
+    dup2(fd, 1);
+    dup2(fd, 2);
+
+    nsh_consolemain(0, NULL);
+
+    close(fd);
+
+#endif
 
 #if !defined(CONFIG_NSH_BUILTIN_APPS) && !defined(CONFIG_DISABLE_SIGNALS)
 
