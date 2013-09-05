@@ -1820,8 +1820,8 @@ examples/usbserial
     The host and target will exchange are variety of very small and very large
     serial messages.
 
-examples/usbstorage
-^^^^^^^^^^^^^^^^^^^
+examples/usbmsc
+^^^^^^^^^^^^^^^
 
   This example registers a block device driver, then exports the block
   the device using the USB storage class driver.  In order to use this
