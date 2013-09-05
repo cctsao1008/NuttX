@@ -547,7 +547,7 @@ int msconn_main(int argc, char *argv[])
  
    final_memory_usage("Final memory usage");
 #endif
-   return 0;
+   return EXIT_SUCCESS;
 }
 
 /****************************************************************************
