@@ -39,12 +39,11 @@
  ************************************************************************************/
 
 #include <nuttx/config.h>
-
 #include <debug.h>
-
 #include <arch/board/board.h>
 
 #include "up_arch.h"
+#include "p107-internal.h"
 
 /************************************************************************************
  * Pre-processor Definitions
@@ -70,4 +69,15 @@
 
 void stm32_boardinitialize(void)
 {
+  /* Configure SPI chip selects if 1) SPI is not disabled, and 2) the weak function
+   * stm32_spiinitialize() has been brought into the link.
+   */
+
+#if defined(CONFIG_STM32_SPI3)
+  if (stm32_spiinitialize)
+    {
+      stm32_spiinitialize();
+    }
+#endif
+
 }

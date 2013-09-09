@@ -88,7 +88,7 @@ config USBDEV_TRACE_NRECORDS
 config USBDEV_TRACE_STRINGS
 bool "Decode device controller events"
 	default n
-	depends on USBDEV_TRACE
+	depends on USBDEV_TRACE || DEBUG_USB
 	---help---
 		If USBDEV_TRACE_STRINGS is defined, then the USB device controller
 		driver must provide arrays of strings to support decoding of device-
@@ -127,8 +127,8 @@ config COMPOSITE_EP0MAXPACKET
 
 config COMPOSITE_VENDORID
 	hex "Composite vendor ID"
-	default 0
-	
+	default 0x0000
+
 config COMPOSITE_VENDORSTR
 	string "Composite vendor ID"
 	default "Nuttx"
@@ -137,8 +137,8 @@ config COMPOSITE_VENDORSTR
 
 config COMPOSITE_PRODUCTID
 	hex "Composite product id"
-	default 0
-	
+	default 0x0000
+
 config COMPOSITE_PRODUCTSTR
 	string "Composite product string"
 	default "Composite device"
@@ -210,7 +210,8 @@ config PL2303_NRDREQS
 
 config PL2303_BULKIN_REQLEN
 	int "Size of one write request buffer"
-	default 96
+	default 768 if USBDEV_DUALSPEED
+	default 96  if !USBDEV_DUALSPEED
 	---help---
 		Ideally, the BULKOUT request size should *not* be the same size as
 		the maxpacket size.  That is because IN transfers of exactly the
@@ -376,7 +377,8 @@ config CDCACM_NRDREQS
 
 config CDCACM_BULKIN_REQLEN
 	int "Size of one write request buffer"
-	default 96
+	default 768 if USBDEV_DUALSPEED
+	default 96  if !USBDEV_DUALSPEED
 	---help---
 		Ideally, the BULKOUT request size should *not* be the same size as
 		the maxpacket size.  That is because IN transfers of exactly the
@@ -484,14 +486,14 @@ config USBMSC_EP0MAXPACKET
 
 config USBMSC_EPBULKOUT
 	int "Bulk OUT endpoint number"
-	default 0
+	default 2
 	---help---
 		The logical 7-bit address of a hardware endpoints that support
 		bulk OUT and IN operations
 
 config USBMSC_EPBULKIN
 	int "Bulk IN endpoint number"
-	default 0
+	default 3
 	---help---
 		The logical 7-bit address of a hardware endpoints that support
 		bulk OUT and IN operations
@@ -520,18 +522,25 @@ config USBMSC_BULKOUTREQLEN
 		maxpacket and ideally as large as a block device sector.
 
 config USBMSC_VENDORID
-	hex "Mass stroage Vendor ID"
-	default 0x00
-	
+	hex "Mass storage Vendor ID"
+	default 0x584e
+	---help---
+		The vendor ID (VID).  The value here is bogus.  You should not use
+		it in any commercial products!  You must go through the proper
+		channels to request a vendor ID for your company if you do not
+		already have one!
+
 config USBMSC_VENDORSTR
-	string "Mass stroage vendor string"
+	string "Mass storage vendor string"
 	default "Nuttx"
 	---help---
 		The vendor ID code/string
 
 config USBMSC_PRODUCTID
-	hex "Mass stroage Product ID"
-	default 0x00
+	hex "Mass storage Product ID"
+	default 0x5342
+	---help---
+		The product ID (PID).
 
 config USBMSC_PRODUCTSTR
 	string "Mass storage product string"
@@ -542,7 +551,7 @@ config USBMSC_VERSIONNO
 	default "0x399"
 
 config USBMSC_REMOVABLE
-	bool "Mass stroage remove able"
+	bool "Mass storage remove able"
 	default n
 	---help---
 		Select if the media is removable

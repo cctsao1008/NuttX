@@ -196,7 +196,7 @@ static void final_memory_usage(FAR const char *msg)
  * Name: usbmsc_enumerate
  ****************************************************************************/
 
-#ifdef CONFIG_USBDEV_TRACE
+#ifdef CONFIG_EXAMPLES_USBMSC_TRACE
 static int usbmsc_enumerate(struct usbtrace_s *trace, void *arg)
 {
   switch (trace->event)
@@ -375,10 +375,6 @@ static int usbmsc_enumerate(struct usbtrace_s *trace, void *arg)
 #endif
 
 /****************************************************************************
- * Public Functions
- ****************************************************************************/
-
-/****************************************************************************
  * msconn_main
  *
  * Description:
@@ -389,7 +385,7 @@ static int usbmsc_enumerate(struct usbtrace_s *trace, void *arg)
  *
  ****************************************************************************/
 
-int msconn_main(int argc, char *argv[])
+static int msconn_daemon(int argc, char *argv[])
 {
   FAR void *handle;
   int ret;
@@ -399,16 +395,15 @@ int msconn_main(int argc, char *argv[])
    */
 
 #ifdef CONFIG_NSH_BUILTIN_APPS
+  /* Check if there is a non-NULL USB mass storage device handle (meaning that the
+   * USB mass storage device is already configured).
+   */
 
-   /* Check if there is a non-NULL USB mass storage device handle (meaning that the
-    * USB mass storage device is already configured).
-    */
-
-   if (g_usbmsc.mshandle)
-     {
-       message("msconn_main: ERROR: Already connected\n");
-       return 1;
-     }
+  if (g_usbmsc.mshandle)
+    {
+      message("msconn_main: ERROR: Already connected\n");
+      return EXIT_FAILURE;
+    }
 #endif
 
 #ifdef CONFIG_EXAMPLES_USBMSC_DEBUGMM
@@ -423,8 +418,10 @@ int msconn_main(int argc, char *argv[])
 
   /* Initialize USB trace output IDs */
 
+#ifdef CONFIG_EXAMPLES_USBMSC_TRACE
   usbtrace_enable(TRACE_BITSET);
   check_test_memory_usage("After usbtrace_enable()");
+#endif
 
   /* Register block drivers (architecture-specific) */
 
@@ -433,7 +430,7 @@ int msconn_main(int argc, char *argv[])
   if (ret < 0)
     {
       message("msconn_main: usbmsc_archinitialize failed: %d\n", -ret);
-      return 2;
+      return EXIT_FAILURE;
     }
   check_test_memory_usage("After usbmsc_archinitialize()");
 
@@ -445,7 +442,7 @@ int msconn_main(int argc, char *argv[])
     {
       message("msconn_main: usbmsc_configure failed: %d\n", -ret);
       usbmsc_uninitialize(handle);
-      return 3;
+      return EXIT_FAILURE;
     }
   message("msconn_main: handle=%p\n", handle);
   check_test_memory_usage("After usbmsc_configure()");
@@ -457,7 +454,7 @@ int msconn_main(int argc, char *argv[])
       message("msconn_main: usbmsc_bindlun failed for LUN 1 using %s: %d\n",
                CONFIG_EXAMPLES_USBMSC_DEVPATH1, -ret);
       usbmsc_uninitialize(handle);
-      return 4;
+      return EXIT_FAILURE;
     }
   check_test_memory_usage("After usbmsc_bindlun()");
 
@@ -470,7 +467,7 @@ int msconn_main(int argc, char *argv[])
       message("msconn_main: usbmsc_bindlun failed for LUN 2 using %s: %d\n",
                CONFIG_EXAMPLES_USBMSC_DEVPATH2, -ret);
       usbmsc_uninitialize(handle);
-      return 5;
+      return EXIT_FAILURE;
     }
   check_test_memory_usage("After usbmsc_bindlun() #2");
 
@@ -483,7 +480,7 @@ int msconn_main(int argc, char *argv[])
       message("msconn_main: usbmsc_bindlun failed for LUN 3 using %s: %d\n",
                CONFIG_EXAMPLES_USBMSC_DEVPATH3, -ret);
       usbmsc_uninitialize(handle);
-      return 6;
+      return EXIT_FAILURE;
     }
   check_test_memory_usage("After usbmsc_bindlun() #3");
 
@@ -495,7 +492,7 @@ int msconn_main(int argc, char *argv[])
     {
       message("msconn_main: usbmsc_exportluns failed: %d\n", -ret);
       usbmsc_uninitialize(handle);
-      return 7;
+      return EXIT_FAILURE;
     }
   check_test_memory_usage("After usbmsc_exportluns()");
 
@@ -513,14 +510,14 @@ int msconn_main(int argc, char *argv[])
       msgflush();
       sleep(5);
 
-#  ifdef CONFIG_USBDEV_TRACE
+#  ifdef CONFIG_EXAMPLES_USBMSC_TRACE
       message("\nmsconn_main: USB TRACE DATA:\n");
-      ret =  usbtrace_enumerate(usbmsc_enumerate, NULL);
+      ret = usbtrace_enumerate(usbmsc_enumerate, NULL);
       if (ret < 0)
         {
           message("msconn_main: usbtrace_enumerate failed: %d\n", -ret);
           usbmsc_uninitialize(handle);
-          return 8;
+          return EXIT_FAILURE;
         }
       check_test_memory_usage("After usbtrace_enumerate()");
 #  else
@@ -529,25 +526,100 @@ int msconn_main(int argc, char *argv[])
     }
 #elif defined(CONFIG_NSH_BUILTIN_APPS)
 
-   /* Return the USB mass storage device handle so it can be used by the 'misconn'
-    * command.
-    */
+  /* Return the USB mass storage device handle so it can be used by the 'misconn'
+   * command.
+   */
 
-   message("msconn_main: Connected\n");
-   g_usbmsc.mshandle = handle;
-   check_test_memory_usage("After MS connection");
+  message("msconn_main: Connected\n");
+  g_usbmsc.mshandle = handle;
+  check_test_memory_usage("After MS connection");
 
 #else /* defined(CONFIG_DISABLE_SIGNALS) */
 
   /* Just exit */
  
-   message("msconn_main: Exiting\n");
+  message("msconn_main: Exiting\n");
 
-   /* Dump debug memory usage */
+  /* Dump debug memory usage */
  
-   final_memory_usage("Final memory usage");
+  final_memory_usage("Final memory usage");
 #endif
-   return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
+}
+
+/****************************************************************************
+ * Public Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * msconn_main
+ *
+ * Description:
+ *   This is the main program that configures the USB mass storage device
+ *   and exports the LUN(s).  If CONFIG_NSH_BUILTIN_APPS is defined
+ *   in the NuttX configuration, then this program can be executed by
+ *   entering the "msconn" command at the NSH console.
+ *
+ ****************************************************************************/
+
+int msconn_main(int argc, char *argv[])
+{
+  /* If this function is started as a built-in application from the NSH
+   * command line, then daemonize.  Why?  Because NSH is probably waiting
+   * on waitpid() for msconn to complete.  But the USB MSC initialization
+   * logic creates a dedicated worker thread using pthread_create().  As
+   * consequences, there will be two members of the task group and waitpid()
+   * will not wake up when msconn returns.  It will not wake-up until both
+   * msconn and the USB MSC work thread terminate.
+   */
+
+#if defined(CONFIG_NSH_BUILTIN_APPS) && defined(CONFIG_SCHED_WAITPID)
+  char *newargv[1] = { NULL };
+  struct sched_param param;
+  int ret;
+
+  /* Check if there is a non-NULL USB mass storage device handle (meaning
+   * that the USB mass storage device is already configured).  There is
+   * no handshaking so there is a race condition:  We will check again
+   * when the daemon is started.
+   *
+   * REVISIT:  This might a good application for vfork();
+   */
+
+  if (g_usbmsc.mshandle)
+    {
+      message("msconn_main: ERROR: Already connected\n");
+      return 1;
+    }
+
+#ifndef CONFIG_EXAMPLES_USBMSC_DAEMON_PRIORITY
+  /* Set the daemon to the same priority as this task */
+
+  ret = sched_getparam(0, &param);
+  if (ret < 0)
+    {
+      message("msconn_main: ERROR: Already connected\n");
+      return EXIT_FAILURE;
+    }
+#else
+  param.sched_priority = CONFIG_EXAMPLES_USBMSC_DAEMON_PRIORITY;
+#endif
+
+  ret = TASK_CREATE("msconn daemon", param.sched_priority,
+                   CONFIG_EXAMPLES_USBMSC_DAEMON_STACKSIZE,
+                   msconn_daemon, newargv);
+  if (ret < 0)
+    {
+      message("msconn_main: ERROR: TASK_CREATE failed: %d\n", ret);
+      return EXIT_FAILURE;
+    }
+
+  return EXIT_SUCCESS;
+#else
+  /* Otherwise, there is no need to daemonize */
+
+  return msconn_daemon(argc, argv);
+#endif
 }
 
 /****************************************************************************
@@ -569,7 +641,7 @@ int msdis_main(int argc, char *argv[])
   if (!g_usbmsc.mshandle)
     {
       message("msdis: ERROR: Not connected\n");
-      return 1;
+      return EXIT_FAILURE;
     }
    check_test_memory_usage("Since MS connection");
 
@@ -583,6 +655,6 @@ int msdis_main(int argc, char *argv[])
    /* Dump debug memory usage */
 
    final_memory_usage("Final memory usage");
-   return 0;
+   return EXIT_SUCCESS;
 }
 #endif

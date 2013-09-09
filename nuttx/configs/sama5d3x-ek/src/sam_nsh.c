@@ -46,12 +46,8 @@
 #include <errno.h>
 #include <debug.h>
 
-#ifdef CONFIG_SAMA5_SPI0
-#  include <nuttx/spi/spi.h>
-#  include <nuttx/mtd.h>
-#  include <nuttx/fs/nxffs.h>
-
-#  include "sam_spi.h"
+#ifdef CONFIG_SYSTEM_USBMONITOR
+#  include <apps/usbmonitor.h>
 #endif
 
 #include "sama5d3x-ek.h"
@@ -59,34 +55,6 @@
 /****************************************************************************
  * Pre-Processor Definitions
  ****************************************************************************/
-
-/* Configuration ************************************************************/
-
-/* Assign minor device numbers.  We basically ignore more of the NSH
- * configuration here (NSH SLOTNO ignored completely; NSH minor extended
- * to handle more devices.
- */
-
-#ifndef CONFIG_NSH_MMCSDMINOR
-#  define CONFIG_NSH_MMCSDMINOR 0
-#endif
-
-#ifdef HAVE_HSMCI_MTD
-
-#  define HSMCI0_SLOTNO 0
-#  define HSMCI1_SLOTNO 1
-
-#  ifdef CONFIG_SAMA5_HSMCI0
-#     define HSMCI0_MINOR  CONFIG_NSH_MMCSDMINOR
-#     define HSMCI1_MINOR  (CONFIG_NSH_MMCSDMINOR+1)
-#     define AT25_MINOR    (CONFIG_NSH_MMCSDMINOR+2)
-#  else
-#     define HSMCI1_MINOR  CONFIG_NSH_MMCSDMINOR
-#     define AT25_MINOR    (CONFIG_NSH_MMCSDMINOR+1)
-#  endif
-#else
-#  define AT25_MINOR CONFIG_NSH_MMCSDMINOR
-#endif
 
 /* Debug ********************************************************************/
 
@@ -118,7 +86,8 @@
 
 int nsh_archinitialize(void)
 {
-#if defined(HAVE_AT25_MTD) || defined(HAVE_HSMCI_MTD) || defined(HAVE_USBHOST)
+#if defined(HAVE_AT25_MTD) || defined(HAVE_HSMCI_MTD) || defined(HAVE_USBHOST) || \
+    defined(HAVE_USBMONITOR)
   int ret;
 #endif
 
@@ -165,6 +134,16 @@ int nsh_archinitialize(void)
     {
       message("ERROR: Failed to initialize USB host: %d\n", ret);
       return ret;
+    }
+#endif
+
+#ifdef HAVE_USBMONITOR
+  /* Start the USB Monitor */
+
+  ret = usbmonitor_start(0, NULL);
+  if (ret != OK)
+    {
+      message("nsh_archinitialize: Start USB monitor: %d\n", ret);
     }
 #endif
 

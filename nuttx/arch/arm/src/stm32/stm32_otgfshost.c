@@ -364,6 +364,8 @@ static int stm32_enumerate(FAR struct usbhost_connection_s *conn, int rhpndx);
 
 static int stm32_ep0configure(FAR struct usbhost_driver_s *drvr, uint8_t funcaddr,
                               uint16_t maxpacketsize);
+static int stm32_getdevinfo(FAR struct usbhost_driver_s *drvr,
+                            FAR struct usbhost_devinfo_s *devinfo);
 static int stm32_epalloc(FAR struct usbhost_driver_s *drvr,
                          FAR const FAR struct usbhost_epdesc_s *epdesc,
                          FAR usbhost_ep_t *ep);
@@ -409,6 +411,7 @@ static struct stm32_usbhost_s g_usbhost =
   .drvr             =
     {
       .ep0configure = stm32_ep0configure,
+      .getdevinfo   = stm32_getdevinfo,
       .epalloc      = stm32_epalloc,
       .epfree       = stm32_epfree,
       .alloc        = stm32_alloc,
@@ -993,7 +996,7 @@ static int stm32_chan_wait(FAR struct stm32_usbhost_s *priv,
 static void stm32_chan_wakeup(FAR struct stm32_usbhost_s *priv,
                               FAR struct stm32_chan_s *chan)
 {
-  /* Is the the transfer complete? Is there a thread waiting for this transfer
+  /* Is the transfer complete? Is there a thread waiting for this transfer
    * to complete?
    */
 
@@ -1771,7 +1774,7 @@ static inline void stm32_gint_hcinisr(FAR struct stm32_usbhost_s *priv,
           stm32_chan_halt(priv, chidx, CHREASON_XFRC);
 
           /* Clear any pending NAK condition.  The 'indata1' data toggle
-           * should have been appropriately updated by the the RxFIFO
+           * should have been appropriately updated by the RxFIFO
            * logic as each packet was received.
            */
 
@@ -2958,7 +2961,7 @@ static inline void stm32_hostinit_enable(void)
  *   Enable Tx FIFO empty interrupts.  This is necessary when the entire
  *   transfer will not fit into Tx FIFO.  The transfer will then be completed
  *   when the Tx FIFO is empty.  NOTE:  The Tx FIFO interrupt is disabled
- *   the the fifo empty interrupt handler when the transfer is complete.
+ *   the fifo empty interrupt handler when the transfer is complete.
  *
  * Input Parameters:
  *   priv - Driver state structure reference
@@ -3231,6 +3234,37 @@ static int stm32_ep0configure(FAR struct usbhost_driver_s *drvr, uint8_t funcadd
   stm32_chan_configure(priv, priv->ep0in);
 
   stm32_givesem(&priv->exclsem);
+  return OK;
+}
+
+/************************************************************************************
+ * Name: stm32_getdevinfo
+ *
+ * Description:
+ *   Get information about the connected device.
+ *
+ * Input Parameters:
+ *   drvr - The USB host driver instance obtained as a parameter from the call to
+ *      the class create() method.
+ *   devinfo - A pointer to memory provided by the caller in which to return the
+ *      device information.
+ *
+ * Returned Values:
+ *   On success, zero (OK) is returned. On a failure, a negated errno value is
+ *   returned indicating the nature of the failure
+ *
+ * Assumptions:
+ *   This function will *not* be called from an interrupt handler.
+ *
+ ************************************************************************************/
+
+static int stm32_getdevinfo(FAR struct usbhost_driver_s *drvr,
+                            FAR struct usbhost_devinfo_s *devinfo)
+{
+  FAR struct stm32_usbhost_s *priv = (FAR struct stm32_usbhost_s *)drvr;
+
+  DEBUGASSERT(drvr && devinfo);
+  devinfo->speed = priv->lowspeed ? DEVINFO_SPEED_LOW : DEVINFO_SPEED_FULL;
   return OK;
 }
 

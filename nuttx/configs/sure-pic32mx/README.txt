@@ -735,7 +735,7 @@ Where <subdir> is one of the following:
         Drivers->USB Device Driver Support
           CONFIG_CDCACM=y           : Enable the CDCACM device
 
-      examples/usbstorage - There are some hooks in the appconfig file
+      examples/usbmsc - There are some hooks in the appconfig file
       to enable the USB mass storage class (MSC)device.  However, this device
       cannot work until support for the SD card is also incorporated.
 
@@ -743,7 +743,7 @@ Where <subdir> is one of the following:
           CONFIG_USBMSC=y           : Enables the USB MSC class
 
         Application Configuration->Examples:
-          CONFIG_EXAMPLES_USBSTORAGE=y  : Enhables apps/examples/usbstorage
+          CONFIG_EXAMPLES_USBMSC=y  : Enhables apps/examples/usbmsc
 
     3. SD Card Support.
 
@@ -902,7 +902,7 @@ Where <subdir> is one of the following:
 
         Device Drivers -> "USB Device Driver Support:
           CONFIG_USBDEV_TRACE=y                   : Enable USB trace feature
-          CONFIG_USBDEV_TRACE_NRECORDS=256        : Buffer 128 records in memory
+          CONFIG_USBDEV_TRACE_NRECORDS=256        : Buffer 256 records in memory
 
         Application Configuration -> NSH LIbrary:
           CONFIG_NSH_USBDEV_TRACE=n               : No builtin tracing from NSH

@@ -670,7 +670,7 @@ Where <subdir> is one of the following:
     NOTE: The SD card should *not* be mounted under NSH *and* exported
     by the mass storage device!!! That can result in corruption of the
     SD card format.  This is the sequence of commands that you should
-    used to work the the SD card safely:
+    use to work with the SD card safely:
 
       mount -t vfat /dev/mmcsd0 /mnt/sdcard : Mount the SD card initially
       ...
@@ -776,10 +776,10 @@ Where <subdir> is one of the following:
 
   2. Changes to nuttx/.config.
 
-    a) Enable building of the examples/usbstorage:
+    a) Enable building of the examples/usbmsc:
 
-      -# CONFIGURED_APPS += examples/usbstorage
-      +  CONFIGURED_APPS += examples/usbstorage
+      -# CONFIGURED_APPS += examples/usbmsc
+      +  CONFIGURED_APPS += examples/usbmsc
 
   3. When NSH first comes up, you must manually create the RAM disk
      before exporting it:

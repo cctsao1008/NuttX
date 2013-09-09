@@ -2576,7 +2576,7 @@
 	* arch/arm/src/stm32/stm32f*0xx_rcc.c:  In order to use CAN2, both CAN1 and
 	  CAN2 clocking must be enabled.
 	* arch/mips/src/pic32mx/picm32mx-usbdev.c:  Several stall-related fixes so that
-	  the USB device driver can used the the mass storage class (which does a LOT
+	  the USB device driver can used the mass storage class (which does a LOT
 	  of stalling as part of its normal protocol).  The PIC32 USB Mass Storage
 	  device is, however, still non-functional when debug is OFF.
 	* include/nuttx/fs: Move all file-system related files from include/nuttx to
@@ -3288,7 +3288,7 @@
 	* arch/*/src/Makefile:  Remove some old logic that was kicked off
 	  when CONFIG_BOOT_RUNFROMFLASH=y.  The old logic used to use
 	  objcopy to move sections.  Newer logic changes the load position
-	  of sections in the the linker script.  As far as I can tell, there
+	  of sections in the linker script.  As far as I can tell, there
 	  is nothing in the source tree now that depends on the old way of
 	  doing things (if I am wrong, they will need a change to the linker
 	  script).
@@ -3406,7 +3406,7 @@
 	  touchscreen driver).
 	* configs/shenzhou/src/up_touchscreen.c:  Add ADS7843E touchscreen
 	  support for the Shenzhou board.  The initial check-in is untested
-	  and basically a clone of the the touchscreen support for the SAM-3U.
+	  and basically a clone of the touchscreen support for the SAM-3U.
 	* tools/cfgparser.c: There are some NxWidget configuration
 	  settings that must be de-quoted.
 	* arch/arm/src/stm32/Kconfig: There is no SPI4.  Some platforms
@@ -3567,7 +3567,7 @@
 	* net/netdev_ioctl.c:  Add interface state flags and ioctl calls
 	  to bring network interfaces up and down (from Darcy Gong).
 	* config/stm32f4discovery: Enable C++ exceptions.  Now the entire
-	  apps/examples/cxxtest works -- meaning the the uClibc++ is
+	  apps/examples/cxxtest works -- meaning that the uClibc++ is
 	  complete and verified for the STM32 platform.
 
 6.24 2012-12-20 Gregory Nutt <gnutt@nuttx.org>
@@ -3636,7 +3636,7 @@
 	  CONFIG_WINDOWS_NATIVE.  This will allow me to eliminate a lot of
 	  conditional logic elsewhere.
 	* nuttx/graphics: One a mouse button is pressed, continue to report all
-	  mouse button events to the first window that received the the initial
+	  mouse button events to the first window that received the initial
 	  button down event, even if the mouse attempts to drag outside the
 	  window. From Petteri Aimonen.
 	* nuttx/graphics/nxmu/nx_block.c:  One more fix to the NX block message
@@ -3753,7 +3753,7 @@
 	  Also from Petteri Aimonen.
 	* include/stdbool.h: Can now be disabled for C++ files if CONFIG_C99_BOOL8 is
 	  defined.  CONFIG_C99_BOOL8 indicates (1) that the sizeof(_Bool) is one in both
-	  C and C++, and (2) the the C compiler is C99 and supports the _Bool intrinsic
+	  C and C++, and (2) the C compiler is C99 and supports the _Bool intrinsic
 	  type. Requested by Freddie Chopin.
 	* include/stdlib/lib_rand.c:  Various additional changes so that the integer
 	  value zero can be returned.  Requested by Freddie Chopin.
@@ -4435,7 +4435,7 @@
 	  and simpler.  However, the C code intermixed with SVC calls was
 	  not properly preserving registers.  The more complex, assembly
 	  language version does not suffer from these issues.  I believe
-	  the the kernel build can now be called "feature complete"
+	  the kernel build can now be called "feature complete"
 	  (2013-03-23).
 	* binfmt/binfmt_execmodule.c:  Here is a place where I forget
 	  to update the call to sched_releasetcb() to pass the thread
@@ -4509,7 +4509,7 @@
 	  support for the touschscreen on the WaveShare LCD (2013-4-01).
 	* configs/several:  There were already some functions called
 	  lpc17_sspinitialize().  So they had to be renamed (2013-4-01).
-	* arch/arm/src/lpc17xx/lpc17_ssp.c:  Adapted to work the the LPC178x
+	* arch/arm/src/lpc17xx/lpc17_ssp.c:  Adapted to work with the LPC178x
 	  family (2013-4-01).
 	* arch/arm/src/lpc17xx/lpc17_gpio.c/.h:  Separate LPC176x and LPC178x
 	  logic into separate files.  The logic is diverging to much to
@@ -4725,7 +4725,7 @@
 	* nuttx/syscall/syscall.csv:  Type of first parameter of on_exit() is
 	  wrong. Reported by Ken Pettit (2013-5-17).
 	* configs/mikroe-stm32f4/kernel/, kostest/ and scripts/:  Add kernel build
-	  support and kernel mode OS test example for the the MikroElektronkia
+	  support and kernel mode OS test example for the MikroElektronkia
 	  MultiMedia STM32 M4 board.  From Ken Pettit (2013-5-17).
 	* arch/arm/include/stm32/chip.h and arch/arm/src/stme32/chip/stm32l15xxx_pinmap.h:
 	  Beginning of support for the STM32L15X family (2013-5-18).
@@ -4982,7 +4982,7 @@
 	  so that is it compatible with the SPI drivers of other MCUs
 	  (2013-6-16).
 	* configs/sam3u-ek/src/up_touchscreen.c and configs/sam4l-xplained/src/sam_mmcsd.c:
-	  Changed needed because of the above change the the SAM3/4 SPI
+	  Changed needed because of the above change to the SAM3/4 SPI
 	  interface (2013-6-16).
 	* drivers/input/ads7843e.c:  Remove the wait for the touchscreen busy
 	  bit.  I don't see the busy bit changing on the SAM3U-EK board.  But
@@ -5211,7 +5211,7 @@
 	* The sama5d3x-ek/hello now runs correctly (2013-7-28).
 	* configs/sama5d3x-ek/ostest/:  This configuration has been modified
 	  to run out NOR flash.  More work is still needed to reconfigure the
-	  SMC so the the NOR flash can work with the high clock (2013-7-28).
+	  SMC so that the NOR flash can work with the high clock (2013-7-28).
 	* arch/arm/src/sama5/sam_clockconfig.c/h and
 	  configs/sama5d3x-ek/src/sam_norflash.c:  Add a file structure that
 	  will (eventually) support reconfiguration of NOR flash when NuttX
@@ -5433,4 +5433,93 @@
 	  (2013-8-23).
 	* arch/arm/src/lpc17xx/lpc17_usbhost.h:  Fix #endif with missing #if
 	  condition.  Reported by Andrew Bradford (2013-8-23).
+	* nuttx/arch/arm/src/sama5/sam_ehci.c:  Now handles low- and full-speed
+	  connections by giving the port to the OHCI driver (2013-8-24).
+	* nuttx/arch/arm/src/sama5/sam_ohci.c:  Now uses the work queue to
+	  defer interrupt processing (2013-8-24).
+	* nuttx/arch/arm/src/sama5/sam_ohci.c and nuttx/arch/arm/src/sama5/sam_ehci.c:
+	  EHCI is now the common interrupt "master."  It will receive all UHPHS
+	  interrupts and route the interrupt event to both the OHCI and EHCI
+	  logic (2013-8-24).
+	* net/uip/uip_arp.c:  Correct backward condition in netmask task.
+	  From Max Holtzberg (2013-8-25).
+	* arch/arm/src/sama5/sam_ohci.c:  SAMA5 OHCI is again functional by
+	  itself after all of the changes to integrate with EHCI. (2013-8-25).
+	* drivers/net/encx24j600.c/.h and include/nuttx/net/encx24j600.h: 
+	  Support the Microchip ENCX24J600 Ethernet driver from Max Holtberg
+	  (2013-8-25).
+	* configs/olimex-stm32-p107:  Incorporate ENCX24J600 support for the
+	  Olimex STM32 P107 board.  From Max Holtzberg (2013-8-25).
+	* fs/romfs/fs_romfsutil.c:  Fix an error where long (>15) file names
+	  were read incorrectly from a ROMFS file system.  From Mike Smith
+	  (2013-8-25).
+	* arch/arm/src/stm32/stm32_sdio.c: SourceForge bug #17 Fix if
+	  CONFIG_SDIO_BLOCKSETUP defined, OS will crash". Generate an error
+	  if CONFIG_SDIO_BLOCKSETUP is defined; that option is not yet supported
+	  by the STM32 SDIO driver.  From CCTSAO (2013-6-26)
+	* drivers/net/encx24j600.c and .h: Use the ENC's SRAM for multiple TX
+	  packets.  From Max Holtzberg (2013-6-26).
+	* include/nuttx/usb/usbhost.h, drivers/usbhost/usbhost_enumerate.c, and
+	  all USB host drivers:  Added a new driver method:  getdevinfo.  This
+	  method is intended to get various information about the connected device,
+	  but currently returns only the device speed.  The device speed is
+	  necessary by usbhost_enumerate in order to set a credible initial EP0
+	  max packetsize.  High speed needs 64 bytes, low speed needs 8 bytes,
+	  and full speed can handle almost any size (2013-8-26).
+	* arch/arm:  Add hooks for Cortex-A8.  Not much more yet (2013-8-27).
+	* Lots of files:  Fix all occurrents of "the the" in documentation and
+	  comments (2013-8-27).
+	* arch/arm/src/sama5/sam_allocateheap.c:  Correct the logic that
+	  determines which memory regions get added to the heap.  When
+	  CONFIG_MM_NREGIONS > 1, the logic was adding the ISRAM region to
+	  the heap twice! (2013-6-27).
+	* nuttx/arch/arm/src/sama5/sam_ehci.c:  Add (untested) support for
+	  interrupt endpoints (2013-8-28).
+	* arch/arm/src/sama5/chip/sam_udphs.h:  High-speed USB device register
+	  definitions for the SAMA5 (2013-8-28)
+	* arch/arm/src/sama5/sam-udphs.c:  A framework for the USB device
+	  driver taken from another architecture.  There is very little
+	  useful in this initial check-in (2013-8-29).
+	* Remove all empty and most useless README.txt files (2013-8-31)
+	* configs/freedom-kl25z/src/kl_spi.c:  Correct typo in name of a
+	  function.  From Alan Carvalho de Assis (2013-8-31).
+	* drivers/usbdev/cdcacm_desc.c:  Fixed some compilation errors that
+	  only occur when dual speed support is enabled (2013-9-1).
+	* arch/arm/src/sama5/sam_clockconfig.c and configs/sama5d3x-ek/include/board_*mhz.h:
+	  Add logic to support UDPHS clocking (2013-9-13).
+	* arm/src/stm32/chip/stm32_tim.h:  Some CCER bit settings changed
+	  per SourceForge bug #18 submitted by CCCTSAO (2013-9-2).
+	* apps/examples/cc3000, configs/freedom-kl25z, drivers/wireless/cc3000,
+	  and nuttx/include/nuttx/cc3000.  Initial support for the TI CC3000
+	  network module on the Freescale Freedom-KL25Z board from Alan Carvalho
+	  de Assis.  This is still very much a work in progress (2013-9-3).
+	* configs/*/usbmsc:  Renamed from config/*/usbstorage to match the
+	  change in naming in apps/examples submitted by CCTSAO (2013-9-5).
+	* drivers/usbdev.c and pl2303.c:  Don't use max packetsize assigned to
+	  the endpoint when allocating request buffers; The default value of
+	  the endpoint max packetsize may be incorrect because the endpoint
+	  has not yet been configured.  Verified on CDC/ACM.  Corresponding
+	  changes made to pl2303, but untested (2013-9-5).
+	* arch/arm/src/sama5/sam_udphs.c:  The high-speed device side driver
+	  is now functional (although more testing is always needed) (2013-9-5).
+	* net/net_monitor.c: Fixes a race condition where a loss of connection
+	  may not be detected when the connection is lost before it has been
+	  accepted (from Max Holtzberg) (2013-9-6).
+	* configs/sama5d3x-ek/demo:  Add a new NSH configuration.  The
+	  original NSH configuration will be a simple platform for testing
+	  individual features; the demo configuration will be a more complex
+	  platform for demonstrating multiple interacting features (2013-9-6).
+	* net/uip/uip_tcpbacklog.c:  Fix a major bug in the TCP/IP backlog
+	  initialization:  Only the first backlog buffer was getting added
+	  to the free list.  From Max Holtzberg (2013-9-6).
+	* configs/sama5d3x-ek/demo:  Add support for USB MSC device on the
+	  AT25 serial FLASH (untested) (2013-9-6).
+	* drivers/net/enc28j60.c:  Changes back-ported from the ENCX24J600
+	  to the ENC28J60 by Max Holtzberg.  These seem like reasonable and
+	  correct changes, but have yet to be verified on an ENC28J60 (2013-9-6).
+	* drivers/usbdev/usbdev_strings.c:  Extended decoding and stringifging
+	  of USB trace output to include trace output from class drivers.
+	  (2013-9-6).
+	* drivers/usbdev/usbmsc_desc.c:  Fix a warning when USB MSC is
+	  compiled for a high-speed device (2013-9-7).
 

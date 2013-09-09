@@ -617,3 +617,28 @@
 	  differ.  Contributed by Andrew Tridgell (via Lorenz Meier) (2013-7-18).
 
 6.30 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+
+	* apps/examples/composite/:  SourceForge bug #19: Fix a typo that can
+	  cause a configuration error.  From CCTSAO (2013-9-4).
+	* apps/examples/cc3000.  Initial support for the TI CC3000 network module
+	  on the Freescale Freedom-KL25Z board from Alan Carvalho de Assis.
+	  Includes the test to verify the CC3000 (2013-9-3).
+	* apps/examples/usbmsc:  apps/examples/usbstorage renamed usbmsc.
+	  Change submitted by CCTSAO (2013-6-5).
+	* apps/examples/pwm:  Clean-up some configuration confusion (2013-9-5).
+	* apps/netutils/dhcpd/dhcpd.c:  Fix calculation of the next lease
+	  address.  SourceForge bug #21 from Paolo Messina (2013-9-6).
+	* apps/examples/usbmsc:  Don't try to control USB trace if we are
+	  an NSH built-in task.  In that case our attempts are inadequate
+	  and only interfere with with other logic that is attempting to
+	  to do the same thing (in NSH or in the USB monitor) (2013-9-6).
+	* apps/examples/usbmsc:  IMPORTANT bug fix: Change how the msconn
+	  works.  Because of recent changes the msconn command was hanging.
+	  This was because the USB MSC start-up logic creates a pthread;
+	  Now waitpid() will wait until all members of the task groupd
+	  exit.  So NSH was hanging in waitpid when msconn started even
+	  though msconn returned.  The USB MSC logic really should not use
+	  a pthread, but we are stuck with that for now.  The work-around
+	  is the msconn now daemonizes itself so that it so taht the pthread
+	  is created in a different task group (2013-9-7).
+

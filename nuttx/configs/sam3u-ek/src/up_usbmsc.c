@@ -62,15 +62,10 @@
 #  define CONFIG_EXAMPLES_USBMSC_DEVMINOR1 0
 #endif
 
-/* SLOT number(s) could depend on the board configuration */
+/* SLOT number(s) depends on the board configuration */
 
-#ifdef CONFIG_ARCH_BOARD_SAM3U10E_EVAL
-#  undef SAM_MMCSDSLOTNO
-#  define SAM_MMCSDSLOTNO 0
-#else
-   /* Add configuration for new SAM3U boards here */
-#  error "Unrecognized SAM3U board"
-#endif
+#undef SAM_MMCSDSLOTNO
+#define SAM_MMCSDSLOTNO 0
 
 /* Debug ********************************************************************/
 

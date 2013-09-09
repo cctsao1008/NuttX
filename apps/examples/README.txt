@@ -126,6 +126,11 @@ examples/can
    CONFIG_EXAMPLES_CAN_READONLY - Only receive messages
    CONFIG_EXAMPLES_CAN_WRITEONLY - Only send messages
 
+examples/cc3000
+^^^^^^^^^^^^^^^
+
+  This is a test for the TI CC3000 wireless networking module.
+
 examples/cdcacm
 ^^^^^^^^^^^^^^^
 
@@ -1375,8 +1380,8 @@ examples/pwm
   specific PWM settings might require additional settings).
 
     CONFIG_PWM - Enables PWM support.
-    CONFIG_EXAMPLES_PWM_COUNT - Enabled PWM pulse count support (if the
-      hardware supports it).
+    CONFIG_PWM_PULSECOUNT - Enables PWM pulse count support (if the hardware
+      supports it).
     CONFIG_NSH_BUILTIN_APPS - Build the PWM test as an NSH built-in function.
       Default: Not built!  The example can only be used as an NSH built-in
       application

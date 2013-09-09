@@ -309,10 +309,12 @@ int usbhost_enumerate(FAR struct usbhost_driver_s *drvr, uint8_t funcaddr,
                       FAR struct usbhost_class_s **class)
 {
   struct usb_ctrlreq_s *ctrlreq;
+  struct usbhost_devinfo_s devinfo;
   struct usbhost_id_s id;
   size_t maxlen;
   unsigned int cfglen;
   uint8_t maxpacketsize;
+  uint8_t descsize;
   uint8_t *buffer;
   int  ret;
 
@@ -336,9 +338,46 @@ int usbhost_enumerate(FAR struct usbhost_driver_s *drvr, uint8_t funcaddr,
       goto errout;
     }
 
-  /* Set max pkt size = 8 */
+  /* Get information about the connected device */
 
-  DRVR_EP0CONFIGURE(drvr, 0, 8);
+  ret = DRVR_GETDEVINFO(drvr, &devinfo);
+  if (ret != OK)
+    {
+      udbg("DRVR_GETDEVINFO failed: %d\n", ret);
+      goto errout;
+    }
+
+  /* Pick an appropriate packet size for this device
+   *
+   * USB 2.0, Paragraph 5.5.3 "Control Transfer Packet Size Constraints"
+   *
+   *  "An endpoint for control transfers specifies the maximum data
+   *   payload size that the endpoint can accept from or transmit to
+   *   the bus. The allowable maximum control transfer data payload
+   *   sizes for full-speed devices is 8, 16, 32, or 64 bytes; for
+   *   high-speed devices, it is 64 bytes and for low-speed devices,
+   *   it is 8 bytes. This maximum applies to the data payloads of the
+   *   Data packets following a Setup..."
+   */
+
+  if (devinfo.speed == DEVINFO_SPEED_HIGH)
+    {
+      /* For high-speed, we must use 64 bytes */
+
+      maxpacketsize = 64;
+      descsize      = USB_SIZEOF_DEVDESC;
+    }
+  else
+    {
+      /* Eight will work for both low- and full-speed */
+
+      maxpacketsize = 8;
+      descsize      = 8;
+    }
+
+  /* Set the initial maximum packet size */
+
+  DRVR_EP0CONFIGURE(drvr, 0, maxpacketsize);
 
   /* Read first 8 bytes of the device descriptor */
 
@@ -346,7 +385,7 @@ int usbhost_enumerate(FAR struct usbhost_driver_s *drvr, uint8_t funcaddr,
   ctrlreq->req  = USB_REQ_GETDESCRIPTOR;
   usbhost_putle16(ctrlreq->value, (USB_DESC_TYPE_DEVICE << 8));
   usbhost_putle16(ctrlreq->index, 0);
-  usbhost_putle16(ctrlreq->len, 8);
+  usbhost_putle16(ctrlreq->len, descsize);
 
   ret = DRVR_CTRLIN(drvr, ctrlreq, buffer);
   if (ret != OK)
@@ -364,19 +403,23 @@ int usbhost_enumerate(FAR struct usbhost_driver_s *drvr, uint8_t funcaddr,
 
   DRVR_EP0CONFIGURE(drvr, 0, maxpacketsize);
 
-  /* Now read the full device descriptor */
+  /* Now read the full device descriptor (if we have not already done so) */
 
-  ctrlreq->type = USB_REQ_DIR_IN|USB_REQ_RECIPIENT_DEVICE;
-  ctrlreq->req  = USB_REQ_GETDESCRIPTOR;
-  usbhost_putle16(ctrlreq->value, (USB_DESC_TYPE_DEVICE << 8));
-  usbhost_putle16(ctrlreq->index, 0);
-  usbhost_putle16(ctrlreq->len, USB_SIZEOF_DEVDESC);
-
-  ret = DRVR_CTRLIN(drvr, ctrlreq, buffer);
-  if (ret != OK)
+  if (descsize < USB_SIZEOF_DEVDESC)
     {
-      udbg("ERROR: GETDESCRIPTOR/DEVICE, DRVR_CTRLIN returned %d\n", ret);
-      goto errout;
+      ctrlreq->type = USB_REQ_DIR_IN|USB_REQ_RECIPIENT_DEVICE;
+      ctrlreq->req  = USB_REQ_GETDESCRIPTOR;
+      usbhost_putle16(ctrlreq->value, (USB_DESC_TYPE_DEVICE << 8));
+      usbhost_putle16(ctrlreq->index, 0);
+      usbhost_putle16(ctrlreq->len, USB_SIZEOF_DEVDESC);
+
+      ret = DRVR_CTRLIN(drvr, ctrlreq, buffer);
+      if (ret != OK)
+        {
+          udbg("ERROR: GETDESCRIPTOR/DEVICE, DRVR_CTRLIN returned %d\n",
+               ret);
+          goto errout;
+        }
     }
 
   /* Get class identification information from the device descriptor.  Most
