@@ -623,10 +623,10 @@ static bool sam_checkreg(struct sam_dev_s *priv, bool wr, uint32_t value,
 
       /* Save information about the new access */
 
-      priv->wrlast      = wr;
-      priv->vallast   = value;
+      priv->wrlast   = wr;
+      priv->vallast  = value;
       priv->addrlast = address;
-      priv->ntimes      = 0;
+      priv->ntimes   = 0;
     }
 
   /* Return true if this is the first time that we have done this operation */
@@ -2791,7 +2791,7 @@ FAR struct sdio_dev_s *sdio_initialize(int slotno)
 #ifdef CONFIG_SAMA5_HSMCI1
   if (slotno == 1)
     {
-      /* Select HSMCI0 */
+      /* Select HSMCI1 */
 
       priv = &g_hsmci1;
 
@@ -2828,7 +2828,7 @@ FAR struct sdio_dev_s *sdio_initialize(int slotno)
 #ifdef CONFIG_SAMA5_HSMCI2
   if (slotno == 2)
     {
-      /* Select HSMCI0 */
+      /* Select HSMCI2 */
 
       priv = &g_hsmci2;
 

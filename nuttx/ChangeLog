@@ -5526,4 +5526,32 @@
 	  transfer errors while attempt to initialize, don't bother with
 	  the startup retries; abort immediately so that the device will
 	  be reset and we can try again (2013-9-9).
+	* drivers/usbhost/usbhost_storagge:  Correct a reference counting
+	  error:  When an MSC device transfer fails while waiting for
+	  UnitTestReady (see 2013-9-9), the reference count was not being
+	  decremented.  The end result is a memory leak (2013-9-10).
+	* arch/arm/src/sama5/chip/sam_twi.h:  Added SAMA5 TWI register
+	  definition file (2013-9-11).
+	* arch/arm/src/sama5/sam_twi.c and .h:  Framework for a SAMA5
+	  TWI driver (not much present in initial checkin) (2013-9-11).
+	* fs/nxffs:  Clean up some compilation warnings (2013-9-12)
+	* drivers/mtd/at24xx.c:  Add support for the AT 24C512 part
+	  (2013-9-12).
+	* arch/arm/src/sama5/sama5_twi.c:  Clean up some errors that
+	  only occur with CONFIG_DEBUG_I2C (2013-9-12).
+	* arch/arm/src/sama5/chip/sam_emac.h and sam_gmac.h:  Register
+	  definition files for the SAMA5 EMAC and GMAC peripherals
+	  (incomplete on the initial commit) (2013-9-12).
+	* arch/arm/src/stm32/stm32_can.c:  Make filter register accessible
+	  for CAN1 and CAN2. Patch provided by Lorenz Meier (2013-9-13).
+	* nuttx/include/nuttx/usb/cdcacm.h:  Fix backward conditional
+	  compilation in the CDC/ACM driver with regard to remote
+	  wakeup and self-powered capabilites.  Provided by Lorenz Meier
+	  (2013-9-13)
+	* fs/romfs/fs_romfsutil.c: Fix for filenames > 15 characters.
+	  Provided by Lorenz Meier (2013-9-13).
+	* arch/arm/src/stm32/Kconfig: Fix STM32 UART7/8 kconfig names
+	  and UART DMA.  Provided by Lorenz Meier (2013-9-13).
+	* configs/maple:  Board configuration for the LeafLabs Maple
+	  and Maple Mini boards.  From Librae (2013-9-13).
 
