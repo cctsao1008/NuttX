@@ -887,7 +887,6 @@ int cmd_ls(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
   char *fullpath;
   bool badarg = false;
   int ret;
-  struct stat st;
 
   /* Get the ls options */
 
