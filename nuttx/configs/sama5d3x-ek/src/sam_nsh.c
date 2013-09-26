@@ -86,14 +86,14 @@
 
 int nsh_archinitialize(void)
 {
-#if defined(HAVE_AT25_MTD) || defined(HAVE_HSMCI_MTD) || defined(HAVE_USBHOST) || \
-    defined(HAVE_USBMONITOR)
+#if defined(HAVE_AT25) || defined(HAVE_AT24) || defined(HAVE_HSMCI) || \
+    defined(HAVE_USBHOST) || defined(HAVE_USBMONITOR)
   int ret;
 #endif
 
+#ifdef HAVE_AT25
   /* Initialize the AT25 driver */
 
-#ifdef HAVE_AT25_MTD
   ret = sam_at25_initialize(AT25_MINOR);
   if (ret < 0)
     {
@@ -102,8 +102,21 @@ int nsh_archinitialize(void)
     }
 #endif
 
-#ifdef HAVE_HSMCI_MTD
+#ifdef HAVE_AT24
+  /* Initialize the AT24 driver */
+
+  ret = sam_at24_initialize(AT24_MINOR);
+  if (ret < 0)
+    {
+      message("ERROR: sam_at24_initialize failed: %d\n", ret);
+      return ret;
+    }
+#endif
+
+#ifdef HAVE_HSMCI
 #ifdef CONFIG_SAMA5_HSMCI0
+  /* Initialize the HSMCI0 driver */
+
   ret = sam_hsmci_initialize(HSMCI0_SLOTNO, HSMCI0_MINOR);
   if (ret < 0)
     {
@@ -114,6 +127,8 @@ int nsh_archinitialize(void)
 #endif
 
 #ifdef CONFIG_SAMA5_HSMCI1
+  /* Initialize the HSMCI1 driver */
+
   ret = sam_hsmci_initialize(HSMCI1_SLOTNO, HSMCI1_MINOR);
   if (ret < 0)
     {

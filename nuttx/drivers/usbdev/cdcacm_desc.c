@@ -134,7 +134,9 @@ static const struct usb_cfgdesc_s g_cfgdesc =
   CDCACM_NINTERFACES,                           /* ninterfaces */
   CDCACM_CONFIGID,                              /* cfgvalue */
   CDCACM_CONFIGSTRID,                           /* icfg */
-  USB_CONFIG_ATTR_ONE|SELFPOWERED|REMOTEWAKEUP, /* attr */
+  USB_CONFIG_ATTR_ONE |                         /* attr */
+    CDCACM_SELFPOWERED |
+    CDCACM_REMOTEWAKEUP,
   (CONFIG_USBDEV_MAXPOWER + 1) / 2              /* mxpower */
 };
 #endif
@@ -220,7 +222,7 @@ static const struct usb_epdesc_s g_epintindesc =
     LSBYTE(CONFIG_CDCACM_EPINTIN_FSSIZE),       /* maxpacket (full speed) */
     MSBYTE(CONFIG_CDCACM_EPINTIN_FSSIZE)
   },
-  0xff                                          /* interval */
+  10                                            /* interval */
 };
 
 /* Data interface descriptor */

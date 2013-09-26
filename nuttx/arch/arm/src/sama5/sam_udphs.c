@@ -956,7 +956,8 @@ static void sam_dma_wrsetup(struct sam_usbdev_s *priv, struct sam_ep_s *privep,
 
   /* How many bytes remain to be transferred in the request? */
 
-  remaining = privreq->req.len - privreq->req.xfrd;
+  remaining = (int)privreq->req.len - (int)privreq->req.xfrd;
+  DEBUGASSERT(remaining >= 0 && remaining <= (int)privreq->req.len);
 
   /* If there are no bytes to send, then send a zero length packet */
 
@@ -1020,8 +1021,9 @@ static void sam_dma_rdsetup(struct sam_usbdev_s *priv,
 
   /* How many more bytes can we append to the request buffer? */
 
-  remaining = privreq->req.len - privreq->req.xfrd;
-  DEBUGASSERT(remaining > 0 && privep->epstate == UDPHS_EPSTATE_RECEIVING);
+  remaining = (int)privreq->req.len - (int)privreq->req.xfrd;
+  DEBUGASSERT(remaining > 0 && remaining <= (int)privreq->req.len &&
+              privep->epstate == UDPHS_EPSTATE_RECEIVING);
 
   /* Clip the DMA transfer size to the size available in the user buffer */
 
@@ -2420,7 +2422,7 @@ static void sam_dma_interrupt(struct sam_usbdev_s *priv, int epno)
 
           /* This is an OUT endpoint.  Invalidate the data cache for
            * region that just completed DMA. This will force the
-           * buffer data to be reloaded from RAM. when it is accessed
+           * buffer data to be reloaded from RAM when it is accessed.
            */
 
           DEBUGASSERT(USB_ISEPOUT(privep->ep.eplog));
@@ -3586,32 +3588,36 @@ static int sam_ep_submit(struct usbdev_ep_s *ep, struct usbdev_req_s *req)
   privep->zlpsent   = false;
   flags             = irqsave();
 
-  /* If we are stalled, then drop all requests on the floor */
-
-  if (privep->stalled)
-    {
-      sam_req_abort(privep, privreq, -EBUSY);
-      ulldbg("ERROR: stalled\n");
-      ret = -EBUSY;
-    }
-
   /* Handle IN (device-to-host) requests.  NOTE:  If the class device is
    * using the bi-directional EP0, then we assume that they intend the EP0
-   * IN functionality.
+   * IN functionality (EP0 SETUP OUT data receipt does not use requests).
    */
 
-  else if (USB_ISEPIN(ep->eplog) || epno == EP0)
+  if (USB_ISEPIN(ep->eplog) || epno == EP0)
     {
-      /* Add the new request to the request queue for the IN endpoint */
+      /* If the endpoint is stalled, then fail any attempts to write
+       * through the endpoint.
+       */
 
-      sam_req_enqueue(&privep->reqq, privreq);
-      usbtrace(TRACE_INREQQUEUED(epno), req->len);
-
-      /* If the IN endpoint is IDLE, then transfer the data now */
-
-      if (privep->epstate == UDPHS_EPSTATE_IDLE)
+      if (privep->stalled)
         {
-          ret = sam_req_write(priv, privep);
+          sam_req_abort(privep, privreq, -EBUSY);
+          ulldbg("ERROR: stalled\n");
+          ret = -EPERM;
+        }
+      else
+        {
+          /* Add the new request to the request queue for the IN endpoint */
+
+          sam_req_enqueue(&privep->reqq, privreq);
+          usbtrace(TRACE_INREQQUEUED(epno), req->len);
+
+          /* If the IN endpoint is IDLE, then transfer the data now */
+
+          if (privep->epstate == UDPHS_EPSTATE_IDLE)
+            {
+              ret = sam_req_write(priv, privep);
+            }
         }
     }
 
@@ -3683,7 +3689,7 @@ static int sam_ep_stall(struct usbdev_ep_s *ep, bool resume)
   /* Check that endpoint is in Idle state */
 
   privep = (struct sam_ep_s *)ep;
-  DEBUGASSERT(privep->epstate == UDPHS_EPSTATE_IDLE && privep->dev);
+  DEBUGASSERT(/* privep->epstate == UDPHS_EPSTATE_IDLE && */ privep->dev);
 
   priv = (struct sam_usbdev_s *)privep->dev;
   epno = USB_EPNO(ep->eplog);
@@ -3708,9 +3714,12 @@ static int sam_ep_stall(struct usbdev_ep_s *ep, bool resume)
 
           privep->epstate = UDPHS_EPSTATE_IDLE;
 
-          /* Clear FORCESTALL flag */
+          /* Clear FORCESTALL request
+           * REVISIT:  Data sheet says to reset toggle to DATA0 only on OUT
+           * endpoints.
+           */
 
-          sam_putreg(UDPHS_EPTSTA_TOGGLESQ_MASK | UDPHS_EPTSTA_FRCESTALL,
+          sam_putreg(UDPHS_EPTCLRSTA_TOGGLESQ | UDPHS_EPTCLRSTA_FRCESTALL,
                      SAM_UDPHS_EPTCLRSTA(epno));
 
           /* Reset endpoint FIFOs */
@@ -3725,13 +3734,9 @@ static int sam_ep_stall(struct usbdev_ep_s *ep, bool resume)
 
               (void)sam_req_write(priv, privep);
             }
-
-          if ((epno == 0 && privep->epstate == UDPHS_EPSTATE_IDLE) ||
-              USB_ISEPOUT(ep->eplog))
+          else
             {
-              /* OUT endpoint (or EP0 with no write request started).
-               * Restart any queued read requests.
-               */
+              /* OUT endpoint.  Restart any queued read requests. */
 
               (void)sam_req_read(priv, privep, 0);
             }
@@ -3749,12 +3754,22 @@ static int sam_ep_stall(struct usbdev_ep_s *ep, bool resume)
         {
           usbtrace(TRACE_EPSTALL, epno);
 
-          /* Abort the current transfer if necessary */
+          /* If this is an IN endpoint (or endpoint 0), then cancel all
+           * of the pending write requests.
+           */
 
-          if (privep->epstate == UDPHS_EPSTATE_SENDING ||
-              privep->epstate == UDPHS_EPSTATE_RECEIVING)
+          if (epno == 0 || USB_ISEPIN(ep->eplog))
             {
-              sam_req_complete(privep, -EIO);
+              sam_req_cancel(privep, -EPERM);
+            }
+
+          /* Otherwise, it is an OUT endpoint.  Complete any read request
+           * currently in progress (it will get requeued immediately).
+           */
+
+          else if (privep->epstate == UDPHS_EPSTATE_RECEIVING)
+            {
+              sam_req_complete(privep, -EPERM);
             }
 
           /* Put endpoint into stalled state */
@@ -3764,22 +3779,18 @@ static int sam_ep_stall(struct usbdev_ep_s *ep, bool resume)
 
           sam_putreg(UDPHS_EPTSETSTA_FRCESTALL, SAM_UDPHS_EPTSETSTA(epno));
 
-          /* Enable endpoint/DMA interrupts */
+          /* Disable endpoint/DMA interrupts.  The not be re-enabled until
+           * the stall is cleared and the next transfer is started.  It
+           * would, of course, be a bad idea to do this on EP0 since it is
+           * a SETUP request that is going to clear the STALL.
+           */
 
-          regval = sam_getreg(SAM_UDPHS_IEN);
-          if ((SAM_EPSET_DMA & SAM_EP_BIT(epno)) != 0)
+          if (epno != 0)
             {
-              /* Enable the endpoint DMA interrupt */
-
-              regval &= ~UDPHS_INT_DMA(epno);
+              regval = sam_getreg(SAM_UDPHS_IEN);
+              regval &= ~(UDPHS_INT_DMA(epno) | UDPHS_INT_EPT(epno));
+              sam_putreg(regval, SAM_UDPHS_IEN);
             }
-          else
-            {
-              /* Enable the endpoint interrupt */
-
-              regval &= ~UDPHS_INT_EPT(epno);
-            }
-          sam_putreg(regval, SAM_UDPHS_IEN);
         }
     }
 

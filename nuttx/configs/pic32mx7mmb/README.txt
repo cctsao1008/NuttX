@@ -565,9 +565,9 @@ PIC32MX Configuration Options
 
 PIC32MX specific PHY/Ethernet device driver settings
 
-    CONFIG_PHY_KS8721 - Selects the Micrel KS8721 PHY
-    CONFIG_PHY_DP83848C - Selects the National Semiconduction DP83848C PHY
-    CONFIG_PHY_LAN8720 - Selects the SMSC LAN8720 PHY
+    CONFIG_ETH0_PHY_KS8721 - Selects the Micrel KS8721 PHY
+    CONFIG_ETH0_PHY_DP83848C - Selects the National Semiconduction DP83848C PHY
+    CONFIG_ETH0_PHY_LAN8720 - Selects the SMSC LAN8720 PHY
     CONFIG_PHY_AUTONEG - Enable auto-negotion
     CONFIG_PHY_SPEED100 - Select 100Mbit vs. 10Mbit speed.
     CONFIG_PHY_FDUPLEX - Select full (vs. half) duplex
@@ -695,10 +695,10 @@ Where <subdir> is one of the following:
       CONFIG_PL2303=y         : Enable the Prolifics PL2303 emulation
       CONFIG_CDCACM=y         : or the CDC/ACM serial driver (not both)
 
-    examples/cdcacm -  The examples/cdcacm program can be included as an 
+    system/cdcacm -  The system/cdcacm program can be included as an 
     function by uncommenting the following line in the appconfig file:
     
-      CONFIGURED_APPS += examples/cdcacm
+      CONFIGURED_APPS += system/cdcacm
 
     and defining the following in your .config file:
 
@@ -771,15 +771,15 @@ Where <subdir> is one of the following:
 
     d) Use a RAM disk (instead of an SD card) as the USB MSC logical unit:
 
-      -CONFIG_EXAMPLES_USBMSC_DEVPATH1="/dev/mmcsd0"
-      +CONFIG_EXAMPLES_USBMSC_DEVPATH1="/dev/ram0"
+      -CONFIG_SYSTEM_USBMSC_DEVPATH1="/dev/mmcsd0"
+      +CONFIG_SYSTEM_USBMSC_DEVPATH1="/dev/ram0"
 
   2. Changes to nuttx/.config.
 
-    a) Enable building of the examples/usbmsc:
+    a) Enable building of the system/usbmsc:
 
-      -# CONFIGURED_APPS += examples/usbmsc
-      +  CONFIGURED_APPS += examples/usbmsc
+      -# CONFIGURED_APPS += system/usbmsc
+      +  CONFIGURED_APPS += system/usbmsc
 
   3. When NSH first comes up, you must manually create the RAM disk
      before exporting it:

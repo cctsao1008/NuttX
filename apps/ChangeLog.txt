@@ -196,7 +196,7 @@
 	  backspace or a DEL character as a backspace (i.e., deleting the character
 	  to the left of the cursor).  This makes NSH less dependent on particular
 	  keyboard mappings of the Backspace key.  Submitted by Mike Smith.
-	* apps/examples/cdcacm:  An example that illustrates how the CDC/ACM driver
+	* apps/system/cdcacm:  An example that illustrates how the CDC/ACM driver
 	  may to connected and disconnected through software control.
 	* apps/examples/nsh/nsh_main.c:  If available, call up_cxxinitialize() to
 	  initialize all statically defined C++ classes.
@@ -616,7 +616,7 @@
 	  compare two files for equivalence.  Returns an indication if the files
 	  differ.  Contributed by Andrew Tridgell (via Lorenz Meier) (2013-7-18).
 
-6.30 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+6.30 2013-09-14 Gregory Nutt <gnutt@nuttx.org>
 
 	* apps/examples/composite/:  SourceForge bug #19: Fix a typo that can
 	  cause a configuration error.  From CCTSAO (2013-9-4).
@@ -635,10 +635,35 @@
 	* apps/examples/usbmsc:  IMPORTANT bug fix: Change how the msconn
 	  works.  Because of recent changes the msconn command was hanging.
 	  This was because the USB MSC start-up logic creates a pthread;
-	  Now waitpid() will wait until all members of the task groupd
+	  Now waitpid() will wait until all members of the task group
 	  exit.  So NSH was hanging in waitpid when msconn started even
 	  though msconn returned.  The USB MSC logic really should not use
 	  a pthread, but we are stuck with that for now.  The work-around
-	  is the msconn now daemonizes itself so that it so taht the pthread
+	  is the msconn now daemonizes itself so that it so that the pthread
 	  is created in a different task group (2013-9-7).
+	* apps/system/usbmonitor:  The USB monitor has been extended so
+	  that it can be used with USB device or host trace data (2013-9-9).
+	* apps/nshlib/nsh_fscmds.c:  Fix NSH listing output for the case
+	  of a single file.  Provided by Lorenz Meier (2013-9-13).
 
+6.31 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+
+	* apps/nshlib/nsh_netcmds.c:  Remove a warning when DHCP is not
+	  enabled (2013-9-17).
+	* apps/nshlib/Kconfig:  Default IP address should be 0x0a000001
+	  (10.0.0.1), not 0xa0000001 (160.0.0.1).  Ditto for the gateway
+	  (2013-9017).
+	* apps/examples/ostest/Kconfig:  Add configuration options for
+	  the FPU test.  There are still many OS test configuration
+	  optionst that do not appear in Kconfig (2013-9-18).
+	* apps/examples/cc3000:  Condition the CC3000 example on having
+	  selected the CC3000 device.  Otherwise, you are prompted for
+	  this the CC3000 option on each 'make oldconfig' (2013-9-18).
+	* apps/system/usbmonitor/usbmonitor.c:  Fix some bad conditional
+	  compilation probably introduced on 2013-9-9 (2013-9-23).
+	* apps/system/stackmonitor:  Add a daemon that can be used to
+	  monitor stack usage by all threads (2013-9-24).
+	* system/usbmsc:  Move examples/usbmsc to system/usbmsc (2013-9-25).
+	* system/cdcacm:  Move examples/cdcacm to system/cdcacm (2013-9-25).
+	* system/composite:  Move examples/composite to system/composite
+	  (2013-9-25).

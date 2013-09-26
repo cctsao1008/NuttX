@@ -80,7 +80,7 @@
  *
  * Input Parameters:
  *   start - virtual start address of region
- *   end   - virtual end address of region
+ *   end   - virtual end address of region + 1
  *
  * Returned Value:
  *   None
@@ -99,15 +99,15 @@ cp15_flush_dcache:
 	mov		r2, r2, lsl r3			/* Get the cache line size in bytes */
 
 	sub		r3, r2, #1				/* R3=Cache line size mask */
-	bic		r12, r0, r3				/* R12=aligned start address */
+	bic		r0, r0, r3				/* R0=aligned start address */
 
 	/* Loop, cleaning and invaliding each D cache line in the address range */
 
-5:
+1:
 	mcrne	CP15_DCCIMVAC(r0)		/* Clean and invalidate data cache line by VA to PoC */
 	add		r0, r0, r2				/* R12=Next cache line */
 	cmp		r0, r1					/* Loop until all cache lines have been cleaned */
-	blo		5b
+	blo		1b
 
 	dsb
 	bx		lr

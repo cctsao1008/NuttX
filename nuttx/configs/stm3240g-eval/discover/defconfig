@@ -354,7 +354,7 @@ CONFIG_ARCH_HAVE_I2CRESET=y
 # CONFIG_LCD is not set
 # CONFIG_MMCSD is not set
 # CONFIG_MTD is not set
-# CONFIG_NETDEVICES is not set
+CONFIG_NETDEVICES=y
 # CONFIG_NET_SLIP is not set
 # CONFIG_PIPES is not set
 # CONFIG_PM is not set
@@ -397,10 +397,10 @@ CONFIG_USART3_2STOP=0
 #
 CONFIG_NET=y
 CONFIG_ARCH_HAVE_PHY=y
-# CONFIG_PHY_KS8721 is not set
-CONFIG_PHY_DP83848C=y
-# CONFIG_PHY_LAN8720 is not set
-# CONFIG_PHY_DM9161 is not set
+# CONFIG_ETH0_PHY_KS8721 is not set
+CONFIG_ETH0_PHY_DP83848C=y
+# CONFIG_ETH0_PHY_LAN8720 is not set
+# CONFIG_ETH0_PHY_DM9161 is not set
 # CONFIG_NET_NOINTS is not set
 CONFIG_NET_MULTIBUFFER=y
 # CONFIG_NET_IPv6 is not set
@@ -518,12 +518,12 @@ CONFIG_HAVE_CXXINITIALIZE=y
 #
 # USB CDC/ACM Class Driver Example
 #
-# CONFIG_EXAMPLES_CDCACM is not set
+# CONFIG_SYSTEM_CDCACM is not set
 
 #
 # USB composite Class Driver Example
 #
-# CONFIG_EXAMPLES_COMPOSITE is not set
+# CONFIG_SYSTEM_COMPOSITE is not set
 
 #
 # DHCP Server Example
@@ -731,7 +731,7 @@ CONFIG_EXAMPLES_DISCOVER_NETMASK=0xffffff00
 #
 # USB Mass Storage Class Example
 #
-# CONFIG_EXAMPLES_USBMSC is not set
+# CONFIG_SYSTEM_USBMSC is not set
 
 #
 # USB Serial Terminal Example

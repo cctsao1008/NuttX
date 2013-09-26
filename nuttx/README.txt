@@ -191,7 +191,7 @@ Notes about Header Files
     header file then you should also define CONFIG_ARCH_MATH_H=y in your
     NuttX Configuration file.  If CONFIG_ARCH_MATH_H is selected, then the
     top-level Makefile will copy the stub math.h header file from
-    include/nuttx/matn.h to include/math.h where it will become the system
+    include/nuttx/math.h to include/math.h where it will become the system
     math.h header file.  The stub math.h header file does nothing other
     than to include that archicture-specific math.h header file as the
     system math.h header file.
@@ -1030,6 +1030,8 @@ nuttx
  |   |   `- README.txt
  |   |- lpcxpresso-lpc1768/
  |   |   `- README.txt
+ |   |- maple/
+ |   |   `- README.txt
  |   |- mbed/
  |   |   `- README.txt
  |   |- mcu123-lpc214x/
@@ -1194,9 +1196,13 @@ apps
  |- NxWidgets/
  |   `- README.txt
  |- system/
+ |   |- cdcacm
+ |   |  `- README.txt
  |   |- i2c
  |   |  `- README.txt
  |   |- install
+ |   |  `- README.txt
+ |   |- usbmsc
  |   |  `- README.txt
  |   `- zmodem
  |      `- README.txt

@@ -309,7 +309,9 @@ int sam_usbhost_initialize(void)
   int ret;
 
   /* First, register all of the class drivers needed to support the drivers
-   * that we care about:
+   * that we care about
+   *
+   * Register theUSB host Mass Storage Class:
    */
 
   ret = usbhost_storageinit();
@@ -317,6 +319,22 @@ int sam_usbhost_initialize(void)
     {
       udbg("ERROR: Failed to register the mass storage class: %d\n", ret);
     }
+
+  /* Register the USB host HID keyboard class driver */
+
+  ret = usbhost_kbdinit();
+  if (ret != OK)
+    {
+      udbg("ERROR: Failed to register the KBD class\n");
+    }
+
+  /* Then get an instance of the USB host interface.
+   *
+   * REVISIT:  This logic needs to be modified.  There must be a call-out to
+   * platform specific logic to get the connection hangle.  usbhost_initialize()
+   * is not longer common to all platforms and is no longer prototyped in
+   * include/nuttx/usb/usbhost.h.
+   */
 
 #ifdef CONFIG_SAMA5_OHCI
   /* Get an instance of the USB OHCI interface */
@@ -330,7 +348,7 @@ int sam_usbhost_initialize(void)
 
   /* Start a thread to handle device connection. */
 
-  pid = TASK_CREATE("usbhost", CONFIG_USBHOST_DEFPRIO,  CONFIG_USBHOST_STACKSIZE,
+  pid = TASK_CREATE("OHCI Monitor", CONFIG_USBHOST_DEFPRIO,  CONFIG_USBHOST_STACKSIZE,
                     (main_t)ohci_waiter, (FAR char * const *)NULL);
   if (pid < 0)
     {
@@ -351,7 +369,7 @@ int sam_usbhost_initialize(void)
 
   /* Start a thread to handle device connection. */
 
-  pid = TASK_CREATE("usbhost", CONFIG_USBHOST_DEFPRIO,  CONFIG_USBHOST_STACKSIZE,
+  pid = TASK_CREATE("EHCI Monitor", CONFIG_USBHOST_DEFPRIO,  CONFIG_USBHOST_STACKSIZE,
                     (main_t)ehci_waiter, (FAR char * const *)NULL);
   if (pid < 0)
     {
@@ -476,8 +494,8 @@ xcpt_t sam_setup_overcurrent(xcpt_t handler)
 
   /* Get the old button interrupt handler and save the new one */
 
-  oldhandler = *g_ochandler;
-  *g_ochandler = handler;
+  oldhandler  = g_ochandler;
+  g_ochandler = handler;
 
   /* Configure the interrupt */
 
@@ -487,6 +505,7 @@ xcpt_t sam_setup_overcurrent(xcpt_t handler)
 
   /* Return the old button handler (so that it can be restored) */
 
+  irqrestore(flags);
   return oldhandler;
 
 #else

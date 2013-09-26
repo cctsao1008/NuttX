@@ -55,14 +55,14 @@ ifeq ($(CONFIG_PIC32MX_USBDEV),y)
 # USB Mass Storage Class device configurations
 
 ifeq ($(CONFIG_USBMSC),y)
-  CONFIGURED_APPS += examples/usbmsc
+  CONFIGURED_APPS += system/usbmsc
 else
 
 # USB CDC/ACM serial device configurations
 
 ifeq ($(CONFIG_CDCACM),y)
 # Comment out to enable the examples/usbterm built-in
-  CONFIGURED_APPS += examples/cdcacm
+  CONFIGURED_APPS += system/cdcacm
 # Uncomment the following to enable the examples/usbterm built-in
 # CONFIGURED_APPS += examples/usbterm
 else

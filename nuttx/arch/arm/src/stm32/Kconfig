@@ -255,6 +255,13 @@ config ARCH_CHIP_STM32F103C8
 	select STM32_PERFORMANCELINE
 	select STM32_MEDIUMDENSITY
 
+config ARCH_CHIP_STM32F103RBT6
+	bool "STM32F103RBT6"
+	select ARCH_CORTEXM3
+	select STM32_STM32F10XX
+	select STM32_PERFORMANCELINE
+	select STM32_MEDIUMDENSITY
+
 config ARCH_CHIP_STM32F103RET6
 	bool "STM32F103RET6"
 	select ARCH_CORTEXM3
@@ -612,6 +619,7 @@ config STM32_ETHMAC
 	bool "Ethernet MAC"
 	default n
 	depends on STM32_CONNECTIVITYLINE || STM32_STM32F20XX || STM32_STM32F40XX
+	select NETDEVICES
 	select ARCH_HAVE_PHY
 
 config STM32_FSMC
@@ -2594,21 +2602,6 @@ config SDIO_WIDTH_D1_ONLY
 
 endmenu
 
-menu "CAN Configuration"
-	depends on STM32_CAN
-
-config CAN1_BAUD
-	int "Baud rate for CAN1"
-	default 250000
-	depends on STM32_CAN1
-
-config CAN2_BAUD
-	int "Baud rate for CAN2"
-	default 250000
-	depends on STM32_CAN2
-
-endmenu
-
 if STM32_ETHMAC
 menu "Ethernet MAC configuration"
 
@@ -2744,28 +2737,28 @@ config STM32_PHYSR_ALTMODE
 		for isolating the speed and full/half duplex mode bits.
 
 config STM32_PHYSR_10HD
-	hex "10MHz/Half Duplex Value"
+	hex "10MBase-T Half Duplex Value"
 	depends on STM32_AUTONEG && STM32_PHYSR_ALTCONFIG
 	---help---
 		This must be provided if STM32_AUTONEG is defined.  This is the value
 		under the bit mask that represents the 10Mbps, half duplex setting.
 
 config STM32_PHYSR_100HD
-	hex "100MHz/Half Duplex Value"
+	hex "100Base-T Half Duplex Value"
 	depends on STM32_AUTONEG && STM32_PHYSR_ALTCONFIG
 	---help---
 		This must be provided if STM32_AUTONEG is defined.  This is the value
 		under the bit mask that represents the 100Mbps, half duplex setting.
 
 config STM32_PHYSR_10FD
-	hex "10MHz/Full Duplex Value"
+	hex "10Base-T Full Duplex Value"
 	depends on STM32_AUTONEG && STM32_PHYSR_ALTCONFIG
 	---help---
 		This must be provided if STM32_AUTONEG is defined.  This is the value
 		under the bit mask that represents the 10Mbps, full duplex setting.
 
 config STM32_PHYSR_100FD
-	hex "100MHz/Full Duplex Value"
+	hex "100Base-T Full Duplex Value"
 	depends on STM32_AUTONEG && STM32_PHYSR_ALTCONFIG
 	---help---
 		This must be provided if STM32_AUTONEG is defined.  This is the value
@@ -2890,3 +2883,22 @@ config STM32_USB_ITRMP
 		either retain the legacy F1 behavior or to map the USB interupts to
 		there own dedicated vectors.  The option is available only for the
 		F3 family and selects the use of the dedicated USB interrupts.
+
+menu "CAN driver configuration"
+	depends on STM32_CAN1 || STM32_CAN2
+
+config CAN1_BAUD
+        int "CAN1 BAUD"
+        default 250000
+        depends on STM32_CAN1
+        ---help---
+                CAN1 BAUD rate.  Required if STM32_CAN1 is defined.
+
+config CAN2_BAUD
+        int "CAN2 BAUD"
+        default 250000
+        depends on STM32_CAN2
+        ---help---
+                CAN2 BAUD rate.  Required if STM32_CAN2 is defined.
+
+endmenu

@@ -5242,7 +5242,7 @@
 	* configs/sama5d3-ek/src/sam_cxxinitialize.c:  Add C++ support
 	  (2013-7-31).
 
-6.30 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+6.30 2013-09-14 Gregory Nutt <gnutt@nuttx.org>
 
 	* arch/arm/src/sama5/arm_pghead.S:  Separate the logic that is
 	  enabled by CONFIG_PAGING out of arm_head.S.  That was just
@@ -5288,9 +5288,9 @@
 	  AT25 serial flash (2013-8-4).
 	* configs/sama5d3x-ek/nsh/defconfig:  FAT file system support is
 	  now enabled by default (2013-8-5)
-	* confgis/sama5d3x-ek/src/sam_nsh.c:  Automatically mount AT25
+	* configs/sama5d3x-ek/src/sam_nsh.c:  Automatically mount AT25
 	  file system for NSH if so configured (2013-8-5).
-	* confgis/sama5d3x-ek/src/sam_nsh.c:  Verified that the AT25 FLASH
+	* configs/sama5d3x-ek/src/sam_nsh.c:  Verified that the AT25 FLASH
 	  works on the SAMA5D3x-EK boards and can support a FAT file system
 	  (2013-8-5).
 	* arch/arm/src/sam34/sam_spi.c:  Corrected an error in the SAM3/4
@@ -5358,7 +5358,7 @@
 	* include/nuttx/usb/usbhost.h, arch/arm/src/stm32, arch/arm/src/lpc17xx,
 	  and include/nuttx/usb/usbhost.h, and nuttx/configs/<stm32-boards>:
 	  Move prototype of usbhost_initialize() of usbhost.h and into
-	  architecture specific files.  This is necessasrybecause some chips
+	  architecture specific files.  This is necessary because some chips
 	  (like the SAMA5) have multiple, different USB host interfaces
 	  (2013-8-11).
 	* drivers/usbhost/usbhost_hidkbd.c and usbhost_storage.c:  Correct some
@@ -5445,8 +5445,8 @@
 	  From Max Holtzberg (2013-8-25).
 	* arch/arm/src/sama5/sam_ohci.c:  SAMA5 OHCI is again functional by
 	  itself after all of the changes to integrate with EHCI. (2013-8-25).
-	* drivers/net/encx24j600.c/.h and include/nuttx/net/encx24j600.h: 
-	  Support the Microchip ENCX24J600 Ethernet driver from Max Holtberg
+	* drivers/net/encx24j600.c/.h and include/nuttx/net/encx24j600.h:
+	  Support the Microchip ENCX24J600 Ethernet driver from Max Holtzberg
 	  (2013-8-25).
 	* configs/olimex-stm32-p107:  Incorporate ENCX24J600 support for the
 	  Olimex STM32 P107 board.  From Max Holtzberg (2013-8-25).
@@ -5495,8 +5495,8 @@
 	  de Assis.  This is still very much a work in progress (2013-9-3).
 	* configs/*/usbmsc:  Renamed from config/*/usbstorage to match the
 	  change in naming in apps/examples submitted by CCTSAO (2013-9-5).
-	* drivers/usbdev.c and pl2303.c:  Don't use max packetsize assigned to
-	  the endpoint when allocating request buffers; The default value of
+	* drivers/usbdev/cdcacm.c and pl2303.c:  Don't use max packetsize assigned
+	  to the endpoint when allocating request buffers; The default value of
 	  the endpoint max packetsize may be incorrect because the endpoint
 	  has not yet been configured.  Verified on CDC/ACM.  Corresponding
 	  changes made to pl2303, but untested (2013-9-5).
@@ -5517,9 +5517,123 @@
 	* drivers/net/enc28j60.c:  Changes back-ported from the ENCX24J600
 	  to the ENC28J60 by Max Holtzberg.  These seem like reasonable and
 	  correct changes, but have yet to be verified on an ENC28J60 (2013-9-6).
-	* drivers/usbdev/usbdev_strings.c:  Extended decoding and stringifging
+	* drivers/usbdev/usbdev_strings.c:  Extended decoding and stringifying
 	  of USB trace output to include trace output from class drivers.
 	  (2013-9-6).
 	* drivers/usbdev/usbmsc_desc.c:  Fix a warning when USB MSC is
 	  compiled for a high-speed device (2013-9-7).
+	* drivers/usbhost/usbhost_storage.c:  If device is returning fatal
+	  transfer errors while attempt to initialize, don't bother with
+	  the startup retries; abort immediately so that the device will
+	  be reset and we can try again (2013-9-9).
+	* drivers/usbhost/usbhost_storage.c:  Correct a reference counting
+	  error:  When an MSC device transfer fails while waiting for
+	  UnitTestReady (see 2013-9-9), the reference count was not being
+	  decremented.  The end result is a memory leak (2013-9-10).
+	* arch/arm/src/sama5/chip/sam_twi.h:  Added SAMA5 TWI register
+	  definition file (2013-9-11).
+	* arch/arm/src/sama5/sam_twi.c and .h:  Framework for a SAMA5
+	  TWI driver (not much present in initial checkin) (2013-9-11).
+	* fs/nxffs:  Clean up some compilation warnings (2013-9-12)
+	* drivers/mtd/at24xx.c:  Add support for the AT 24C512 part
+	  (2013-9-12).
+	* arch/arm/src/sama5/sama5_twi.c:  Clean up some errors that
+	  only occur with CONFIG_DEBUG_I2C (2013-9-12).
+	* arch/arm/src/sama5/chip/sam_emac.h and sam_gmac.h:  Register
+	  definition files for the SAMA5 EMAC and GMAC peripherals
+	  (incomplete on the initial commit) (2013-9-12).
+	* arch/arm/src/stm32/stm32_can.c:  Make filter register accessible
+	  for CAN1 and CAN2. Patch provided by Lorenz Meier (2013-9-13).
+	* nuttx/include/nuttx/usb/cdcacm.h:  Fix backward conditional
+	  compilation in the CDC/ACM driver with regard to remote
+	  wakeup and self-powered capabilites.  Provided by Lorenz Meier
+	  (2013-9-13)
+	* fs/romfs/fs_romfsutil.c: Fix for filenames > 15 characters.
+	  Provided by Lorenz Meier (2013-9-13).
+	* arch/arm/src/stm32/Kconfig: Fix STM32 UART7/8 kconfig names
+	  and UART DMA.  Provided by Lorenz Meier (2013-9-13).
+	* configs/maple:  Board configuration for the LeafLabs Maple
+	  and Maple Mini boards.  From Librae (2013-9-13).
+	* arch/arm/src/sama5/sam_emac.c and .h:  Skeleton files for
+	  a SAMA5 EMAC driver.  Not much in the initial files; these
+	  are just hacked out and gutted versions of the corresponding
+	  STM32 files (2013-9-13).
 
+6.31 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+
+	* nuttx/fs/romfs/fs_romfsutil.c:  Back out part of a recent
+	  ROMFS change (2013-9-14).
+	* configs/sama5d3x-ek/src/sam_ethernet.c:  Add support for
+	  PHY interrupts (2013-9-15).
+	* arch/arm/src/kl/chip/kl_pit.h and kp_tpm.h:  Add register
+	  definitions for the Freescale Kinetis KL25Z from Alan
+	  Carvalho de Assis (2013-9-15).
+	* configs/ and a few Ethernet drivers:  Add the prefix ETH0
+	  to all PHY configuration selections.  This will allow us
+	  to support to Ethernet MAC drivers with two different
+	  PHYS (identified with ETH0 and ETH1) (2013-9-17).
+	* net/Kconfig and drivers/net/Kconfig:  Move PHY selections from
+	  net/Kconfig to drivers/net/Kconfig where they belong.  Add the previx
+	  ETH0_ to each PHY selection.  And a new configuration
+	  CONFIG_NETDEV_MULTINIC that can be set to enable support for multiple
+	  Ethernet MAC drivers (not fully implemented yet).  When Enabled,
+	  another set of PHY selections are enabled for ETH1_ (2013-9-17).
+	* include/nuttx/net/mii.h:  Add definitions for the Micrel KSZ8051 PHY
+	  (2013-9-17).
+	* configs/zkit-arm-1768:  MMC/SD is on SPI, not SSP0.  From Rashid
+	  Fatah (2013-9-17).
+	* configs/: Lots of defconfig files changes.  A consequence of the
+	  above renaming and moving of the PHY configuration settings is
+	  that the you now also have to set CONFIG_NETDEVICES=y if you
+	  need to set a PHY configuration (2013-9-17).
+	* arch/arm/src/lpc17xx/lpc17_spi.c:  Remove undefined spi_select()
+	  prototype.  This was cause compile time warnings (2013-9-17).
+	* configs/sama5d3x-ek/src/sam_ostest.c:  Add OS test support for
+	  the FPU test (2013-9-18).
+	* arch/arm/src/sama5/sam_usbhost.h and include/nuttx/usb/usbhost_trace.h
+	  Correct some inconsistencies in the way that USB configuration
+	  settings are used.  This caused compilation errors in SAMA5 OHCI
+	  when USB debug was ON but USB host tracing was off (2013-9-19).
+	* nuttx/arch/arm/src/sama5/sam_clockconfig.c:  When 480MHz UPLL
+	  is used to drive OHCI, it should have a divider of 10.  However,
+	  that does not work.  A divider of 5 does.  Why? (2013-9-19).
+	* Several USB device driver files:  Change naming of SELFPOWERED
+	  and REMOTEWAKEUP to avoid name collisions.  Prepend the name
+	  of the driver (for example CDCACM_SELFPOWERED) (201309-20).
+	* configs/sama5d3x-ek/nsh and demo: Increase the number of pre-allocated
+	  watchdog timers.  The default number of 4 was easily being exhausted
+	  in the more complex configurations.  Enable the task name feature
+	  to provide prettier ps command output.  src/sam_usb.c:  Use more
+	  descriptive task names when starting the EHCI and OHCI monitor tasks
+	  (2013-9-20).
+	* arch/arm/src/sama5/sam_ohci.c:  Fix a place where DMA-related data
+	  needed to be flushed to data cache; Fix another where a virtual address
+	  was being used in a register where a physical address was required
+	  (2013-9-20).
+	* arch/arm/src/armv7-a/cp15_clean_dcache.S and cp15_flush_dcache.S:
+	  fix an error in the alignment of addresses to cache line boundaries
+	  (2013-9-21).
+	* drivers/usbdev/cdcacm_desc.c:  Change the interval for the interrupt
+	  endpoint from 0xff (invalid) to 10.  This is not a critical change
+	  but will avoid a complaint from the Linux driver when it overrides
+	  the 0xff value (2013-9-22).
+	* configs/zkit-arm-1769:  LED1 is not user controllable after booting.
+	  From Rashid Fatah (2013-9-23).
+	* arch/arm/src/sama5/sam_hsmci.c:  TX DMA disabled.  It is just not
+	  reliable. No idea why.  RX DMA is still used (2013-9-23).
+	* driver/net/encx24j600.c:  UDP/RXAVAIL backlog support from Max
+	  Holtzberg (2013-9-24).
+	* Standardized stack checking logic so the interfaces can be used
+	  by common stack monitoring logic (2013-9-24).
+	* drivers/net/Kconfig:  Move CONFIG_NET_DUMPPACKET out of LPC17
+	  and STM32 Kconfigs into the common network driver Kconfig (2013-9-25).
+	* arch/arm/src/sam_emac.c:  EMAC driver is basically functional.  More
+	  testing is needed (as always) (2013-9-25).
+	* configs:  Changes to many defconfig files resulting from moving
+	  apps/examples/usbmsc to apps/system/usbmsc (2013-9-25).
+	* configs:  Changes to many defconfig files resulting from moving
+	  apps/examples/cdcacm to apps/system/cdcacm (2013-9-25).
+	* configs:  Changes to many defconfig files resulting from moving
+	  apps/examples/composite to apps/system/composite (2013-9-25).
+	* configs/stm3210e-eval/composite:  Converted to use the kconfig-
+	  frontends tool (2013-9-25).

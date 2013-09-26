@@ -50,14 +50,6 @@ ifeq ($(CONFIG_EXAMPLES_CC3000BASIC),y)
 CONFIGURED_APPS += examples/cc3000
 endif
 
-ifeq ($(CONFIG_EXAMPLES_CDCACM),y)
-CONFIGURED_APPS += examples/cdcacm
-endif
-
-ifeq ($(CONFIG_EXAMPLES_COMPOSITE),y)
-CONFIGURED_APPS += examples/composite
-endif
-
 ifeq ($(CONFIG_EXAMPLES_CXXTEST),y)
 CONFIGURED_APPS += examples/cxxtest
 endif
@@ -268,10 +260,6 @@ endif
 
 ifeq ($(CONFIG_EXAMPLES_USBSERIAL),y)
 CONFIGURED_APPS += examples/usbserial
-endif
-
-ifeq ($(CONFIG_EXAMPLES_USBMSC),y)
-CONFIGURED_APPS += examples/usbmsc
 endif
 
 ifeq ($(CONFIG_EXAMPLES_USBTERM),y)

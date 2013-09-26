@@ -67,7 +67,15 @@ CSRCS += nor_main.c
 endif
 
 ifeq ($(CONFIG_MTD_AT25),y)
+ifeq ($(CONFIG_SAMA5_SPI0),y)
 CSRCS += sam_at25.c
+endif
+endif
+
+ifeq ($(CONFIG_MTD_AT24XX),y)
+ifeq ($(CONFIG_SAMA5_TWI0),y)
+CSRCS += sam_at24.c
+endif
 endif
 
 ifeq ($(CONFIG_SAMA5_HSMCI0),y)
@@ -86,12 +94,24 @@ CSRCS += sam_usb.c
 endif
 endif
 
+ifeq ($(CONFIG_SAMA5_EMAC),y)
+CSRCS += sam_ethernet.c
+else
+ifeq ($(CONFIG_SAMA5_GMAC),y)
+CSRCS += sam_ethernet.c
+endif
+endif
+
 ifeq ($(CONFIG_NSH_ARCHINIT),y)
 CSRCS += sam_nsh.c
 endif
 
 ifeq ($(CONFIG_USBMSC),y)
 CSRCS += sam_usbmsc.c
+endif
+
+ifeq ($(CONFIG_ARCH_FPU),y)
+CSRCS += sam_ostest.c
 endif
 
 ifeq ($(CONFIG_ARCH_LEDS),y)

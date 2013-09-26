@@ -54,6 +54,7 @@
 #include <nuttx/usb/usb.h>
 #include <nuttx/usb/ohci.h>
 #include <nuttx/usb/usbhost.h>
+#include <nuttx/usb/usbhost_trace.h>
 
 #include <arch/irq.h>
 
@@ -791,8 +792,7 @@ static inline int sam_addbulked(struct sam_ed_s *ed)
   /* Add the new bulk ED to the head of the bulk list */
 
   ed->hw.nexted = sam_getreg(SAM_USBHOST_BULKHEADED);
-  cp15_clean_dcache((uintptr_t)ed,
-                    (uintptr_t)ed + sizeof(struct ohci_ed_s) - 1);
+  cp15_clean_dcache((uintptr_t)ed, (uintptr_t)ed + sizeof(struct ohci_ed_s));
 
   physed = sam_physramaddr((uintptr_t)ed);
   sam_putreg((uint32_t)physed, SAM_USBHOST_BULKHEADED);
@@ -942,18 +942,20 @@ static unsigned int sam_getinterval(uint8_t interval)
 #if !defined(CONFIG_USBHOST_INT_DISABLE) || !defined(CONFIG_USBHOST_ISOC_DISABLE)
 static void sam_setinttab(uint32_t value, unsigned int interval, unsigned int offset)
 {
+  uintptr_t inttbl;
   unsigned int i;
+
   for (i = offset; i < HCCA_INTTBL_WSIZE; i += interval)
     {
       /* Modify the table value */
 
       g_hcca.inttbl[i] = value;
-
-      /* Make sure that the modified table value is flushed to RAM */
-
-      cp15_clean_dcache((uintptr_t)&g_hcca.inttbl[i],
-                        (uintptr_t)&g_hcca.inttbl[i] + sizeof(uint32_t) - 1);
     }
+
+  /* Make sure that the modified table value is flushed to RAM */
+
+  inttbl = (uintptr_t)g_hcca.inttbl;
+  cp15_clean_dcache(inttbl, inttbl + sizeof(uint32_t)*HCCA_INTTBL_WSIZE);
 }
 #endif
 
@@ -1003,7 +1005,7 @@ static inline int sam_addinted(const FAR struct usbhost_epdesc_s *epdesc,
 
   interval     = sam_getinterval(epdesc->interval);
   ed->interval = interval;
-  uvdbg("interval: %d->%d\n", epdesc->interval, interval);
+  usbhost_vtrace2(OHCI_VTRACE2_INTERVAL, epdesc->interval, interval);
 
   /* Get the offset associated with the ED direction. IN EDs get the even
    * entries, OUT EDs get the odd entries.
@@ -1037,7 +1039,7 @@ static inline int sam_addinted(const FAR struct usbhost_epdesc_s *epdesc,
         }
     }
 
-  uvdbg("Min interval: %d offset: %d\n", interval, offset);
+  usbhost_vtrace2(OHCI_VTRACE2_MININTERVAL, interval, offset);
 
   /* Get the (physical) head of the first of the duplicated entries.  The
    * first offset entry is always guaranteed to contain the common ED list
@@ -1056,13 +1058,12 @@ static inline int sam_addinted(const FAR struct usbhost_epdesc_s *epdesc,
    */
 
   ed->hw.nexted = physhead;
-  cp15_clean_dcache((uintptr_t)ed,
-                    (uintptr_t)ed + sizeof(struct ohci_ed_s) - 1);
+  cp15_clean_dcache((uintptr_t)ed, (uintptr_t)ed + sizeof(struct ohci_ed_s));
 
   physed =  sam_physramaddr((uintptr_t)ed);
   sam_setinttab((uint32_t)physed, interval, offset);
 
-  uvdbg("head: %08x next: %08x\n", physed, physhead);
+  usbhost_vtrace1(OHCI_VTRACE1_PHYSED, physed);
 
   /* Re-enable periodic list processing */
 
@@ -1138,8 +1139,12 @@ static inline int sam_reminted(struct sam_ed_s *ed)
   physhead = g_hcca.inttbl[offset];
   head     = (struct sam_ed_s *)sam_virtramaddr((uintptr_t)physhead);
 
+#ifdef CONFIG_USBHOST_TRACE
+  usbhost_vtrace1(OHCI_VTRACE1_VIRTED, (uintptr_t)ed);
+#else
   uvdbg("ed: %08x head: %08x next: %08x offset: %d\n",
         ed, physhead, head ? head->hw.nexted : 0, offset);
+#endif
 
   /* Find the ED to be removed in the ED list */
 
@@ -1174,8 +1179,12 @@ static inline int sam_reminted(struct sam_ed_s *ed)
           prev->hw.nexted = ed->hw.nexted;
         }
 
+#ifdef CONFIG_USBHOST_TRACE
+      usbhost_vtrace1(OHCI_VTRACE1_VIRTED, (uintptr_t)ed);
+#else
       uvdbg("ed: %08x head: %08x next: %08x\n",
             ed, physhead, head ? head->hw.nexted : 0);
+#endif
 
       /* Calculate the new minimum interval for this list */
 
@@ -1188,7 +1197,7 @@ static inline int sam_reminted(struct sam_ed_s *ed)
             }
         }
 
-      uvdbg("Min interval: %d offset: %d\n", interval, offset);
+      usbhost_vtrace2(OHCI_VTRACE2_MININTERVAL, interval, offset);
 
       /* Save the new minimum interval */
 
@@ -1287,7 +1296,7 @@ static int sam_enqueuetd(struct sam_rhport_s *rhport, struct sam_ed_s *ed,
 
       ed->hw.ctrl      |= ED_CONTROL_K;
       cp15_clean_dcache((uintptr_t)ed,
-                        (uintptr_t)ed + sizeof(struct ohci_ed_s) - 1);
+                        (uintptr_t)ed + sizeof(struct ohci_ed_s));
 
       /* Get the tail ED for this root hub port */
 
@@ -1327,19 +1336,19 @@ static int sam_enqueuetd(struct sam_rhport_s *rhport, struct sam_ed_s *ed,
       if (buffer && buflen > 0)
         {
           cp15_clean_dcache((uintptr_t)buffer,
-                            (uintptr_t)buffer + buflen - 1);
+                            (uintptr_t)buffer + buflen);
         }
 
       cp15_clean_dcache((uintptr_t)tdtail,
-                        (uintptr_t)tdtail + sizeof(struct ohci_gtd_s) - 1);
+                        (uintptr_t)tdtail + sizeof(struct ohci_gtd_s));
       cp15_clean_dcache((uintptr_t)td,
-                        (uintptr_t)td + sizeof(struct ohci_gtd_s) - 1);
+                        (uintptr_t)td + sizeof(struct ohci_gtd_s));
 
       /* Resume processing of this ED */
 
       ed->hw.ctrl      &= ~ED_CONTROL_K;
       cp15_clean_dcache((uintptr_t)ed,
-                        (uintptr_t)ed + sizeof(struct ohci_ed_s) - 1);
+                        (uintptr_t)ed + sizeof(struct ohci_ed_s));
       ret               = OK;
     }
 
@@ -1437,9 +1446,9 @@ static int sam_ep0enqueue(struct sam_rhport_s *rhport)
   /* Flush the affected control ED and tail TD to RAM */
 
   cp15_clean_dcache((uintptr_t)edctrl,
-                    (uintptr_t)edctrl + sizeof(struct ohci_ed_s) - 1);
+                    (uintptr_t)edctrl + sizeof(struct ohci_ed_s));
   cp15_clean_dcache((uintptr_t)tdtail,
-                    (uintptr_t)tdtail + sizeof(struct ohci_gtd_s) - 1);
+                    (uintptr_t)tdtail + sizeof(struct ohci_gtd_s));
 
   /* ControlListEnable.  This bit is set to (re-)enable the processing of the
    * Control list.  Note: once enabled, it remains enabled and we may even
@@ -1520,7 +1529,7 @@ static void sam_ep0dequeue(struct sam_rhport_s *rhport)
       /* Flush the modified ED to RAM */
 
       cp15_clean_dcache((uintptr_t)preved,
-                        (uintptr_t)preved + sizeof(struct ohci_ed_s) - 1);
+                        (uintptr_t)preved + sizeof(struct ohci_ed_s));
     }
   else
     {
@@ -1630,7 +1639,7 @@ static int sam_ctrltd(struct sam_rhport_s *rhport, uint32_t dirpid,
   ret = sam_wdhwait(rhport, edctrl);
   if (ret != OK)
     {
-      udbg("ERROR: Device disconnected\n");
+      usbhost_trace1(OHCI_TRACE1_DEVDISCONN, rhport->rhpndx + 1);
       return ret;
     }
 
@@ -1698,7 +1707,8 @@ static int sam_ctrltd(struct sam_rhport_s *rhport, uint32_t dirpid,
         }
       else
         {
-          udbg("ERROR: Bad TD completion status: %d\n", edctrl->tdstatus);
+          usbhost_trace2(OHCI_TRACE2_BADTDSTATUS, rhport->rhpndx + 1,
+                         edctrl->tdstatus);
           ret = -EIO;
         }
     }
@@ -1733,12 +1743,12 @@ static void sam_rhsc_bottomhalf(void)
       regaddr  = SAM_USBHOST_RHPORTST(rhpndx+1);
       rhportst = sam_getreg(regaddr);
 
-      uvdbg("RHPORTST%d: %08x\n", rhpndx + 1, rhportst);
+      usbhost_vtrace2(OHCI_VTRACE2_RHPORTST, rhpndx + 1, (uint16_t)rhportst);
 
       if ((rhportst & OHCI_RHPORTST_CSC) != 0)
         {
           uint32_t rhstatus = sam_getreg(SAM_USBHOST_RHSTATUS);
-          uvdbg("Connect Status Change, RHSTATUS: %08x\n", rhstatus);
+          usbhost_vtrace1(OHCI_VTRACE1_CSC, rhstatus);
 
           /* If DRWE is set, Connect Status Change indicates a remote
            * wake-up event
@@ -1746,7 +1756,7 @@ static void sam_rhsc_bottomhalf(void)
 
           if (rhstatus & OHCI_RHSTATUS_DRWE)
             {
-              uvdbg("DRWE: Remote wake-up\n");
+              usbhost_vtrace1(OHCI_VTRACE1_DRWE, rhstatus);
             }
 
           /* Otherwise... Not a remote wake-up event */
@@ -1765,8 +1775,8 @@ static void sam_rhsc_bottomhalf(void)
 
                       rhport->connected = true;
 
-                      uvdbg("RHPort%d connected, rhswait: %d\n",
-                            rhpndx + 1, g_ohci.rhswait);
+                      usbhost_vtrace2(OHCI_VTRACE2_CONNECTED,
+                                      rhpndx + 1, g_ohci.rhswait);
 
                       /* Notify any waiters */
 
@@ -1778,7 +1788,7 @@ static void sam_rhsc_bottomhalf(void)
                     }
                   else
                     {
-                      uvdbg("Spurious status change (connected)\n");
+                      usbhost_vtrace1(OHCI_VTRACE1_ALREADYCONN, rhportst);
                     }
 
                   /* The LSDA (Low speed device attached) bit is valid
@@ -1786,7 +1796,7 @@ static void sam_rhsc_bottomhalf(void)
                    */
 
                   rhport->lowspeed = (rhportst & OHCI_RHPORTST_LSDA) != 0;
-                  uvdbg("Speed: %s\n", rhport->lowspeed ? "LOW" : "FULL");
+                  usbhost_vtrace1(OHCI_VTRACE1_SPEED, rhport->lowspeed);
                 }
 
               /* Check if we are now disconnected */
@@ -1795,7 +1805,9 @@ static void sam_rhsc_bottomhalf(void)
                 {
                   /* Yes.. disconnect the device */
 
-                  uvdbg("RHport%d disconnected\n", rhpndx+1);
+                  usbhost_vtrace2(OHCI_VTRACE2_DISCONNECTED,
+                                  rhpndx + 1, g_ohci.rhswait);
+
                   rhport->connected = false;
                   rhport->lowspeed  = false;
 
@@ -1821,7 +1833,7 @@ static void sam_rhsc_bottomhalf(void)
                 }
               else
                 {
-                   uvdbg("Spurious status change (disconnected)\n");
+                  usbhost_vtrace1(OHCI_VTRACE1_ALREADYDISCONN, rhportst);
                 }
             }
 
@@ -1870,10 +1882,10 @@ static void sam_wdh_bottomhalf(void)
 
 # if 0 /* Apparently insufficient */
   cp15_invalidate_dcache((uintptr_t)&g_hcca.donehead,
-                         (uintptr_t)&g_hcca.donehead + sizeof(uint32_t) - 1);
+                         (uintptr_t)&g_hcca.donehead + sizeof(uint32_t));
 #else
   cp15_invalidate_dcache((uintptr_t)&g_hcca,
-                         (uintptr_t)&g_hcca + sizeof(struct ohci_hcca_s) - 1);
+                         (uintptr_t)&g_hcca + sizeof(struct ohci_hcca_s));
 #endif
 
   /* Now read the done head */
@@ -1891,7 +1903,7 @@ static void sam_wdh_bottomhalf(void)
        */
 
       cp15_invalidate_dcache((uintptr_t)td,
-                             (uintptr_t)td + sizeof( struct ohci_gtd_s) - 1);
+                             (uintptr_t)td + sizeof( struct ohci_gtd_s));
 
       /* Get the ED in which this TD was enqueued */
 
@@ -1903,12 +1915,12 @@ static void sam_wdh_bottomhalf(void)
       eplist = ed->eplist;
       DEBUGASSERT(eplist != NULL);
 
-      /* Also nvalidate the control ED so that it two will be re-read from
+      /* Also invalidate the control ED so that it two will be re-read from
        * memory.
        */
 
       cp15_invalidate_dcache((uintptr_t)ed,
-                             (uintptr_t)ed + sizeof( struct ohci_ed_s) - 1);
+                             (uintptr_t)ed + sizeof( struct ohci_ed_s));
 
       /* Save the condition code from the (single) TD status/control
        * word.
@@ -1916,13 +1928,12 @@ static void sam_wdh_bottomhalf(void)
 
       ed->tdstatus = (td->hw.ctrl & GTD_STATUS_CC_MASK) >> GTD_STATUS_CC_SHIFT;
 
-#ifdef CONFIG_DEBUG_USB
+#ifdef HAVE_USBHOST_TRACE
       if (ed->tdstatus != TD_CC_NOERROR)
         {
           /* The transfer failed for some reason... dump some diagnostic info. */
 
-          udbg("ERROR: ED xfrtype: %d TD CTRL: %08x/CC: %d\n",
-               ed->xfrtype, td->hw.ctrl, ed->tdstatus);
+          usbhost_trace2(OHCI_TRACE2_WHDTDSTATUS, ed->tdstatus, ed->xfrtype);
         }
 #endif
 
@@ -1970,7 +1981,7 @@ static void sam_ohci_bottomhalf(void *arg)
     {
       /* Handle root hub status change on each root port */
 
-      uvdbg("Root Hub Status Change\n");
+      usbhost_vtrace1(OHCI_VTRACE1_RHSC, pending);
       sam_rhsc_bottomhalf();
     }
 
@@ -1983,7 +1994,7 @@ static void sam_ohci_bottomhalf(void *arg)
        * in the preceding frame.
        */
 
-      uvdbg("Writeback Done Head interrupt\n");
+      usbhost_vtrace1(OHCI_VTRACE1_WDHINTR, pending);
       sam_wdh_bottomhalf();
     }
 
@@ -2002,12 +2013,12 @@ static void sam_ohci_bottomhalf(void *arg)
            * interrupt will not be occurring).
            */
 
-          udbg("ERROR: Unrecoverable error. pending: %08x\n", pending);
+          usbhost_trace1(OHCI_TRACE1_INTRUNRECOVERABLE, pending);
           sam_wdh_bottomhalf();
         }
       else
         {
-          udbg("ERROR: Unhandled interrupts pending: %08x\n", pending);
+          usbhost_trace1(OHCI_TRACE1_INTRUNHANDLED, pending);
         }
     }
 #endif
@@ -2067,7 +2078,7 @@ static int sam_wait(FAR struct usbhost_connection_s *conn,
 
       for (rhpndx = 0; rhpndx < SAM_OHCI_NRHPORT; rhpndx++)
         {
-#ifdef CONFIG_SAMA5_EHCI
+#if 0 /* #ifdef CONFIG_SAMA5_EHCI */
           /* If a device is no longer connected, return the port to the EHCI
            * controller.  Zero is the reset value for all ports; one makes
            * the corresponding port available to OHCI.
@@ -2090,10 +2101,8 @@ static int sam_wait(FAR struct usbhost_connection_s *conn,
                */
 
               irqrestore(flags);
-
-              uvdbg("RHPort%d connected: %s\n",
-                    rhpndx + 1, g_ohci.rhport[rhpndx].connected ? "YES" : "NO");
-
+              usbhost_vtrace2(OHCI_VTRACE2_WAKEUP,
+                              rhpndx + 1, g_ohci.rhport[rhpndx].connected);
               return rhpndx;
             }
         }
@@ -2153,7 +2162,7 @@ static int sam_enumerate(FAR struct usbhost_connection_s *conn, int rhpndx)
     {
       /* No, return an error */
 
-      uvdbg("Not connected\n");
+      usbhost_vtrace1(OHCI_VTRACE1_ENUMDISCONN, rhport->rhpndx + 1);
       return -ENODEV;
     }
 
@@ -2164,7 +2173,8 @@ static int sam_enumerate(FAR struct usbhost_connection_s *conn, int rhpndx)
       ret = sam_ep0enqueue(rhport);
       if (ret < 0)
         {
-          udbg("ERROR:  Failed to enqueue EP0\n");
+          usbhost_trace2(OHCI_TRACE2_EP0ENQUEUE_FAILED, rhport->rhpndx + 1,
+                         -ret);
           return ret;
         }
 
@@ -2177,7 +2187,9 @@ static int sam_enumerate(FAR struct usbhost_connection_s *conn, int rhpndx)
 
   up_mdelay(100);
 
-  /* Put the root hub port in reset (the SAMA5 supports three downstream ports) */
+  /* Put the root hub port in reset (the SAMA5 supports three downstream
+   * ports)
+   */
 
   regaddr = SAM_USBHOST_RHPORTST(rhpndx+1);
   sam_putreg(OHCI_RHPORTST_PRS, regaddr);
@@ -2195,8 +2207,14 @@ static int sam_enumerate(FAR struct usbhost_connection_s *conn, int rhpndx)
    * FunctionAddress (USB address) is set to the root hub port number for now.
    */
 
-  uvdbg("Enumerate the device\n");
-  return usbhost_enumerate(&g_ohci.rhport[rhpndx].drvr, rhpndx+1, &rhport->class);
+  usbhost_vtrace2(OHCI_VTRACE2_CLASSENUM, rhpndx+1, rhpndx+1);
+  ret = usbhost_enumerate(&g_ohci.rhport[rhpndx].drvr, rhpndx+1, &rhport->class);
+  if (ret < 0)
+    {
+      usbhost_trace2(OHCI_TRACE2_CLASSENUM_FAILED, rhpndx+1, -ret);
+    }
+
+  return ret;
 }
 
 /************************************************************************************
@@ -2258,10 +2276,11 @@ static int sam_ep0configure(FAR struct usbhost_driver_s *drvr, uint8_t funcaddr,
   /* Flush the modified control ED to RAM */
 
   cp15_clean_dcache((uintptr_t)edctrl,
-                    (uintptr_t)edctrl + sizeof(struct ohci_ed_s) - 1);
+                    (uintptr_t)edctrl + sizeof(struct ohci_ed_s));
   sam_givesem(&g_ohci.exclsem);
 
-  uvdbg("RHPort%d EP0 CTRL: %08x\n", rhport->rhpndx + 1, edctrl->hw.ctrl);
+  usbhost_vtrace2(OHCI_VTRACE2_EP0CONFIGURE,
+                  rhport->rhpndx + 1, (uint16_t)edctrl->hw.ctrl);
   return OK;
 }
 
@@ -2339,7 +2358,7 @@ static int sam_epalloc(FAR struct usbhost_driver_s *drvr,
   eplist = (struct sam_eplist_s *)kzalloc(sizeof(struct sam_eplist_s));
   if (!eplist)
     {
-      udbg("ERROR: Failed to allocate EP list\n");
+      usbhost_trace1(OHCI_TRACE1_EPLISTALLOC_FAILED, 0);
       goto errout;
     }
 
@@ -2358,14 +2377,14 @@ static int sam_epalloc(FAR struct usbhost_driver_s *drvr,
   ed = sam_edalloc();
   if (!ed)
     {
-      udbg("ERROR: Failed to allocate ED\n");
+      usbhost_trace1(OHCI_TRACE1_EDALLOC_FAILED, 0);
       goto errout_with_semaphore;
     }
 
   td = sam_tdalloc();
   if (!td)
     {
-      udbg("ERROR: Failed to allocate TD\n");
+      usbhost_trace1(OHCI_TRACE1_TDALLOC_FAILED, 0);
       goto errout_with_ed;
     }
 
@@ -2413,7 +2432,7 @@ static int sam_epalloc(FAR struct usbhost_driver_s *drvr,
 #endif
 
   ed->eplist = eplist;
-  uvdbg("EP%d CTRL: %08x\n", epdesc->addr, ed->hw.ctrl);
+  usbhost_vtrace2(OHCI_VTRACE2_EPALLOC, epdesc->addr, (uint16_t)ed->hw.ctrl);
 
   /* Configure the tail descriptor. */
 
@@ -2429,9 +2448,9 @@ static int sam_epalloc(FAR struct usbhost_driver_s *drvr,
   /* Make sure these settings are flushed to RAM */
 
   cp15_clean_dcache((uintptr_t)ed,
-                    (uintptr_t)ed + sizeof(struct ohci_ed_s) - 1);
+                    (uintptr_t)ed + sizeof(struct ohci_ed_s));
   cp15_clean_dcache((uintptr_t)td,
-                    (uintptr_t)td + sizeof(struct ohci_gtd_s) - 1);
+                    (uintptr_t)td + sizeof(struct ohci_gtd_s));
 
   /* Now add the endpoint descriptor to the appropriate list */
 
@@ -2461,7 +2480,7 @@ static int sam_epalloc(FAR struct usbhost_driver_s *drvr,
     {
       /* No.. destroy it and report the error */
 
-      udbg("ERROR: Failed to queue ED for transfer type: %d\n", ed->xfrtype);
+      usbhost_trace2(OHCI_TRACE2_EDENQUEUE_FAILED, ed->xfrtype, -ret);
       goto errout_with_td;
     }
 
@@ -2764,9 +2783,14 @@ static int sam_ctrlin(FAR struct usbhost_driver_s *drvr,
   int  ret;
 
   DEBUGASSERT(rhport && req);
+
+#ifdef CONFIG_USBHOST_TRACE
+  usbhost_vtrace2(OHCI_VTRACE2_CTRLIN, rhport->rhpndx + 1, req->req);
+#else
   uvdbg("RHPort%d type: %02x req: %02x value: %02x%02x index: %02x%02x len: %02x%02x\n",
         rhport->rhpndx + 1, req->type, req->req, req->value[1], req->value[0],
         req->index[1], req->index[0], req->len[1], req->len[0]);
+#endif
 
   /* We must have exclusive access to EP0 and the control list */
 
@@ -2792,7 +2816,7 @@ static int sam_ctrlin(FAR struct usbhost_driver_s *drvr,
    */
 
   sam_givesem(&g_ohci.exclsem);
-  cp15_invalidate_dcache((uintptr_t)buffer, (uintptr_t)buffer + len - 1);
+  cp15_invalidate_dcache((uintptr_t)buffer, (uintptr_t)buffer + len);
   return ret;
 }
 
@@ -2805,9 +2829,14 @@ static int sam_ctrlout(FAR struct usbhost_driver_s *drvr,
   int ret;
 
   DEBUGASSERT(rhport && req);
+
+#ifdef CONFIG_USBHOST_TRACE
+  usbhost_vtrace2(OHCI_VTRACE2_CTRLOUT, rhport->rhpndx + 1, req->req);
+#else
   uvdbg("RHPort%d type: %02x req: %02x value: %02x%02x index: %02x%02x len: %02x%02x\n",
         rhport->rhpndx + 1, req->type, req->req, req->value[1], req->value[0],
         req->index[1], req->index[0], req->len[1], req->len[0]);
+#endif
 
   /* We must have exclusive access to EP0 and the control list */
 
@@ -2887,12 +2916,18 @@ static int sam_transfer(FAR struct usbhost_driver_s *drvr, usbhost_ep_t ep,
   ed = eplist->ed;
   in = (ed->hw.ctrl  & ED_CONTROL_D_MASK) == ED_CONTROL_D_IN;
 
+#ifdef CONFIG_USBHOST_TRACE
+  usbhost_vtrace2(OHCI_VTRACE2_TRANSFER,
+                  (ed->hw.ctrl  & ED_CONTROL_EN_MASK) >> ED_CONTROL_EN_SHIFT,
+                  (uint16_t)buflen);
+#else
   uvdbg("EP%d %s toggle: %d maxpacket: %d buflen: %d\n",
         (ed->hw.ctrl  & ED_CONTROL_EN_MASK) >> ED_CONTROL_EN_SHIFT,
         in ? "IN" : "OUT",
         (ed->hw.headp & ED_HEADP_C) != 0 ? 1 : 0,
         (ed->hw.ctrl  & ED_CONTROL_MPS_MASK) >> ED_CONTROL_MPS_SHIFT,
         buflen);
+#endif
 
   /* We must have exclusive access to the endpoint, the TD pool, the I/O buffer
    * pool, the bulk and interrupt lists, and the HCCA interrupt table.
@@ -2907,7 +2942,7 @@ static int sam_transfer(FAR struct usbhost_driver_s *drvr, usbhost_ep_t ep,
   ret = sam_wdhwait(rhport, ed);
   if (ret != OK)
     {
-      udbg("ERROR: Device disconnected\n");
+      usbhost_trace1(OHCI_TRACE1_DEVDISCONN, rhport->rhpndx + 1);
       goto errout;
     }
 
@@ -2970,7 +3005,7 @@ static int sam_transfer(FAR struct usbhost_driver_s *drvr, usbhost_ep_t ep,
       /* Invalidate the D cache to force the ED to be reloaded from RAM */
 
       cp15_invalidate_dcache((uintptr_t)ed,
-                             (uintptr_t)ed + sizeof(struct ohci_ed_s) - 1);
+                             (uintptr_t)ed + sizeof(struct ohci_ed_s));
 
       /* Check the TD completion status bits */
 
@@ -2983,15 +3018,16 @@ static int sam_transfer(FAR struct usbhost_driver_s *drvr, usbhost_ep_t ep,
           if (in)
             {
               cp15_invalidate_dcache((uintptr_t)buffer,
-                                     (uintptr_t)buffer + buflen - 1);
+                                     (uintptr_t)buffer + buflen);
             }
 
           ret = OK;
         }
       else
         {
-          udbg("ERROR: Bad TD completion status: %d\n", ed->tdstatus);
-          ret = -EIO;
+          usbhost_trace2(OHCI_TRACE2_BADTDSTATUS, rhport->rhpndx + 1,
+                         ed->tdstatus);
+          ret = ed->tdstatus == TD_CC_STALL ? -EPERM : -EIO;
         }
     }
 
@@ -3072,6 +3108,7 @@ static void sam_disconnect(FAR struct usbhost_driver_s *drvr)
 
 FAR struct usbhost_connection_s *sam_ohci_initialize(int controller)
 {
+  uintptr_t physaddr;
   uint32_t regval;
   uint8_t *buffer;
   irqstate_t flags;
@@ -3150,11 +3187,14 @@ FAR struct usbhost_connection_s *sam_ohci_initialize(int controller)
    * dedicated function
    */
 
-  uvdbg("Initializing OHCI Stack\n");
+  usbhost_vtrace1(OHCI_VTRACE1_INITIALIZING, 0);
 
   /* Initialize all the HCCA to 0 */
 
   memset((void*)&g_hcca, 0, sizeof(struct ohci_hcca_s));
+
+  cp15_clean_dcache((uint32_t)&g_hcca,
+                    (uint32_t)&g_hcca + sizeof(struct ohci_hcca_s));
 
   /* Initialize user-configurable EDs */
 
@@ -3238,7 +3278,8 @@ FAR struct usbhost_connection_s *sam_ohci_initialize(int controller)
 
   /* Set HCCA base address */
 
-  sam_putreg((uint32_t)&g_hcca, SAM_USBHOST_HCCA);
+  physaddr = sam_physramaddr((uintptr_t)&g_hcca);
+  sam_putreg(physaddr, SAM_USBHOST_HCCA);
 
   /* Clear pending interrupts */
 
@@ -3256,7 +3297,7 @@ FAR struct usbhost_connection_s *sam_ohci_initialize(int controller)
 
   if (irq_attach(SAM_IRQ_UHPHS, sam_ohci_tophalf) != 0)
     {
-      udbg("ERROR: Failed to attach IRQ\n");
+      usbhost_trace1(OHCI_TRACE1_IRQATTACH, SAM_IRQ_UHPHS);
       return NULL;
     }
 
@@ -3290,8 +3331,8 @@ FAR struct usbhost_connection_s *sam_ohci_initialize(int controller)
       regval                     = sam_getreg(SAM_USBHOST_RHPORTST(i));
       g_ohci.rhport[i].connected = ((regval & OHCI_RHPORTST_CCS) != 0);
 
-      uvdbg("RHPort%d Device connected: %s\n",
-            i+1, g_ohci.rhport[i].connected ? "YES" : "NO");
+      usbhost_vtrace2(OHCI_VTRACE2_INITCONNECTED,
+                      i+1, g_ohci.rhport[i].connected);
     }
 
   /* Enable interrupts at the interrupt controller.  If ECHI is enabled,
@@ -3302,7 +3343,7 @@ FAR struct usbhost_connection_s *sam_ohci_initialize(int controller)
 
 #endif /* CONFIG_SAMA5_EHCI */
 
-  uvdbg("USB OHCI Initialized\n");
+  usbhost_vtrace1(OHCI_VTRACE1_INITIALIZED, 0);
 
   /* Initialize and return the connection interface */
 
@@ -3329,9 +3370,9 @@ int sam_ohci_tophalf(int irq, FAR void *context)
 
   /* Read Interrupt Status and mask out interrupts that are not enabled. */
 
-  intst  = sam_getreg(SAM_USBHOST_INTST);
+  intst = sam_getreg(SAM_USBHOST_INTST);
   inten = sam_getreg(SAM_USBHOST_INTEN);
-  ullvdbg("INST: %08x INTEN: %08x\n", intst, inten);
+  usbhost_vtrace1(OHCI_VTRACE1_INTRPENDING, intst & inten);
 
 #ifdef CONFIG_SAMA5_EHCI
   /* Check the Master Interrupt Enable bit (MIE).  It this function is called

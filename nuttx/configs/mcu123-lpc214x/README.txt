@@ -334,7 +334,7 @@ composite:
 ----------
 
   A simple test of the USB Composite Device (see
-  apps/examples/README.txt and apps/examples/composite)
+  apps/examples/README.txt and apps/system/composite)
 
   Default toolchain:  CodeSourcery for Windows
   Output format:  ELF and Intel HEX
@@ -392,7 +392,7 @@ usbmsc:
 -------
 
   This configuration directory exercises the USB mass storage
-  class driver at examples/usbmsc.  See examples/README.txt for
+  class driver at system/usbmsc.  See examples/README.txt for
   more information.
 
   Default toolchain:  Buildroot

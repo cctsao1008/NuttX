@@ -55,38 +55,40 @@
  ************************************************************************************/
 /* Configuration ************************************************************/
 
-#define HAVE_HSMCI_MTD  1
-#define HAVE_AT25_MTD   1
+#define HAVE_HSMCI      1
+#define HAVE_AT24       1
+#define HAVE_AT25       1
 #define HAVE_USBHOST    1
 #define HAVE_USBDEV     1
 #define HAVE_USBMONITOR 1
+#define HAVE_NETWORK    1
 
 /* HSMCI */
 /* Can't support MMC/SD if the card interface(s) are not enable */
 
 #if !defined(CONFIG_SAMA5_HSMCI0) && !defined(CONFIG_SAMA5_HSMCI1)
-#  undef HAVE_HSMCI_MTD
+#  undef HAVE_HSMCI
 #endif
 
 /* Can't support MMC/SD features if mountpoints are disabled */
 
-#if defined(HAVE_HSMCI_MTD) && defined(CONFIG_DISABLE_MOUNTPOINT)
+#if defined(HAVE_HSMCI) && defined(CONFIG_DISABLE_MOUNTPOINT)
 #  warning Mountpoints disabled.  No MMC/SD support
-#  undef HAVE_HSMCI_MTD
+#  undef HAVE_HSMCI
 #endif
 
 /* We need PIO interrupts on PIOD to support card detect interrupts */
 
-#if defined(HAVE_HSMCI_MTD) && !defined(CONFIG_SAMA5_PIOD_IRQ)
+#if defined(HAVE_HSMCI) && !defined(CONFIG_SAMA5_PIOD_IRQ)
 #  warning PIOD interrupts not enabled.  No MMC/SD support.
-#  undef HAVE_HSMCI_MTD
+#  undef HAVE_HSMCI
 #endif
 
 /* AT25 Serial FLASH */
 /* Can't support the AT25 device if it SPI0 or AT25 support are not enabled */
 
 #if !defined(CONFIG_SAMA5_SPI0) || !defined(CONFIG_MTD_AT25)
-#  undef HAVE_AT25_MTD
+#  undef HAVE_AT25
 #endif
 
 /* Can't support AT25 features if mountpoints are disabled or if we were not
@@ -94,15 +96,19 @@
  */
 
 #if defined(CONFIG_DISABLE_MOUNTPOINT) || !defined(CONFIG_SAMA5_AT25_AUTOMOUNT)
-#  undef HAVE_AT25_MTD
+#  undef HAVE_AT25
 #endif
 
 /* If we are going to mount the AT25, then they user must also have told
  * us what to do with it by setting one of these.
  */
 
+#ifndef CONFIG_FS_NXFFS
+#  undef CONFIG_SAMA5_AT25_NXFFS
+#endif
+
 #if !defined(CONFIG_SAMA5_AT25_FTL) && !defined(CONFIG_SAMA5_AT25_NXFFS)
-#  undef HAVE_AT25_MTD
+#  undef HAVE_AT25
 #endif
 
 #if defined(CONFIG_SAMA5_AT25_FTL) && defined(CONFIG_SAMA5_AT25_NXFFS)
@@ -111,16 +117,77 @@
 #  undef CONFIG_SAMA5_AT25_NXFFS
 #endif
 
-/* Assign minor device numbers.  We basically ignore most of the NSH
- * configuration here (NSH SLOTNO ignored completely; NSH minor extended
- * to handle more devices).
+/* AT24 Serial EEPROM
+ *
+ * A AT24C512 Serial EEPPROM was used for tested I2C.  There are other I2C/TWI
+ * devices on-board, but the serial EEPROM is the simplest test.
+ *
+ * There is, however, no AT24 EEPROM on board the SAMA5D3x-EK:  The Serial
+ * EEPROM was mounted on an external adaptor board and connected to the
+ * SAMA5D3x-EK thusly:
+ *
+ *   - VCC -- VCC
+ *   - GND -- GND
+ *   - TWCK0(PA31) -- SCL
+ *   - TWD0(PA30)  -- SDA
+ *
+ * By default, PA30 and PA31 are SWJ-DP pins, it can be used as a pin for TWI
+ * peripheral in the end application.
+ */
+
+#define AT24_BUS 0
+
+#if !defined(CONFIG_MTD_AT24XX) || !defined(CONFIG_SAMA5_TWI0)
+#  undef HAVE_AT24
+#endif
+
+/* Can't support AT25 features if mountpoints are disabled or if we were not
+ * asked to mount the AT25 part
+ */
+
+#if defined(CONFIG_DISABLE_MOUNTPOINT) || !defined(CONFIG_SAMA5_AT24_AUTOMOUNT)
+#  undef HAVE_AT24
+#endif
+
+/* If we are going to mount the AT25, then they user must also have told
+ * us what to do with it by setting one of these.
+ */
+
+#ifndef CONFIG_FS_NXFFS
+#  undef CONFIG_SAMA5_AT24_NXFFS
+#endif
+
+#if !defined(CONFIG_SAMA5_AT24_FTL) && !defined(CONFIG_SAMA5_AT24_NXFFS)
+#  undef HAVE_AT24
+#endif
+
+#if defined(CONFIG_SAMA5_AT24_FTL) && defined(CONFIG_SAMA5_AT24_NXFFS)
+#  warning Both CONFIG_SAMA5_AT24_FTL and CONFIG_SAMA5_AT24_NXFFS are set
+#  warning Ignoring CONFIG_SAMA5_AT24_NXFFS
+#  undef CONFIG_SAMA5_AT24_NXFFS
+#endif
+
+/* Assign minor device numbers.  We will also use MINOR number 0 for the AT25.
+ * It should appear as /dev/mtdblock0
+ */
+
+#ifdef HAVE_AT25
+#  define AT25_MINOR 0
+#  define AT24_MINOR 1
+#else
+#  define AT24_MINOR 0
+#endif
+
+/* MMC/SD minor numbers:  The NSH device minor extended is extened to support
+ * two devices.  If CONFIG_NSH_MMCSDMINOR is zero, these will be:  /dev/mmcsd0
+ * and /dev/mmcsd1.
  */
 
 #ifndef CONFIG_NSH_MMCSDMINOR
 #  define CONFIG_NSH_MMCSDMINOR 0
 #endif
 
-#ifdef HAVE_HSMCI_MTD
+#ifdef HAVE_HSMCI
 
 #  define HSMCI0_SLOTNO 0
 #  define HSMCI1_SLOTNO 1
@@ -128,13 +195,10 @@
 #  ifdef CONFIG_SAMA5_HSMCI0
 #     define HSMCI0_MINOR  CONFIG_NSH_MMCSDMINOR
 #     define HSMCI1_MINOR  (CONFIG_NSH_MMCSDMINOR+1)
-#     define AT25_MINOR    (CONFIG_NSH_MMCSDMINOR+2)
 #  else
 #     define HSMCI1_MINOR  CONFIG_NSH_MMCSDMINOR
-#     define AT25_MINOR    (CONFIG_NSH_MMCSDMINOR+1)
 #  endif
 #else
-#  define AT25_MINOR CONFIG_NSH_MMCSDMINOR
 #endif
 
 /* USB Host / USB Device */
@@ -172,9 +236,26 @@
 
 /* Check if we should enable the USB monitor before starting NSH */
 
-#if !defined(HAVE_USBDEV) || !defined(CONFIG_USBDEV_TRACE) || \
-   !defined(CONFIG_SYSTEM_USBMONITOR)
+#ifndef CONFIG_SYSTEM_USBMONITOR
 #  undef HAVE_USBMONITOR
+#endif
+
+#ifndef HAVE_USBDEV
+#  undef CONFIG_USBDEV_TRACE
+#endif
+
+#ifndef HAVE_USBHOST
+#  undef CONFIG_USBHOST_TRACE
+#endif
+
+#if !defined(CONFIG_USBDEV_TRACE) && !defined(CONFIG_USBHOST_TRACE)
+#  undef HAVE_USBMONITOR
+#endif
+
+/* Networking */
+
+#if !defined(CONFIG_NET) || (!defined(CONFIG_SAMA5_EMAC) && !defined(CONFIG_SAMA5_GMAC))
+#  undef HAVE_NETWORK
 #endif
 
 /* LEDs *****************************************************************************/
@@ -336,6 +417,53 @@
 #define IRQ_USBBC_VBUS_OVERCURRENT \
                      SAM_IRQ_PD28
 
+/* Ethernet */
+
+#ifdef CONFIG_SAMA4_EMAC
+ /* ETH1: Ethernet 10/100 (EMAC) Port
+  *
+  * The main board contains a MICREL PHY device (KSZ8051) operating at 10/100 Mbps.
+  * The board supports MII and RMII interface modes.
+  *
+  * The two independent PHY devices embedded on CM and MB boards are connected to
+  * independent RJ-45 connectors with built-in magnetic and status LEDs.
+  *
+  * At the De-Assertion of Reset:
+  *   PHY ADD[2:0]:001
+  *   CONFIG[2:0]:001,Mode:RMII
+  *   Duplex Mode:Half Duplex
+  *   Isolate Mode:Disable
+  *   Speed Mode:100Mbps
+  *   Nway Auto-Negotiation:Enable
+  *
+  * The KSZ8051 PHY interrtup is available on PE30 INT_ETH1
+  */
+
+#define PIO_INT_ETH1 (PIO_INPUT | PIO_CFG_PULLUP | PIO_CFG_DEGLITCH | \
+                      PIO_INT_BOTHEDGES | PIO_PORT_PIOE | PIO_PIN30)
+#define IRQ_INT_ETH1 SAM_IRQ_PE30
+
+#endif
+
+#ifdef CONFIG_SAMA4_GMAC
+  /* ETH0: Tri-Speed Ethernet PHY
+   *
+   * The SAMA5D3 series-CM board is equipped with a MICREL PHY devices (MICREL
+   * KSZ9021/31) operating at 10/100/1000 Mbps. The board supports RGMII interface
+   * mode. The Ethernet interface consists of 4 pairs of low voltage differential
+   * pair signals designated from GRX± and GTx± plus control signals for link
+   * activity indicators. These signals can be used to connect to a 10/100/1000
+   * BaseT RJ45 connector integrated on the main board.
+   *
+   * The KSZ9021/31 interrupt is available on PB35 INT_GETH0
+   */
+
+#define PIO_INT_ETH0 (PIO_INPUT | PIO_CFG_PULLUP | PIO_CFG_DEGLITCH | \
+                      PIO_INT_BOTHEDGES | PIO_PORT_PIOB | PIO_PIN25)
+#define IRQ_INT_ETH0 SAM_IRQ_PB25
+
+#endif
+
 /* SPI Chip Selects *****************************************************************/
 /* Both the Ronetix and Embest versions of the SAMAD3x CPU modules include an
  * Atmel AT25DF321A, 32-megabit, 2.7-volt SPI serial flash.  The SPI
@@ -424,12 +552,24 @@ void sam_sdram_config(void);
  * Name: sam_at25_initialize
  *
  * Description:
- *   Initialize and configure the AT25 SPI Flash
+ *   Initialize and configure the AT25 serial FLASH
  *
  ****************************************************************************/
 
-#ifdef HAVE_AT25_MTD
+#ifdef HAVE_AT25
 int sam_at25_initialize(int minor);
+#endif
+
+/****************************************************************************
+ * Name: sam_at24_initialize
+ *
+ * Description:
+ *   Initialize and configure the AT24 serial EEPROM
+ *
+ ****************************************************************************/
+
+#ifdef HAVE_AT24
+int sam_at24_initialize(int minor);
 #endif
 
 /****************************************************************************
@@ -440,7 +580,7 @@ int sam_at25_initialize(int minor);
  *
  ****************************************************************************/
 
-#ifdef HAVE_HSMCI_MTD
+#ifdef HAVE_HSMCI
 int sam_hsmci_initialize(int slotno, int minor);
 #endif
 
@@ -452,7 +592,7 @@ int sam_hsmci_initialize(int slotno, int minor);
  *
  ************************************************************************************/
 
-#ifdef HAVE_HSMCI_MTD
+#ifdef HAVE_HSMCI
 bool sam_cardinserted(int slotno);
 #endif
 
@@ -464,7 +604,7 @@ bool sam_cardinserted(int slotno);
  *
  ************************************************************************************/
 
-#ifdef HAVE_HSMCI_MTD
+#ifdef HAVE_HSMCI
 bool sam_writeprotected(int slotno);
 #endif
 
@@ -492,6 +632,18 @@ void weak_function sam_usbinitialize(void);
 
 #ifdef HAVE_USBHOST
 int sam_usbhost_initialize(void);
+#endif
+
+/************************************************************************************
+ * Name: sam_netinitialize
+ *
+ * Description:
+ *   Configure board resources to support networking.
+ *
+ ************************************************************************************/
+
+#ifdef HAVE_NETWORK
+void weak_function sam_netinitialize(void);
 #endif
 
 /************************************************************************************
