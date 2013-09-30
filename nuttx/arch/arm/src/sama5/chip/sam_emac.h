@@ -237,6 +237,7 @@
 #define EMAC_INT_WOL              (1 << 14) /* Bit 14: Wake On LAN */
 
 #define EMAC_INT_ALL              (0x00007cff)
+#define EMAC_INT_UNUSED           (0xffff8300)
 
 /* Phy Maintenance Register */
 
@@ -425,13 +426,13 @@
 #define EMACTXD_STA_BUFLEN_MASK   (0x000003ff << EMACTXD_STA_BUFLEN_SHIFT)
                                             /* Bits 11-14: Reserved */
 #define EMACTXD_STA_LAST          (1 << 15) /* Bit 15: Last buffer in the current frame */
-#define EMACTXD_STA_NOCRC         (1 << 16) /* Bit 16: No CRC*/
+#define EMACTXD_STA_NOCRC         (1 << 16) /* Bit 16: No CRC */
                                             /* Bits 17-26: Reserved */
-#define EMACTXD_STA_NOBUFFER      (1 << 27) /* Bit 27: Buffers exhausted in mid frame*/
-#define EMACTXD_STA_TXUR          (1 << 28) /* Bit 28: Transmit underrun*/
-#define EMACTXD_STA_TXERR         (1 << 29) /* Bit 29: Retry limit exceeded, transmit error detected*/
-#define EMACTXD_STA_WRAP          (1 << 30) /* Bit 30: Last descriptor in descriptor list*/
-#define EMACTXD_STA_USED          (1 << 31) /* Bit 31: Zero for the EMAC to read from buffer*/
+#define EMACTXD_STA_NOBUFFER      (1 << 27) /* Bit 27: Buffers exhausted in mid frame */
+#define EMACTXD_STA_TXUR          (1 << 28) /* Bit 28: Transmit underrun */
+#define EMACTXD_STA_TXERR         (1 << 29) /* Bit 29: Retry limit exceeded, transmit error detected */
+#define EMACTXD_STA_WRAP          (1 << 30) /* Bit 30: Last descriptor in descriptor list */
+#define EMACTXD_STA_USED          (1 << 31) /* Bit 31: Zero for the EMAC to read from buffer */
 
 /************************************************************************************
  * Public Types
@@ -451,4 +452,5 @@ struct emac_txdesc_s
   uint32_t addr;     /* Buffer address */
   uint32_t status;   /* TX status and controls */
 };
+
 #endif /* __ARCH_ARM_SRC_SAMA5_CHIP_SAM_EMAC_H */

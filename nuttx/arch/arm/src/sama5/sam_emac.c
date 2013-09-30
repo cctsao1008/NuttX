@@ -94,7 +94,7 @@
 /* Number of buffer for TX */
 
 #ifndef CONFIG_SAMA5_EMAC_NTXBUFFERS
-#  define CONFIG_SAMA5_EMAC_NTXBUFFERS  32
+#  define CONFIG_SAMA5_EMAC_NTXBUFFERS  8
 #endif
 
 #undef CONFIG_SAMA5_EMAC_NBC
@@ -294,11 +294,13 @@ static struct sam_emac_s g_emac;
 /* Preallocated data */
 /* TX descriptors list */
 
-static struct emac_txdesc_s g_txdesc[TX_BUFFERS] __attribute__((aligned(8)));
+static struct emac_txdesc_s g_txdesc[CONFIG_SAMA5_EMAC_NTXBUFFERS]
+              __attribute__((aligned(8)));
 
 /* RX descriptors list */
 
-static struct emac_rxdesc_s g_rxdesc[RX_BUFFERS]__attribute__((aligned(8)));
+static struct emac_rxdesc_s g_rxdesc[CONFIG_SAMA5_EMAC_NRXBUFFERS]
+              __attribute__((aligned(8)));
 
 /* Transmit Buffers
  *
@@ -1245,9 +1247,31 @@ static void sam_txdone(struct sam_emac_s *priv)
 
       if ((txdesc->status & EMACTXD_STA_USED) == 0)
         {
-          /* Yes ... break out of the loop now */
+          /* Yes.. the descriptor is still in use.  However, I have seen a
+           * case (only repeatable on start-up) where the USED bit is never
+           * set.  Yikes!  If we have encountered the first still busy
+           * descriptor, then we should also have TQBD equal to the descriptor
+           * address.  If it is not, then treat is as used anyway.
+           */
 
-          break;
+#if 0 /* The issue does not exist in the current configuration, but may return */
+#warning REVISIT
+          if (priv->txtail == 0 &&
+              sam_physramaddr((uintprt_t)txdesc) != sam_getreg(priv, SAM_EMAC_TBQP))
+            {
+              txdesc->status = (uint32_t)EMACTXD_STA_USED;
+              cp15_clean_dcache((uintptr_t)txdesc,
+                                (uintptr_t)txdesc + sizeof(struct emac_txdesc_s));
+            }
+          else
+#endif
+            {
+              /* Otherwise, the descriptor is truly in use.  Break out of the
+               * loop now.
+               */
+
+              break;
+            }
         }
 
       /* Increment the tail index */
@@ -1305,7 +1329,7 @@ static int sam_emac_interrupt(int irq, void *context)
   tsr = sam_getreg(priv, SAM_EMAC_TSR);
   imr = sam_getreg(priv, SAM_EMAC_IMR);
 
-  pending = isr & ~(imr | 0xffc300);
+  pending = isr & ~(imr | EMAC_INT_UNUSED);
   nllvdbg("isr: %08x pending: %08x\n", isr, pending);
 
   /* Check for the completion of a transmission.  This should be done before
@@ -2034,7 +2058,7 @@ static int sam_phyread(struct sam_emac_s *priv, uint8_t phyaddr,
   /* Write the PHY Maintenance register */
 
   regval = EMAC_MAN_DATA(0) | EMAC_MAN_CODE | EMAC_MAN_REGA(regaddr) |
-           EMAC_MAN_PHYA(priv->phyaddr) | EMAC_MAN_READ | EMAC_MAN_SOF;
+           EMAC_MAN_PHYA(phyaddr) | EMAC_MAN_READ | EMAC_MAN_SOF;
   sam_putreg(priv, SAM_EMAC_MAN, regval);
 
   /* Wait until the PHY is again idle */
@@ -2089,7 +2113,7 @@ static int sam_phywrite(struct sam_emac_s *priv, uint8_t phyaddr,
   /* Write the PHY Maintenance register */
 
   regval = EMAC_MAN_DATA(phyval) | EMAC_MAN_CODE | EMAC_MAN_REGA(regaddr) |
-           EMAC_MAN_PHYA(priv->phyaddr) | EMAC_MAN_WRITE| EMAC_MAN_SOF;
+           EMAC_MAN_PHYA(phyaddr) | EMAC_MAN_WRITE| EMAC_MAN_SOF;
   sam_putreg(priv, SAM_EMAC_MAN, regval);
 
   /* Wait until the PHY is again IDLE */
@@ -2157,10 +2181,12 @@ static int sam_autonegotiate(struct sam_emac_s *priv)
   nllvdbg("PHYID2: %04x PHY address: %02x\n", phyid2, priv->phyaddr);
 
   if (phyid1 == MII_OUI_MSB &&
-     ((phyid2 & MII_PHYID2_OUI) >> 10) == MII_OUI_LSB)
+     ((phyid2 & MII_PHYID2_OUI_MASK) >> MII_PHYID2_OUI_SHIFT) == MII_OUI_LSB)
     {
-      nllvdbg("  Vendor Model Number:   %04x\n", ((phyid2 >> 4) & 0x3f));
-      nllvdbg("  Model Revision Number: %04x\n", (phyid2 & 7));
+      nllvdbg("  Vendor Model Number:   %04x\n",
+             (phyid2 & MII_PHYID2_MODEL_MASK) >> MII_PHYID2_MODEL_SHIFT);
+      nllvdbg("  Model Revision Number: %04x\n",
+             (phyid2 & MII_PHYID2_REV_MASK) >> MII_PHYID2_REV_SHIFT);
     }
   else
     {
@@ -2567,6 +2593,12 @@ static void sam_txreset(struct sam_emac_s *priv)
 
   txdesc[CONFIG_SAMA5_EMAC_NTXBUFFERS - 1].status =
     EMACTXD_STA_USED | EMACTXD_STA_WRAP;
+
+  /* Flush the entire TX descriptor table to RAM */
+
+  cp15_clean_dcache((uintptr_t)txdesc,
+                    (uintptr_t)txdesc +
+                    CONFIG_SAMA5_EMAC_NTXBUFFERS * sizeof(struct emac_txdesc_s));
 
   /* Set the Transmit Buffer Queue Pointer Register */
 

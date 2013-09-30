@@ -71,20 +71,20 @@ struct file_operations
 {
   /* The device driver open method differs from the mountpoint open method */
 
-  int     (*open)(FAR struct file *filp);
+  int     (*open)(FAR struct file *filep);
 
   /* The following methods must be identical in signature and position because
    * the struct file_operations and struct mountp_operations are treated like
    * unions.
    */
 
-  int     (*close)(FAR struct file *filp);
-  ssize_t (*read)(FAR struct file *filp, FAR char *buffer, size_t buflen);
-  ssize_t (*write)(FAR struct file *filp, FAR const char *buffer, size_t buflen);
-  off_t   (*seek)(FAR struct file *filp, off_t offset, int whence);
-  int     (*ioctl)(FAR struct file *filp, int cmd, unsigned long arg);
+  int     (*close)(FAR struct file *filep);
+  ssize_t (*read)(FAR struct file *filep, FAR char *buffer, size_t buflen);
+  ssize_t (*write)(FAR struct file *filep, FAR const char *buffer, size_t buflen);
+  off_t   (*seek)(FAR struct file *filep, off_t offset, int whence);
+  int     (*ioctl)(FAR struct file *filep, int cmd, unsigned long arg);
 #ifndef CONFIG_DISABLE_POLL
-  int     (*poll)(FAR struct file *filp, struct pollfd *fds, bool setup);
+  int     (*poll)(FAR struct file *filep, struct pollfd *fds, bool setup);
 #endif
 
   /* The two structures need not be common after this point */
@@ -139,7 +139,7 @@ struct mountpt_operations
    * information to manage privileges.
    */
 
-  int     (*open)(FAR struct file *filp, FAR const char *relpath,
+  int     (*open)(FAR struct file *filep, FAR const char *relpath,
                   int oflags, mode_t mode);
 
   /* The following methods must be identical in signature and position because
@@ -147,11 +147,11 @@ struct mountpt_operations
    * unions.
    */
 
-  int     (*close)(FAR struct file *filp);
-  ssize_t (*read)(FAR struct file *filp, FAR char *buffer, size_t buflen);
-  ssize_t (*write)(FAR struct file *filp, FAR const char *buffer, size_t buflen);
-  off_t   (*seek)(FAR struct file *filp, off_t offset, int whence);
-  int     (*ioctl)(FAR struct file *filp, int cmd, unsigned long arg);
+  int     (*close)(FAR struct file *filep);
+  ssize_t (*read)(FAR struct file *filep, FAR char *buffer, size_t buflen);
+  ssize_t (*write)(FAR struct file *filep, FAR const char *buffer, size_t buflen);
+  off_t   (*seek)(FAR struct file *filep, off_t offset, int whence);
+  int     (*ioctl)(FAR struct file *filep, int cmd, unsigned long arg);
 
   /* The two structures need not be common after this point. The following
    * are extended methods needed to deal with the unique needs of mounted
@@ -160,7 +160,7 @@ struct mountpt_operations
    * Additional open-file-specific mountpoint operations:
    */
 
-  int     (*sync)(FAR struct file *filp);
+  int     (*sync)(FAR struct file *filep);
   int     (*dup)(FAR const struct file *oldp, FAR struct file *newp);
 
   /* Directory operations */
@@ -273,7 +273,7 @@ struct filelist
 #if CONFIG_NFILE_STREAMS > 0
 struct file_struct
 {
-  int                fs_filedes;   /* File descriptor associated with stream */
+  int                fs_fd;        /* File descriptor associated with stream */
 #if CONFIG_STDIO_BUFFER_SIZE > 0
   sem_t              fs_sem;       /* For thread safety */
   pid_t              fs_holder;    /* Holder of sem */
@@ -594,7 +594,7 @@ struct tcb_s; /* Forward reference */
 FAR struct file_struct *fs_fdopen(int fd, int oflags, FAR struct tcb_s *tcb);
 #endif
 
-/* lib/stdio/lib_fflush.c **************************************************/
+/* libc/stdio/lib_fflush.c *************************************************/
 /****************************************************************************
  * Name: lib_flushall
  *
@@ -606,6 +606,49 @@ FAR struct file_struct *fs_fdopen(int fd, int oflags, FAR struct tcb_s *tcb);
 
 #if CONFIG_NFILE_STREAMS > 0
 int lib_flushall(FAR struct streamlist *list);
+#endif
+
+/* libc/misc/lib_sendfile.c *************************************************/
+/****************************************************************************
+ * Name: lib_sendfile
+ *
+ * Description:
+ *   Transfer a file
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_NET_SENDFILE
+ssize_t lib_sendfile(int outfd, int infd, off_t *offset, size_t count);
+#endif
+
+/* fs/fs_fileread.c *********************************************************/
+/****************************************************************************
+ * Name: file_read
+ *
+ * Description:
+ *   Equivalent to the standard read() function except that is accepts a
+ *   struct file instance instead of a file descriptor.  Currently used
+ *   only by net_sendfile()
+ *
+ ****************************************************************************/
+
+#if CONFIG_NFILE_DESCRIPTORS > 0 && defined(CONFIG_NET_SENDFILE)
+ssize_t file_read(FAR struct file *filep, FAR void *buf, size_t nbytes);
+#endif
+
+/* fs/fs_fileread.c *********************************************************/
+/****************************************************************************
+ * Name: file_seek
+ *
+ * Description:
+ *   Equivalent to the standard lseek() function except that is accepts a
+ *   struct file instance instead of a file descriptor.  Currently used
+ *   only by net_sendfile()
+ *
+ ****************************************************************************/
+
+#if CONFIG_NFILE_DESCRIPTORS > 0 && defined(CONFIG_NET_SENDFILE)
+off_t file_seek(FAR struct file *filep, off_t offset, int whence);
 #endif
 
 /* drivers/dev_null.c *******************************************************/

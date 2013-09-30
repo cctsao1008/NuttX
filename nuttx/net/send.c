@@ -51,6 +51,7 @@
 
 #include <arch/irq.h>
 #include <nuttx/clock.h>
+#include <nuttx/net/uip/uip-arp.h>
 #include <nuttx/net/uip/uip-arch.h>
 
 #ifdef CONFIG_NET_ARP_IPIN
@@ -379,7 +380,7 @@ static uint16_t send_interrupt(FAR struct uip_driver_s *dev, FAR void *pvconn,
        * should already be in the ARP table.
        */
 
-#if defined(CONFIG_NET_ETHERNET) && defined (CONFIG_NET_ARP_IPIN)
+#if defined(CONFIG_NET_ETHERNET) && !defined(CONFIG_NET_ARP_IPIN)
       if (pstate->snd_sent != 0 || uip_arp_find(conn->ripaddr) != NULL)
 #endif
         {

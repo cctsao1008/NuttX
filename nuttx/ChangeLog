@@ -5637,3 +5637,36 @@
 	  apps/examples/composite to apps/system/composite (2013-9-25).
 	* configs/stm3210e-eval/composite:  Converted to use the kconfig-
 	  frontends tool (2013-9-25).
+	* arch/arm/src/sama5/sam_gmac.c:  Initial GMAC driver is really
+	  just the EMAC driver forced to compile with the GMAC register
+	  definitions (2013-9-26).
+	* arch/arm/src/sama5/sam_gmac.c and include/nuttx/net/gmii.h:
+	  Beginning of support for GMII/RGMII PHY support (2013-9-26)
+	* net/netdev_txnotify.c:  Look up of device using subnet will fail
+	  if the packet is being sent out of our subnet (via a router).
+	  The fallback here is just to use "eth0" if the subnet lookup
+	  fails.  This will, of course, will have to be revisited if/when
+	  multiple NICs are supported.  From Max Holtzberg (2013-9-27).
+	* net/send.c:  Fix some backward conditional logic in check
+	  to see if we should check if the ARP address in the table.  From
+	  Max Holtzberg (2013-9-27).
+	* drivers/net/encx24j600.c:  Removed logic that polls for the
+	  next outgoing packet from the TX done interrupt handling.  From
+	  Max Holtzberg (2013-9-27)
+	* sched/os_start.c:  Should not call group_setupidlefiles() if there
+	  are not file descriptors (and, hence, no file system) (2013-9-27).
+	* arch/arm/src/sama5/sam_gmac.c:  GMAC driver and GMII logic is
+	  code complete and readay for test (2013-9-27)
+	* configs/compal_e86: Basic board support for the Motorola C139
+	  (Compal E86) phone.  From Craig Comstock (2013-9-27).
+	* configs/compal_e86: Converted to use the kconfig-frontends
+	  tools (2013-9-27).
+	* drivers/net/encx24j500.c: Use separate pools for RX and TX
+	  descriptors.  From Max Holtzberg (2013-9-28).
+	* nuttx/fs/fs_sendfile.c, nuttx/net/net_sendfile.c, and other file:
+	  Integrate an optimized sendfile() operation from Max Holtzberg
+	  (2013-9-28).
+	* tools/mkdeps.*, nuttx/mm/Makefile, nuttx/libc/Makefile:  Dependency
+	  generation generation was broken for directories that keep objects in
+	  a sub-directory.  Fixed by adding a object path to the mkdeps.c,
+	  mkdeps.bat, mkdeps.sh tools (2013-0-29).

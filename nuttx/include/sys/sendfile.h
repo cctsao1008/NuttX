@@ -113,7 +113,7 @@ extern "C" {
  *
  ************************************************************************/
 
-EXTERN ssize_t sendfile (int outfd, int infd, FAR off_t *offset, size_t count);
+ssize_t sendfile(int outfd, int infd, FAR off_t *offset, size_t count);
 
 #undef EXTERN
 #if defined(__cplusplus)
