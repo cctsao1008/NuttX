@@ -1,5 +1,5 @@
 ############################################################################
-# configs/freedom-kl25z/nsh/Make.defs
+# configs/freedom-kl25z/minnsh/Make.defs
 #
 #   Copyright (C) 2013 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>

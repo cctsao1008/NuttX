@@ -1,7 +1,7 @@
 /****************************************************************************
- * libc/stdio/lib_printf.c
+ * arch/arm/src/sama5/sam_adc.h
  *
- *   Copyright (C) 2007-2008, 2011-2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,79 +33,86 @@
  *
  ****************************************************************************/
 
-/****************************************************************************
- * Compilation Switches
- ****************************************************************************/
+#ifndef __ARCH_ARM_SRC_SAMA5_SAM_ADC_H
+#define __ARCH_ARM_SRC_SAMA5_SAM_ADC_H
 
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
-#include <stdio.h>
-#include <syslog.h>
+#include <nuttx/config.h>
+#include "chip/sam_adc.h"
 
-#include "lib_internal.h"
+#if defined(CONFIG_SAMA5_ADC) && defined(CONFIG_SAMA5_TOUCHSCREEN)
 
 /****************************************************************************
- * Definitions
+ * Pre-processor Definitions
+ ****************************************************************************/
+/* Configuration ************************************************************/
+
+/****************************************************************************
+ * Public Types
  ****************************************************************************/
 
 /****************************************************************************
- * Private Type Declarations
+ * Public Data
  ****************************************************************************/
 
-/****************************************************************************
- * Private Function Prototypes
- ****************************************************************************/
-
-/****************************************************************************
- * Global Function Prototypes
- ****************************************************************************/
-
-/**************************************************************************
- * Global Constant Data
- **************************************************************************/
-
-/****************************************************************************
- * Global Variables
- ****************************************************************************/
-
-/**************************************************************************
- * Private Constant Data
- **************************************************************************/
-
-/****************************************************************************
- * Private Variables
- **************************************************************************/
-
-/****************************************************************************
- * Global Functions
- **************************************************************************/
-
-/****************************************************************************
- * Name: printf
- **************************************************************************/
-
-int printf(const char *fmt, ...)
+#undef EXTERN
+#if defined(__cplusplus)
+#define EXTERN extern "C"
+extern "C"
 {
-  va_list ap;
-  int     ret;
-
-  va_start(ap, fmt);
-#if CONFIG_NFILE_STREAMS > 0
-  ret = vfprintf(stdout, fmt, ap);
-#elif CONFIG_NFILE_DESCRIPTORS > 0
-  ret = vsyslog(fmt, ap);
-#elif defined(CONFIG_ARCH_LOWPUTC)
-  ret = lowvsyslog(fmt, ap);
 #else
-# ifdef CONFIG_CPP_HAVE_WARNING
-#   warning "printf has no data sink"
-# endif
-  ret = 0;
+#define EXTERN extern
 #endif
-  va_end(ap);
 
-  return ret;
+/****************************************************************************
+ * Public Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: sam_tsd_register
+ *
+ * Description:
+ *   Configure the SAMA5 touchscreen.  This will register the driver as
+ *   /dev/inputN where N is the minor device number
+ *
+ * Input Parameters:
+ *   dev   - The ADC device handle received from sam_adc_initialize()
+ *   minor - The input device minor number
+ *
+ * Returned Value:
+ *   Zero is returned on success.  Otherwise, a negated errno value is
+ *   returned to indicate the nature of the failure.
+ *
+ ****************************************************************************/
+
+int sam_tsd_register(FAR struct adc_dev_s *dev, int minor);
+
+/****************************************************************************
+ * Interfaces exported from the touchscreen to the ADC driver
+ ****************************************************************************/
+/****************************************************************************
+ * Name: sam_tsd_interrupt
+ *
+ * Description:
+ *   Handles ADC interrupts associated with touchscreen channels
+ *
+ * Input parmeters:
+ *   pending - Current set of pending interrupts being handled
+ *
+ * Returned Value:
+ *   None
+ *
+ ****************************************************************************/
+
+void sam_tsd_interrupt(uint32_t pending);
+
+#undef EXTERN
+#ifdef __cplusplus
 }
+#endif
 
+#endif /* CONFIG_SAMA5_ADC && CONFIG_SAMA5_TOUCHSCREEN */
+#endif /* __ARCH_ARM_SRC_SAMA5_SAM_ADC_H */

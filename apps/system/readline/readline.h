@@ -1,7 +1,7 @@
 /****************************************************************************
- * libc/stdio/lib_printf.c
+ * apps/system/readline/readline.h
  *
- *   Copyright (C) 2007-2008, 2011-2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,79 +33,99 @@
  *
  ****************************************************************************/
 
-/****************************************************************************
- * Compilation Switches
- ****************************************************************************/
+#ifndef __APPS_SYSTEM_READLINE_READLINE_H
+#define __APPS_SYSTEM_READLINE_READLINE_H 1
 
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
-#include <stdio.h>
-#include <syslog.h>
-
-#include "lib_internal.h"
+#include <nuttx/config.h>
 
 /****************************************************************************
- * Definitions
+ * Pre-processor Definitions
  ****************************************************************************/
+/* In some systems, the underlying serial logic may automatically echo
+ * characters back to the console.  We will assume that that is not the case
+ & here
+ */
 
-/****************************************************************************
- * Private Type Declarations
- ****************************************************************************/
+#define CONFIG_READLINE_ECHO 1
 
-/****************************************************************************
- * Private Function Prototypes
- ****************************************************************************/
+/* Some environments may return CR as end-of-line, others LF, and others
+ * both.  If not specified, the logic here assumes either (but not both) as
+ * the default.
+ */
 
-/****************************************************************************
- * Global Function Prototypes
- ****************************************************************************/
-
-/**************************************************************************
- * Global Constant Data
- **************************************************************************/
-
-/****************************************************************************
- * Global Variables
- ****************************************************************************/
-
-/**************************************************************************
- * Private Constant Data
- **************************************************************************/
-
-/****************************************************************************
- * Private Variables
- **************************************************************************/
-
-/****************************************************************************
- * Global Functions
- **************************************************************************/
-
-/****************************************************************************
- * Name: printf
- **************************************************************************/
-
-int printf(const char *fmt, ...)
-{
-  va_list ap;
-  int     ret;
-
-  va_start(ap, fmt);
-#if CONFIG_NFILE_STREAMS > 0
-  ret = vfprintf(stdout, fmt, ap);
-#elif CONFIG_NFILE_DESCRIPTORS > 0
-  ret = vsyslog(fmt, ap);
-#elif defined(CONFIG_ARCH_LOWPUTC)
-  ret = lowvsyslog(fmt, ap);
+#if defined(CONFIG_EOL_IS_CR)
+#  undef  CONFIG_EOL_IS_LF
+#  undef  CONFIG_EOL_IS_BOTH_CRLF
+#  undef  CONFIG_EOL_IS_EITHER_CRLF
+#elif defined(CONFIG_EOL_IS_LF)
+#  undef  CONFIG_EOL_IS_CR
+#  undef  CONFIG_EOL_IS_BOTH_CRLF
+#  undef  CONFIG_EOL_IS_EITHER_CRLF
+#elif defined(CONFIG_EOL_IS_BOTH_CRLF)
+#  undef  CONFIG_EOL_IS_CR
+#  undef  CONFIG_EOL_IS_LF
+#  undef  CONFIG_EOL_IS_EITHER_CRLF
+#elif defined(CONFIG_EOL_IS_EITHER_CRLF)
+#  undef  CONFIG_EOL_IS_CR
+#  undef  CONFIG_EOL_IS_LF
+#  undef  CONFIG_EOL_IS_BOTH_CRLF
 #else
-# ifdef CONFIG_CPP_HAVE_WARNING
-#   warning "printf has no data sink"
-# endif
-  ret = 0;
+#  undef  CONFIG_EOL_IS_CR
+#  undef  CONFIG_EOL_IS_LF
+#  undef  CONFIG_EOL_IS_BOTH_CRLF
+#  define CONFIG_EOL_IS_EITHER_CRLF 1
 #endif
-  va_end(ap);
 
-  return ret;
-}
+/* Helper macros */
 
+#define RL_GETC(v)      ((v)->rl_getc(v))
+#define RL_PUTC(v,ch)   ((v)->rl_putc(v,ch))
+#define RL_WRITE(v,b,s) ((v)->rl_write(v,b,s))
+
+/****************************************************************************
+ * Public Type Declarations
+ ****************************************************************************/
+
+struct rl_common_s
+{
+   int  (*rl_getc)(FAR struct rl_common_s *vtbl);
+#ifdef CONFIG_READLINE_ECHO
+   void (*rl_putc)(FAR struct rl_common_s *vtbl, int ch);
+   void (*rl_write)(FAR struct rl_common_s *vtbl, FAR const char *buffer,
+                    size_t buflen);
+#endif
+};
+
+/****************************************************************************
+ * Public Data
+ ****************************************************************************/
+
+/****************************************************************************
+ * Public Function Prototypes
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: readline_common
+ *
+ *   Common logic shared by readline and std_readline().
+ *
+ * Input Parameters:
+ *   buf       - The user allocated buffer to be filled.
+ *   buflen    - the size of the buffer.
+ *   instream  - The stream to read characters from
+ *   outstream - The stream to each characters to.
+ *
+ * Returned values:
+ *   On success, the (positive) number of bytes transferred is returned.
+ *   EOF is returned to indicate either an end of file condition or a
+ *   failure.
+ *
+ **************************************************************************/
+
+ssize_t readline_common(FAR struct rl_common_s *vtbl, FAR char *buf, int buflen);
+
+#endif /* __APPS_SYSTEM_READLINE_READLINE_H */

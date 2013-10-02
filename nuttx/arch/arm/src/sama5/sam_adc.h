@@ -1,7 +1,7 @@
 /****************************************************************************
- * libc/stdio/lib_printf.c
+ * arch/arm/src/sama5/sam_adc.h
  *
- *   Copyright (C) 2007-2008, 2011-2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,79 +33,128 @@
  *
  ****************************************************************************/
 
-/****************************************************************************
- * Compilation Switches
- ****************************************************************************/
+#ifndef __ARCH_ARM_SRC_SAMA5_SAM_ADC_H
+#define __ARCH_ARM_SRC_SAMA5_SAM_ADC_H
 
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
-#include <stdio.h>
-#include <syslog.h>
+#include <nuttx/config.h>
+#include "chip/sam_adc.h"
 
-#include "lib_internal.h"
+#ifdef CONFIG_SAMA5_ADC
 
 /****************************************************************************
- * Definitions
+ * Pre-processor Definitions
  ****************************************************************************/
+/* Configuration ************************************************************/
 
-/****************************************************************************
- * Private Type Declarations
- ****************************************************************************/
-
-/****************************************************************************
- * Private Function Prototypes
- ****************************************************************************/
-
-/****************************************************************************
- * Global Function Prototypes
- ****************************************************************************/
-
-/**************************************************************************
- * Global Constant Data
- **************************************************************************/
-
-/****************************************************************************
- * Global Variables
- ****************************************************************************/
-
-/**************************************************************************
- * Private Constant Data
- **************************************************************************/
-
-/****************************************************************************
- * Private Variables
- **************************************************************************/
-
-/****************************************************************************
- * Global Functions
- **************************************************************************/
-
-/****************************************************************************
- * Name: printf
- **************************************************************************/
-
-int printf(const char *fmt, ...)
-{
-  va_list ap;
-  int     ret;
-
-  va_start(ap, fmt);
-#if CONFIG_NFILE_STREAMS > 0
-  ret = vfprintf(stdout, fmt, ap);
-#elif CONFIG_NFILE_DESCRIPTORS > 0
-  ret = vsyslog(fmt, ap);
-#elif defined(CONFIG_ARCH_LOWPUTC)
-  ret = lowvsyslog(fmt, ap);
-#else
-# ifdef CONFIG_CPP_HAVE_WARNING
-#   warning "printf has no data sink"
-# endif
-  ret = 0;
+#ifndef CONFIG_DEBUG
+#  undef CONFIG_SAMA5_ADC_REGDEBUG
 #endif
-  va_end(ap);
 
-  return ret;
+/* ADC channels 0-3 or 0-4 are not available to the ADC driver if touchscreen
+ * support is enabled.
+ */
+
+#ifdef CONFIG_SAMA5_TOUCHSCREEN
+#  undef CONFIG_SAMA5_ADC_CHAN0
+#  undef CONFIG_SAMA5_ADC_CHAN1
+#  undef CONFIG_SAMA5_ADC_CHAN2
+#  undef CONFIG_SAMA5_ADC_CHAN3
+#  ifdef CONFIG_SAMA5_TOUCHSCREEN_5WIRE
+#    undef CONFIG_SAMA5_ADC_CHAN4
+#  endif
+#endif
+
+/* Do we have any ADC channels enabled?  If not, then the ADC driver may
+ * still need to exist to support the touchscreen.
+ */
+
+#undef SAMA5_ADC_HAVE_CHANNELS
+#if defined(CONFIG_SAMA5_ADC_CHAN0) || defined(CONFIG_SAMA5_ADC_CHAN1) || \
+    defined(CONFIG_SAMA5_ADC_CHAN2) || defined(CONFIG_SAMA5_ADC_CHAN3) || \
+    defined(CONFIG_SAMA5_ADC_CHAN4) || defined(CONFIG_SAMA5_ADC_CHAN5) || \
+    defined(CONFIG_SAMA5_ADC_CHAN6) || defined(CONFIG_SAMA5_ADC_CHAN7) || \
+    defined(CONFIG_SAMA5_ADC_CHAN8) || defined(CONFIG_SAMA5_ADC_CHAN9) || \
+    defined(CONFIG_SAMA5_ADC_CHAN10) || defined(CONFIG_SAMA5_ADC_CHAN11)
+#  define SAMA5_ADC_HAVE_CHANNELS 1
+#elif !defined(CONFIG_SAMA5_TOUCHSCREEN)
+#  error "No ADC channels nor touchscreen"
+#endif
+
+/****************************************************************************
+ * Public Types
+ ****************************************************************************/
+
+/****************************************************************************
+ * Public Data
+ ****************************************************************************/
+
+#undef EXTERN
+#if defined(__cplusplus)
+#define EXTERN extern "C"
+extern "C"
+{
+#else
+#define EXTERN extern
+#endif
+
+/****************************************************************************
+ * Public Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: sam_adcinitialize
+ *
+ * Description:
+ *   Initialize the ADC
+ *
+ * Returned Value:
+ *   Valid can device structure reference on succcess; a NULL on failure
+ *
+ ****************************************************************************/
+
+FAR struct adc_dev_s *sam_adcinitialize(void);
+
+/****************************************************************************
+ * Interfaces exported from the ADC to the touchscreen driver
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: sam_adc_getreg
+ *
+ * Description:
+ *  Read any 32-bit register using an absolute address.
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_SAMA5_ADC_REGDEBUG
+uint32_t sam_adc_getreg(FAR struct adc_dev_s *, uintptr_t address)
+#else
+#  define sam_adc_getreg(handle,addr) getreg32(addr)
+#endif
+
+/****************************************************************************
+ * Name: sam_adc_putreg
+ *
+ * Description:
+ *  Write to any 32-bit register using an absolute address.
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_SAMA5_ADC_REGDEBUG
+void sam_adc_putreg(FAR struct adc_dev_s *dev, uintptr_t address,
+                    uint32_t regval)
+#else
+#  define sam_adc_putreg(handle,addr,val) putreg32(val,addr)
+#endif
+
+#undef EXTERN
+#ifdef __cplusplus
 }
+#endif
 
+#endif /* CONFIG_SAMA5_ADC */
+#endif /* __ARCH_ARM_SRC_SAMA5_SAM_ADC_H */

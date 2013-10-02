@@ -1,7 +1,7 @@
 /****************************************************************************
- * libc/stdio/lib_printf.c
+ * apps/nshlib/nsh_stdsession.c
  *
- *   Copyright (C) 2007-2008, 2011-2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -14,7 +14,7 @@
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
- * 3. Neither the name NuttX nor the names of its contributors may be
+ * 3. Neither the name Gregory Nutt nor the names of its contributors may be
  *    used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -34,24 +34,25 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Compilation Switches
- ****************************************************************************/
-
-/****************************************************************************
  * Included Files
  ****************************************************************************/
 
-#include <stdio.h>
-#include <syslog.h>
+#include <nuttx/config.h>
 
-#include "lib_internal.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <apps/readline.h>
+
+#include "nsh.h"
+#include "nsh_console.h"
 
 /****************************************************************************
- * Definitions
+ * Pre-processor Definitions
  ****************************************************************************/
 
 /****************************************************************************
- * Private Type Declarations
+ * Private Types
  ****************************************************************************/
 
 /****************************************************************************
@@ -59,53 +60,93 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Global Function Prototypes
+ * Private Data
  ****************************************************************************/
 
-/**************************************************************************
- * Global Constant Data
- **************************************************************************/
-
 /****************************************************************************
- * Global Variables
+ * Public Data
  ****************************************************************************/
 
-/**************************************************************************
- * Private Constant Data
- **************************************************************************/
+/****************************************************************************
+ * Private Functions
+ ****************************************************************************/
 
 /****************************************************************************
- * Private Variables
- **************************************************************************/
+ * Public Functions
+ ****************************************************************************/
 
 /****************************************************************************
- * Global Functions
- **************************************************************************/
+ * Name: nsh_session
+ *
+ * Description:
+ *   This is the common session logic or an NSH session that uses only stdin
+ *   and stdout.
+ *
+ *   This function:
+ *   - Executes the NSH logic script
+ *   - Presents a greeting
+ *   - Then provides a prompt then gets and processes the command line.
+ *   - This continues until an error occurs, then the session returns.
+ *
+ * Input Parameters:
+ *   pstate - Abstracts the underlying session.
+ *
+ * Returned Values:
+ *   EXIT_SUCESS only
+ *
+ ****************************************************************************/
 
-/****************************************************************************
- * Name: printf
- **************************************************************************/
-
-int printf(const char *fmt, ...)
+int nsh_session(FAR struct console_stdio_s *pstate)
 {
-  va_list ap;
-  int     ret;
+  int ret;
 
-  va_start(ap, fmt);
-#if CONFIG_NFILE_STREAMS > 0
-  ret = vfprintf(stdout, fmt, ap);
-#elif CONFIG_NFILE_DESCRIPTORS > 0
-  ret = vsyslog(fmt, ap);
-#elif defined(CONFIG_ARCH_LOWPUTC)
-  ret = lowvsyslog(fmt, ap);
-#else
-# ifdef CONFIG_CPP_HAVE_WARNING
-#   warning "printf has no data sink"
-# endif
-  ret = 0;
+  DEBUGASSERT(pstate);
+
+  /* Present a greeting */
+
+  printf("%s", g_nshgreeting);
+
+  /* Then enter the command line parsing loop */
+
+  for (;;)
+    {
+      /* For the case of debugging the USB console... dump collected USB trace data */
+
+#ifdef CONFIG_NSH_USBDEV_TRACE
+      nsh_usbtrace();
 #endif
-  va_end(ap);
 
-  return ret;
+      /* Display the prompt string */
+
+      printf("%s", g_nshprompt);
+
+      /* Get the next line of input. readline() returns EOF on end-of-file
+       * or any read failure.
+       */
+
+      ret = std_readline(pstate->cn_line, CONFIG_NSH_LINELEN);
+      if (ret != EOF)
+        {
+          /* Parse process the command */
+
+          (void)nsh_parse(&pstate->cn_vtbl, pstate->cn_line);
+        }
+
+      /* Readline normally returns the number of characters read,
+       * but will return EOF on end of file or if an error occurs.
+       * EOF will cause the session to terminate.
+       */
+
+      else
+        {
+          printf(g_fmtcmdfailed, "nsh_session", "readline", NSH_ERRNO_OF(-ret));
+          return EXIT_SUCCESS;
+        }
+    }
+
+  /* We do not get here, but this is necessary to keep some compilers happy.
+   * But others will complain that this code is not reachable.
+   */
+
+  return EXIT_SUCCESS;
 }
-
