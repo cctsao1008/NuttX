@@ -1,7 +1,7 @@
 /****************************************************************************
  * net/net_close.c
  *
- *   Copyright (C) 2007-2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,15 +56,6 @@
  * Private Types
  ****************************************************************************/
 
-#ifdef CONFIG_NET_TCP
-struct tcp_close_s
-{
-  FAR struct socket         *cl_psock; /* Reference to the TCP socket */
-  FAR struct uip_callback_s *cl_cb;    /* Reference to TCP callback instance */
-  sem_t                       cl_sem;   /* Semaphore signals disconnect completion */
-};
-#endif
-
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
@@ -87,38 +78,39 @@ struct tcp_close_s
  ****************************************************************************/
 
 #ifdef CONFIG_NET_TCP
-static uint16_t netclose_interrupt(struct uip_driver_s *dev, void *pvconn,
-                                   void *pvpriv, uint16_t flags)
+static uint16_t netclose_interrupt(FAR struct uip_driver_s *dev,
+                                   FAR void *pvconn, FAR void *pvpriv,
+                                   uint16_t flags)
 {
-  struct tcp_close_s *pstate = (struct tcp_close_s *)pvpriv;
+  FAR struct uip_conn *conn = (FAR struct uip_conn*)pvconn;
 
-  nllvdbg("flags: %04x\n", flags);
+  DEBUGASSERT(conn != NULL);
 
-  if (pstate)
+  nlldbg("conn: %p flags: %04x\n", conn, flags);
+
+  /* UIP_CLOSE:    The remote host has closed the connection
+   * UIP_ABORT:    The remote host has aborted the connection
+   * UIP_TIMEDOUT: The remote did not respond, the connection timed out
+   */
+
+  if ((flags & (UIP_CLOSE|UIP_ABORT|UIP_TIMEDOUT)) != 0)
     {
-      /* UIP_CLOSE: The remote host has closed the connection
-       * UIP_ABORT: The remote host has aborted the connection
+      /* Free connection resources */
+
+      uip_tcpfree(conn);
+
+      /* Stop further callbacks */
+
+      flags = 0;
+    }
+  else
+    {
+      /* Drop data received in this state and make sure that UIP_CLOSE
+       * is set in the response
        */
 
-      if ((flags & (UIP_CLOSE|UIP_ABORT)) != 0)
-        {
-          /* The disconnection is complete */
-
-          pstate->cl_cb->flags   = 0;
-          pstate->cl_cb->priv    = NULL;
-          pstate->cl_cb->event   = NULL;
-          sem_post(&pstate->cl_sem);
-          nllvdbg("Resuming\n");
-        }
-      else
-        {
-          /* Drop data received in this state and make sure that UIP_CLOSE
-           * is set in the response
-           */
-
-          dev->d_len = 0;
-          return (flags & ~UIP_NEWDATA) | UIP_CLOSE;
-        }
+      dev->d_len = 0;
+      flags = (flags & ~UIP_NEWDATA) | UIP_CLOSE;
     }
 
   return flags;
@@ -145,49 +137,36 @@ static uint16_t netclose_interrupt(struct uip_driver_s *dev, void *pvconn,
 #ifdef CONFIG_NET_TCP
 static inline void netclose_disconnect(FAR struct socket *psock)
 {
-  struct tcp_close_s state;
+  FAR struct uip_callback_s *cb;
   uip_lock_t flags;
 
   /* Interrupts are disabled here to avoid race conditions */
 
   flags = uip_lock();
 
-  /* Is the TCP socket in a connected state? */
+  struct uip_conn *conn = (struct uip_conn*)psock->s_conn;
 
-  if (_SS_ISCONNECTED(psock->s_flags))
+  /* There shouldn't be any callbacks registered */
+
+  DEBUGASSERT(conn->list == NULL);
+
+  /* Check for the case where the host beat us and disconnected first */
+
+  if (conn->tcpstateflags == UIP_ESTABLISHED && 
+      (cb = uip_tcpcallbackalloc(conn)) != NULL)
     {
-       struct uip_conn *conn = (struct uip_conn*)psock->s_conn;
+      /* Set up to receive TCP data event callbacks */
 
-       /* Check for the case where the host beat us and disconnected first */
+      cb->flags = UIP_NEWDATA|UIP_POLL|UIP_CLOSE|UIP_ABORT|UIP_TIMEDOUT;
+      cb->event = netclose_interrupt;
 
-       if (conn->tcpstateflags == UIP_ESTABLISHED)
-         {
-           /* Set up to receive TCP data event callbacks */
+      /* Notify the device driver of the availaibilty of TX data */
 
-           state.cl_cb = uip_tcpcallbackalloc(conn);
-           if (state.cl_cb)
-             {
-               state.cl_psock       = psock;
-               sem_init(&state.cl_sem, 0, 0);
-
-               state.cl_cb->flags   = UIP_NEWDATA|UIP_POLL|UIP_CLOSE|UIP_ABORT;
-               state.cl_cb->priv    = (void*)&state;
-               state.cl_cb->event   = netclose_interrupt;
-
-              /* Notify the device driver of the availaibilty of TX data */
-
-               netdev_txnotify(&conn->ripaddr);
-
-               /* Wait for the disconnect event */
-
-               (void)uip_lockedwait(&state.cl_sem);
-
-               /* We are now disconnected */
-
-               sem_destroy(&state.cl_sem);
-               uip_tcpcallbackfree(conn, state.cl_cb);
-            }
-        }
+      netdev_txnotify(conn->ripaddr);
+    }
+  else
+    {
+      uip_tcpfree(conn);
     }
 
   uip_unlock(flags);
@@ -242,17 +221,16 @@ int psock_close(FAR struct socket *psock)
               struct uip_conn *conn = psock->s_conn;
 
               /* Is this the last reference to the connection structure (there
-               * could be more if the socket was dup'ed.
+               * could be more if the socket was dup'ed).
                */
 
               if (conn->crefs <= 1)
                 {
-                  /* Yes... free the connection structure */
+                  /* Yes... then perform the disconnection now */
 
                   uip_unlisten(conn);          /* No longer accepting connections */
-                  netclose_disconnect(psock);  /* Break any current connections */
                   conn->crefs = 0;             /* No more references on the connection */
-                  uip_tcpfree(conn);           /* Free uIP resources */
+                  netclose_disconnect(psock);  /* Break any current connections */
                 }
               else
                 {

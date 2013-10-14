@@ -7,6 +7,44 @@ if ARCH_CHIP_SAMA5
 
 comment "ATSAMA5 Configuration Options"
 
+# Chip Capabilities
+
+config SAMA5_HAVE_UART0
+	bool
+	default n
+
+config SAMA5_HAVE_UART1
+	bool
+	default n
+
+config SAMA5_HAVE_CAN0
+	bool
+	default n
+
+config SAMA5_HAVE_CAN1
+	bool
+	default n
+
+config SAMA5_HAVE_LCDC
+	bool
+	default n
+
+config SAMA5_HAVE_GMAC
+	bool
+	default n
+
+config SAMA5_HAVE_EMAC
+	bool
+	default n
+
+config SAMA5_HAVE_HSMCI2
+	bool
+	default n
+
+config SAMA5_HAVE_TC1
+	bool
+	default n
+
 choice
 	prompt "Atmel AT91SAMA5 Chip Selection"
 	default ARCH_CHIP_ATSAMA5D33
@@ -15,22 +53,37 @@ config ARCH_CHIP_ATSAMA5D31
 	bool "Atmel ATSAMA5D31"
 	select ARCH_CHIP_SAMA5D3
 	select SAMA5_HAVE_EMAC
+	select SAMA5_HAVE_HSMCI2
+	select SAMA5_HAVE_LCDC
+	select SAMA5_HAVE_UART0
+	select SAMA5_HAVE_UART1
 
 config ARCH_CHIP_ATSAMA5D33
 	bool "Atmel ATSAMA5D33"
 	select ARCH_CHIP_SAMA5D3
 	select SAMA5_HAVE_GMAC
+	select SAMA5_HAVE_LCDC
 
 config ARCH_CHIP_ATSAMA5D34
 	bool "Atmel ATSAMA5D34"
 	select ARCH_CHIP_SAMA5D3
 	select SAMA5_HAVE_GMAC
+	select SAMA5_HAVE_HSMCI2
+	select SAMA5_HAVE_LCDC
+	select SAMA5_HAVE_CAN0
+	select SAMA5_HAVE_CAN1
 
 config ARCH_CHIP_ATSAMA5D35
 	bool "Atmel ATSAMA5D35"
 	select ARCH_CHIP_SAMA5D3
 	select SAMA5_HAVE_EMAC
 	select SAMA5_HAVE_GMAC
+	select SAMA5_HAVE_HSMCI2
+	select SAMA5_HAVE_UART0
+	select SAMA5_HAVE_UART1
+	select SAMA5_HAVE_CAN0
+	select SAMA5_HAVE_CAN1
+	select SAMA5_HAVE_TC1
 
 endchoice # Atmel AT91SAMA5 Chip Selection
 
@@ -59,11 +112,13 @@ config SAMA5_SMD
 config SAMA5_UART0
 	bool "UART 0"
 	default y
+	depends on SAMA5_HAVE_UART0
 	select ARCH_HAVE_UART0
 
 config SAMA5_UART1
 	bool "UART 1"
 	default n
+	depends on SAMA5_HAVE_UART1
 	select ARCH_HAVE_UART1
 
 config SAMA5_USART0
@@ -111,6 +166,7 @@ config SAMA5_HSMCI1
 config SAMA5_HSMCI2
 	bool "High Speed Multimedia Card Interface 2 (HSMCI2)"
 	default n
+	depends on SAMA5_HAVE_HSMCI2
 	select ARCH_HAVE_SDIO
 
 config SAMA5_SPI0
@@ -127,6 +183,7 @@ config SAMA5_TC0
 
 config SAMA5_TC1
 	bool "Timer Counter 1 (ch. 3, 4, 5) (TC1)"
+	depends on SAMA5_HAVE_TC1
 	default n
 
 config SAMA5_PWM
@@ -173,6 +230,7 @@ config SAMA5_EMAC
 config SAMA5_LCDC
 	bool "LCD Controller (LCDC)"
 	default n
+	depends on SAMA5_HAVE_LCDC
 
 config SAMA5_ISI
 	bool "Image Sensor Interface (ISI)"
@@ -253,13 +311,467 @@ config SAMA5_PIOE_IRQ
 
 endif # PIO_IRQ
 
-config SAMA5_HAVE_GMAC
-	bool
+if SAMA5_LCDC
+menu "LCDC Configuration"
+
+config SAMA5_LCDC_BACKLIGHT
+	bool "Backlight support"
+	default y
+
+config SAMA5_LCDC_DEFBACKLIGHT
+	hex "Default backlight level"
+	default 0xf0
+
+config SAMA5_LCDC_BACKCOLOR
+	hex "Background color"
+	default 0x0
+
+config SAMA5_LCDC_FB_VBASE
+	hex "Framebuffer memory start address (virtual)"
+	---help---
+		If you are using the the LCDC, then you must provide the virtual
+		address of the start of the framebuffer.  This address must be
+		aligned to a 1MB bounder (i.e., the last five "digits" of the
+		hexadecimal address must be zero).
+
+config SAMA5_LCDC_FB_PBASE
+	hex "Framebuffer memory start address (virtual)"
+	---help---
+		If you are using the the LCDC, then you must provide the physical
+		address of the start of the framebuffer.  This address must be
+		aligned to a 1MB bounder (i.e., the last five "digits" of the
+		hexadecimal address must be zero).
+
+config SAMA5_LCDC_FB_SIZE
+	int "Framebuffer memory size (bytes)"
+	default 0
+
+comment "Base layer configuration"
+
+choice
+	prompt "Base layer rotation"
+	default SAMA5_LCDC_BASE_ROT0
+
+config SAMA5_LCDC_BASE_ROT0
+	bool "No rotation"
+
+config SAMA5_LCDC_BASE_ROT90
+	bool "90 degrees"
+
+config SAMA5_LCDC_BASE_ROT180
+	bool "180 degrees"
+
+config SAMA5_LCDC_BASE_ROT270
+	bool "270 degrees"
+
+endchoice # Base layer rotation
+
+choice
+	prompt "Base layer color format"
+	default SAMA5_LCDC_BASE_RGB565
+
+config SAMA5_LCDC_BASE_RGB444
+	bool "12 bpp RGB 444"
+
+config SAMA5_LCDC_BASE_ARGB4444
+	bool "16 bpp ARGB 4444"
+
+config SAMA5_LCDC_BASE_RGBA4444
+	bool "16 bpp RGBA 4444"
+
+config SAMA5_LCDC_BASE_RGB565
+	bool "16 bpp RGB 565"
+
+config SAMA5_LCDC_BASE_TRGB1555
+	bool "16 bpp TRGB 1555"
+
+config SAMA5_LCDC_BASE_RGB666
+	bool "18 bpp RGB 666"
+
+config SAMA5_LCDC_BASE_RGB666P
+	bool "18 bpp RGB 666 packed"
+
+config SAMA5_LCDC_BASE_TRGB1666
+	bool "19 bpp TRGB 1666"
+
+config SAMA5_LCDC_BASE_TRGBP
+	bool "19 bpp TRGB 1666 packed"
+
+config SAMA5_LCDC_BASE_RGB888
+	bool "24 bpp RGB 888"
+
+config SAMA5_LCDC_BASE_RGB888P
+	bool "24 bpp RGB 888 packed"
+
+config SAMA5_LCDC_BASE_TRGB1888
+	bool "25 bpp TRGB 1888"
+
+config SAMA5_LCDC_BASE_ARGB8888
+	bool "32 bpp ARGB 8888"
+
+config SAMA5_LCDC_BASE_RGBA8888
+	bool "32 bpp RGBA 8888"
+
+endchoice # Base layer color format
+
+menuconfig SAMA5_LCDC_OVR1
+	bool "Enable overlay 1 window"
+	default n
+	depends on EXPERIMENTAL
+
+if SAMA5_LCDC_OVR1
+
+config SAMA5_LCDC_OVR1_MAXHEIGHT
+	int "Overlay 1 height (rows)"
+	default 480
+
+config SAMA5_LCDC_OVR1_MAXWIDTH
+	int "Overlay 1 width (pixels)"
+	default 800
+
+config SAMA5_LCDC_OVR1_BOTTOMUP
+	bool "Raster bottom-up"
 	default n
 
-config SAMA5_HAVE_EMAC
-	bool
+config SAMA5_LCDC_OVR1_RIGHTLEFT
+	bool "Raster right-to-left"
 	default n
+
+choice
+	prompt "Overlay 1 rotation"
+	default SAMA5_LCDC_OVR1_ROT0
+
+config SAMA5_LCDC_OVR1_ROT0
+	bool "No rotation"
+
+config SAMA5_LCDC_OVR1_ROT90
+	bool "90 degrees"
+
+config SAMA5_LCDC_OVR1_ROT180
+	bool "180 degrees"
+
+config SAMA5_LCDC_OVR1_ROT270
+	bool "270 degrees"
+
+endchoice # Overlay 1 rotation
+
+choice
+	prompt "Overlay 1 color format"
+	default SAMA5_LCDC_OVR1_RGB565
+
+config SAMA5_LCDC_OVR1_RGB444
+	bool "12 bpp RGB 444"
+
+config SAMA5_LCDC_OVR1_ARGB4444
+	bool "16 bpp ARGB 4444"
+
+config SAMA5_LCDC_OVR1_RGBA4444
+	bool "16 bpp RGBA 4444"
+
+config SAMA5_LCDC_OVR1_RGB565
+	bool "16 bpp RGB 565"
+
+config SAMA5_LCDC_OVR1_TRGB1555
+	bool "16 bpp TRGB 1555"
+
+config SAMA5_LCDC_OVR1_RGB666
+	bool "18 bpp RGB 666"
+
+config SAMA5_LCDC_OVR1_RGB666P
+	bool "18 bpp RGB 666 packed"
+
+config SAMA5_LCDC_OVR1_TRGB1666
+	bool "19 bpp TRGB 1666"
+
+config SAMA5_LCDC_OVR1_TRGBP
+	bool "19 bpp TRGB 1666 packed"
+
+config SAMA5_LCDC_OVR1_RGB888
+	bool "24 bpp RGB 888"
+
+config SAMA5_LCDC_OVR1_RGB888P
+	bool "24 bpp RGB 888 packed"
+
+config SAMA5_LCDC_OVR1_TRGB1888
+	bool "25 bpp TRGB 1888"
+
+config SAMA5_LCDC_OVR1_ARGB8888
+	bool "32 bpp ARGB 8888"
+
+config SAMA5_LCDC_OVR1_RGBA8888
+	bool "32 bpp RGBA 8888"
+
+endchoice # Base layer color format
+endif # SAMA5_LCDC_OVR1
+
+menuconfig SAMA5_LCDC_OVR2
+	bool "Enable overlay 2 window"
+	default n
+	depends on EXPERIMENTAL
+
+if SAMA5_LCDC_OVR2
+
+config SAMA5_LCDC_OVR2_MAXHEIGHT
+	int "Overlay 2 height (rows)"
+	default 480
+
+config SAMA5_LCDC_OVR2_MAXWIDTH
+	int "Overlay 2 width (pixels)"
+	default 800
+
+config SAMA5_LCDC_OVR2_BOTTOMUP
+	bool "Raster bottom-up"
+	default n
+
+config SAMA5_LCDC_OVR2_RIGHTLEFT
+	bool "Raster right-to-left"
+	default n
+
+choice
+	prompt "Overlay 2 rotation"
+	default SAMA5_LCDC_OVR2_ROT0
+
+config SAMA5_LCDC_OVR2_ROT0
+	bool "No rotation"
+
+config SAMA5_LCDC_OVR2_ROT90
+	bool "90 degrees"
+
+config SAMA5_LCDC_OVR2_ROT180
+	bool "180 degrees"
+
+config SAMA5_LCDC_OVR2_ROT270
+	bool "270 degrees"
+
+endchoice # Overlay 2 rotation
+
+choice
+	prompt "Overlay 2 layer color format"
+	default SAMA5_LCDC_OVR2_RGB565
+
+config SAMA5_LCDC_OVR2_RGB444
+	bool "12 bpp RGB 444"
+
+config SAMA5_LCDC_OVR2_ARGB4444
+	bool "16 bpp ARGB 4444"
+
+config SAMA5_LCDC_OVR2_RGBA4444
+	bool "16 bpp RGBA 4444"
+
+config SAMA5_LCDC_OVR2_RGB565
+	bool "16 bpp RGB 565"
+
+config SAMA5_LCDC_OVR2_TRGB1555
+	bool "16 bpp TRGB 1555"
+
+config SAMA5_LCDC_OVR2_RGB666
+	bool "18 bpp RGB 666"
+
+config SAMA5_LCDC_OVR2_RGB666P
+	bool "18 bpp RGB 666 packed"
+
+config SAMA5_LCDC_OVR2_TRGB1666
+	bool "19 bpp TRGB 1666"
+
+config SAMA5_LCDC_OVR2_TRGBP
+	bool "19 bpp TRGB 1666 packed"
+
+config SAMA5_LCDC_OVR2_RGB888
+	bool "24 bpp RGB 888"
+
+config SAMA5_LCDC_OVR2_RGB888P
+	bool "24 bpp RGB 888 packed"
+
+config SAMA5_LCDC_OVR2_TRGB1888
+	bool "25 bpp TRGB 1888"
+
+config SAMA5_LCDC_OVR2_ARGB8888
+	bool "32 bpp ARGB 8888"
+
+config SAMA5_LCDC_OVR2_RGBA8888
+	bool "32 bpp RGBA 8888"
+
+endchoice # Base layer color format
+endif # SAMA5 LCDC_OVR2
+
+config SAMA5_LCDC_HEO
+	bool "High end overlay (HEO) window"
+	default n
+	depends on EXPERIMENTAL
+
+if SAMA5_LCDC_HEO
+
+config SAMA5_LCDC_HEO_MAXHEIGHT
+	int "HEO layer height (rows)"
+	default 480
+
+config SAMA5_LCDC_HEO_MAXWIDTH
+	int "HEO layer width (pixels)"
+	default 800
+
+config SAMA5_LCDC_HEO_BOTTOMUP
+	bool "Raster bottom-up"
+	default n
+
+config SAMA5_LCDC_HEO_RIGHTLEFT
+	bool "Raster right-to-left"
+	default n
+
+choice
+	prompt "HEO layer rotation"
+	default SAMA5_LCDC_HEO_ROT0
+
+config SAMA5_LCDC_HEO_ROT0
+	bool "No rotation"
+
+config SAMA5_LCDC_HEO_ROT90
+	bool "90 degrees"
+
+config SAMA5_LCDC_HEO_ROT180
+	bool "180 degrees"
+
+config SAMA5_LCDC_HEO_ROT270
+	bool "270 degrees"
+
+endchoice # HEO layer rotation
+
+choice
+	prompt "HEO layer color format"
+	default SAMA5_LCDC_HEO_RGB565
+
+config SAMA5_LCDC_HEO_RGB444
+	bool "12 bpp RGB 444"
+
+config SAMA5_LCDC_HEO_ARGB4444
+	bool "16 bpp ARGB 4444"
+
+config SAMA5_LCDC_HEO_RGBA4444
+	bool "16 bpp RGBA 4444"
+
+config SAMA5_LCDC_HEO_RGB565
+	bool "16 bpp RGB 565"
+
+config SAMA5_LCDC_HEO_TRGB1555
+	bool "16 bpp TRGB 1555"
+
+config SAMA5_LCDC_HEO_RGB666
+	bool "18 bpp RGB 666"
+
+config SAMA5_LCDC_HEO_RGB666P
+	bool "18 bpp RGB 666 packed"
+
+config SAMA5_LCDC_HEO_TRGB1666
+	bool "19 bpp TRGB 1666"
+
+config SAMA5_LCDC_HEO_TRGBP
+	bool "19 bpp TRGB 1666 packed"
+
+config SAMA5_LCDC_HEO_RGB888
+	bool "24 bpp RGB 888"
+
+config SAMA5_LCDC_HEO_RGB888P
+	bool "24 bpp RGB 888 packed"
+
+config SAMA5_LCDC_HEO_TRGB1888
+	bool "25 bpp TRGB 1888"
+
+config SAMA5_LCDC_HEO_ARGB8888
+	bool "32 bpp ARGB 8888"
+
+config SAMA5_LCDC_HEO_RGBA8888
+	bool "32 bpp RGBA 8888"
+
+endchoice # Base layer color format
+endif # SAMA5_LCDC_HEO
+
+config SAMA5_LCDC_HCR
+	bool "Enable hardware cursor (HCR)"
+	default n
+	depends on EXPERIMENTAL
+
+if SAMA5_LCDC_HCR
+
+config SAMA5_LCDC_HCR_MAXHEIGHT
+	int "Hardware cursor height (rows)"
+	default 32
+
+config SAMA5_LCDC_HCR_MAXWIDTH
+	int "Hardware cursor width (pixels)"
+	default 32
+
+choice
+	prompt "Hardware cursor rotation"
+	default SAMA5_LCDC_HCR_ROT0
+
+config SAMA5_LCDC_HCR_ROT0
+	bool "No rotation"
+
+config SAMA5_LCDC_HCR_ROT90
+	bool "90 degrees"
+
+config SAMA5_LCDC_HCR_ROT180
+	bool "180 degrees"
+
+config SAMA5_LCDC_HCR_ROT270
+	bool "270 degrees"
+
+endchoice # Hardware cursor rotation
+
+choice
+	prompt "Hardware cursor layer color format"
+	default SAMA5_LCDC_HCR_RGB565
+
+config SAMA5_LCDC_HCR_RGB444
+	bool "12 bpp RGB 444"
+
+config SAMA5_LCDC_HCR_ARGB4444
+	bool "16 bpp ARGB 4444"
+
+config SAMA5_LCDC_HCR_RGBA4444
+	bool "16 bpp RGBA 4444"
+
+config SAMA5_LCDC_HCR_RGB565
+	bool "16 bpp RGB 565"
+
+config SAMA5_LCDC_HCR_TRGB1555
+	bool "16 bpp TRGB 1555"
+
+config SAMA5_LCDC_HCR_RGB666
+	bool "18 bpp RGB 666"
+
+config SAMA5_LCDC_HCR_RGB666P
+	bool "18 bpp RGB 666 packed"
+
+config SAMA5_LCDC_HCR_TRGB1666
+	bool "19 bpp TRGB 1666"
+
+config SAMA5_LCDC_HCR_TRGBP
+	bool "19 bpp TRGB 1666 packed"
+
+config SAMA5_LCDC_HCR_RGB888
+	bool "24 bpp RGB 888"
+
+config SAMA5_LCDC_HCR_RGB888P
+	bool "24 bpp RGB 888 packed"
+
+config SAMA5_LCDC_HCR_TRGB1888
+	bool "25 bpp TRGB 1888"
+
+config SAMA5_LCDC_HCR_ARGB8888
+	bool "32 bpp ARGB 8888"
+
+config SAMA5_LCDC_HCR_RGBA8888
+	bool "32 bpp RGBA 8888"
+
+endchoice # Base layer color format
+endif # SAMA5_LCDC_HCR
+
+config SAMA5_LCDC_REGDEBUG
+	bool "Low level register debug"
+	depends on DEBUG
+
+endmenu # LCDC configuration
+endif # SAMA5_LCDC
 
 if SAMA5_GMAC
 
@@ -830,6 +1342,674 @@ endif # SAMA5_OHCI || SAMA5_EHCI
 endmenu # USB High Speed Host Controller driver (HCD) options
 endif # SAMA5_UHPHS
 
+if SAMA5_ADC
+menu "ADC configuration"
+
+config SAMA5_ADC_HAVE_CHAN
+	bool
+	default n
+
+menu "ADC Channel selection"
+
+config SAMA5_ADC_CHAN0
+	bool "Channel 0"
+	default n
+	depends on !SAMA5_TSD
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 0
+
+config SAMA5_ADC_CHAN1
+	bool "Channel 1"
+	default n
+	depends on !SAMA5_TSD
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 1
+
+config SAMA5_ADC_CHAN2
+	bool "Channel 2"
+	default n
+	depends on !SAMA5_TSD
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 2
+
+config SAMA5_ADC_CHAN3
+	bool "Channel 3"
+	default n
+	depends on !SAMA5_TSD
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 3
+
+config SAMA5_ADC_CHAN4
+	bool "Channel 4"
+	default n
+	depends on !SAMA5_TSD || !SAMA5_TSD_5WIRE
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 4
+
+config SAMA5_ADC_CHAN5
+	bool "Channel 5"
+	default n
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 5
+
+config SAMA5_ADC_CHAN6
+	bool "Channel 6"
+	default n
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 6
+
+config SAMA5_ADC_CHAN7
+	bool "Channel 7"
+	default n
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 7
+
+config SAMA5_ADC_CHAN8
+	bool "Channel 8"
+	default n
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 8
+
+config SAMA5_ADC_CHAN9
+	bool "Channel 9"
+	default n
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 9
+
+config SAMA5_ADC_CHAN10
+	bool "Channel 10"
+	default n
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 10
+
+config SAMA5_ADC_CHAN11
+	bool "Channel 11"
+	default n
+	select SAMA5_ADC_HAVE_CHAN
+	---help---
+		Enable ADC sampling on ADC channel 11
+
+endmenu # ADC Channel selection
+
+if SAMA5_ADC_HAVE_CHAN
+
+config SAMA5_ADC_DMA
+	bool "DMA Support"
+	default n
+	---help---
+		Enable DMA transfers of converted data.  This option is only
+		useful if you have numerous DMA channels enabled.  The end result
+		is that there will be one DMA interrupt per conversion sequence vs.
+		one interrupt per conversion.
+
+config SAMA5_ADC_AUTOCALIB
+	bool "ADC auto-calibration"
+	default n
+	---help---
+		Perform ADC auto-calibration during the ADC initialization sequence
+
+config SAMA5_ADC_SEQUENCER
+	bool "ADC sequencer"
+	default n
+	---help---
+		Enable the sequencer to perform ADC conversions.  Recommended if you
+		enable several ADC channels.
+
+config SAMA5_ADC_ANARCH
+	bool "Analog changes"
+	default n
+	---help---
+		This option allows you to select different gain, offset, and single
+		vs. differential modes for each channel.
+
+if SAMA5_ADC_ANARCH
+
+menu "Channel gain"
+
+config SAMA5_ADC_GAIN0
+	int "Channel 0 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN0
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN1
+	int "Channel 1 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN1
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN2
+	int "Channel 2 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN2
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN3
+	int "Channel 3 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN3
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN4
+	int "Channel 4 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN4
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN5
+	int "Channel 5 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN5
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN6
+	int "Channel 6 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN6
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN7
+	int "Channel 7 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN7
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN8
+	int "Channel 8 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN8
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN9
+	int "Channel 9 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN9
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN10
+	int "Channel 10 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN10
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+config SAMA5_ADC_GAIN11
+	int "Channel 11 gain"
+	default 0
+	depends on SAMA5_ADC_CHAN11
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channel is configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channel is configured for
+		differential mode.
+
+endmenu # Channel gain
+
+menu "Channel offsets"
+
+config SAMA5_ADC_OFFSET0
+	bool "Channel 0 offset"
+	default n
+	depends on SAMA5_ADC_CHAN0
+	---help---
+		Center the channel 0 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET1
+	bool "Channel 1 offset"
+	default n
+	depends on SAMA5_ADC_CHAN1
+	---help---
+		Center the channel 1 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET2
+	bool "Channel 2 offset"
+	default n
+	depends on SAMA5_ADC_CHAN2
+	---help---
+		Center the channel 2 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET3
+	bool "Channel 3 offset"
+	default n
+	depends on SAMA5_ADC_CHAN3
+	---help---
+		Center the channel 3 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET4
+	bool "Channel 4 offset"
+	default n
+	depends on SAMA5_ADC_CHAN4
+	---help---
+		Center the channel 4 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET5
+	bool "Channel 5 offset"
+	default n
+	depends on SAMA5_ADC_CHAN5
+	---help---
+		Center the channel 5 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET6
+	bool "Channel 6 offset"
+	default n
+	depends on SAMA5_ADC_CHAN6
+	---help---
+		Center the channel 6 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET7
+	bool "Channel 7 offset"
+	default n
+	depends on SAMA5_ADC_CHAN7
+	---help---
+		Center the channel 7 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET8
+	bool "Channel 8 offset"
+	default n
+	depends on SAMA5_ADC_CHAN8
+	---help---
+		Center the channel 8 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET9
+	bool "Channel 9 offset"
+	default n
+	depends on SAMA5_ADC_CHAN9
+	---help---
+		Center the channel 9 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET10
+	bool "Channel 10 offset"
+	default n
+	depends on SAMA5_ADC_CHAN10
+	---help---
+		Center the channel 10 analog signal on Vrefin/2 before the gain
+		scaling.
+
+config SAMA5_ADC_OFFSET11
+	bool "Channel 11 offset"
+	default n
+	depends on SAMA5_ADC_CHAN11
+	---help---
+		Center the channel 11 analog signal on Vrefin/2 before the gain
+		scaling.
+
+endmenu # Channel offsets
+
+menu "Channel differential mode"
+
+config SAMA5_ADC_DIFFMODE0
+	bool "Channel 0 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN0
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 0
+
+config SAMA5_ADC_DIFFMODE1
+	bool "Channel 1 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN1
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 1
+
+config SAMA5_ADC_DIFFMODE2
+	bool "Channel 2 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN2
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 2
+
+config SAMA5_ADC_DIFFMODE3
+	bool "Channel 3 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN3
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 3
+
+config SAMA5_ADC_DIFFMODE4
+	bool "Channel 4 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN4
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 4
+
+config SAMA5_ADC_DIFFMODE5
+	bool "Channel 5 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN5
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 5
+
+config SAMA5_ADC_DIFFMODE6
+	bool "Channel 6 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN6
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 6
+
+config SAMA5_ADC_DIFFMODE7
+	bool "Channel 7 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN7
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 7
+
+config SAMA5_ADC_DIFFMODE8
+	bool "Channel 8 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN8
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 8
+
+config SAMA5_ADC_DIFFMODE9
+	bool "Channel 9 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN9
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 9
+
+config SAMA5_ADC_DIFFMODE10
+	bool "Channel 10 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN10
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 10
+
+config SAMA5_ADC_DIFFMODE11
+	bool "Channel 11 differential mode"
+	default n
+	depends on SAMA5_ADC_CHAN11
+	---help---
+		Selects differential (vs. single-ended mode) for ADC channel 11
+
+endmenu # Differential mode
+endif # SAMA5_ADC_ANARCH
+
+if !SAMA5_ADC_ANARCH
+
+config SAMA5_ADC_GAIN
+	int "Analog gain"
+	depends on SAMA5_ADC_CHAN0
+	range 0 3
+	---help---
+		Valid gain settings are {0, 1, 2, 3} which may be interpreted as
+		either {1, 1, 2, 4} if the channels are configured for single ended
+		mode or as {0.5, 1, 2, 2} if the channels are configured for
+		differential mode.
+
+config SAMA5_ADC_OFFSET
+	bool "Offset"
+	default n
+	---help---
+		Center the analog signal on Vrefin/2 before the gain scaling.
+
+config SAMA5_ADC_DIFFMODE
+	bool "Differential mode"
+	default n
+	---help---
+		Selects differential (vs. single-ended mode)
+
+endif # !SAMA5_ADC_ANARCH
+
+menu "ADC Trigger Selection"
+
+choice
+	prompt "ADC trigger mode"
+	default SAMA5_ADC_SWTRIG
+	---help---
+		Select the event that will trigger the A-to-D conversion sequence.
+
+config SAMA5_ADC_SWTRIG
+	bool "Software trigger"
+	---help---
+		A-to-D Conversion is initiated only by sofware via an ioctl()
+
+config SAMA5_ADC_ADTRG
+	bool "External trigger via the ADTRG pin"
+	---help---
+		A-to-D Conversion is initiated an event on the ADTRG pin.
+
+config SAMA5_ADC_TIOATRIG
+	bool "TC0 ouput A trigger"
+	---help---
+		A-to-D Conversion is initiated the A output from one of
+		Timer/Counter 0 channels.
+
+endchoice # Trigger mode
+
+choice
+	prompt "ADTRG edge"
+	default SAMA5_ADC_ADTRG_BOTH
+	depends on SAMA5_ADC_ADTRG
+
+config SAMA5_ADC_ADTRG_RISING
+	bool "Rising edge"
+	---help---
+		Trigger A-to-D conversion on the rising edge of the ADTRG signal.
+
+config SAMA5_ADC_ADTRG_FALLING
+	bool "Falling edge"
+	---help---
+		Trigger A-to-D conversion on the falling edge of the ADTRG signal.
+
+config SAMA5_ADC_ADTRG_BOTH
+	bool "Both edges"
+	---help---
+		Trigger A-to-D conversion on both edges of the ADTRG signal
+
+endchoice # ADTRG edge
+
+if SAMA5_ADC_TIOATRIG
+
+choice
+	prompt "TC0 channel"
+	default SAMA5_ADC_TIOA0TRIG
+
+config SAMA5_ADC_TIOA0TRIG
+	bool "TC0 Channel 0 Output A"
+	---help---
+		A-to-D conversion is triggered by the TC0 channel 0 output A signal.
+		This output must be enabled independently in the Timer/Counter
+		driver configuration for this to work.
+
+config SAMA5_ADC_TIOA1TRIG
+	bool "TC0 Channel 1 Output A"
+	---help---
+		A-to-D conversion is triggered by the TC0 channel 1 output A signal.
+		This output must be enabled independently in the Timer/Counter
+		driver configuration for this to work.
+
+config SAMA5_ADC_TIOA2TRIG
+	bool "TC0 Channel 2 Output A"
+	---help---
+		A-to-D conversion is triggered by the TC0 channel 2 output A signal.
+		This output must be enabled independently in the Timer/Counter
+		driver configuration for this to work.
+
+endchoice # TC0 channel
+
+choice
+	prompt "TIOAx edge"
+	default SAMA5_ADC_TIOA_BOTH
+	depends on SAMA5_ADC_ADTRG
+
+config SAMA5_ADC_TIOA_RISING
+	bool "Rising edge"
+	---help---
+		Trigger A-to-D conversion on the rising edge of the TIOAx signal.
+
+config SAMA5_ADC_TIOA_FALLING
+	bool "Falling edge"
+	---help---
+		Trigger A-to-D conversion on the falling edge of the TIOAx signal.
+
+config SAMA5_ADC_TIOA_BOTH
+	bool "Both edges"
+	---help---
+		Trigger A-to-D conversion on both edges of the TIOAx signal
+
+endchoice # ADTRG edge
+endif # SAMA5_ADC_TIOATRIG
+endmenu # ADC Trigger Selection
+endif # SAMA5_ADC_HAVE_CHAN
+
+config SAMA5_ADC_REGDEBUG
+	bool "Enable register-level ADC/touchscreen debug"
+	default n
+	depends on DEBUG
+	---help---
+		Enable very low register-level debug output.
+
+endmenu # ADC Configuration
+
+menu "Touchscreen configuration"
+
+config SAMA5_TSD
+	bool "Touchscreen support"
+	default n
+	select INPUT
+	---help---
+		Configure the ADC to support a touchscreen
+
+if SAMA5_TSD
+
+choice
+	prompt "Touchscreen interface"
+	default SAMA5_TSD_4WIRE
+	---help---
+		Select the type of physical interface to the touchscreen
+
+config SAMA5_TSD_4WIRE
+	bool "4-wire interface (with pressure)"
+
+config SAMA5_TSD_4WIRENPM
+	bool "4-wire interface (without pressure)"
+
+config SAMA5_TSD_5WIRE
+	bool "5-wire interface"
+
+endchoice # Touchscreen interface
+
+config SAMA5_TSD_SWAPXY
+	bool "Swap X/Y"
+	default n
+	---help---
+		Reverse the meaning of X and Y to handle different LCD orientations.
+
+config SAMA5_TSD_THRESHX
+	int "X threshold"
+	default 12
+	---help---
+		New touch positions will only be reported when the X or Y data
+		changes by these thresholds. This trades reduces data rate for some
+		loss in dragging accuracy.  For 12-bit values so the raw ranges are
+		0-4095. So for example, if your display is 320x240, then THRESHX=13
+		and THRESHY=17 would correspond to one pixel.  Default: 12
+
+config SAMA5_TSD_THRESHY
+	int "Y threshold"
+	default 12
+	---help---
+		New touch positions will only be reported when the X or Y data
+		changes by these thresholds. This trades reduces data rate for some
+		loss in dragging accuracy.  For 12-bit values so the raw ranges are
+		0-4095. So for example, if your display is 320x240, then THRESHX=13
+		and THRESHY=17 would correspond to one pixel.  Default: 12
+
+config SAMA_TSD_RXP
+	int "X-panel resistance"
+	default 6
+	depends on SAMA5_TSD_4WIRE
+	---help---
+		The method to measure the pressure (Rp) applied to the touchscreen is
+		based on the known resistance of the X-Panel resistance (Rxp).
+
+config SAMA5_TSD_NPOLLWAITERS
+	int "Number poll waiters"
+	default 4
+	depends on !DISABLE_POLL
+	---help---
+		Maximum number of threads that can be waiting on poll()
+
+endif # SAMA5_TSD
+endmenu # Touchscreen Configuration
+endif # SAMA5_ADC
+
 menu "External Memory Configuration"
 
 config SAMA5_DDRCS
@@ -1139,8 +2319,26 @@ config SAMA5_DDRCS_HEAP
 		In this case, the remaining SDRAM will automatically be added to the
 		heap (using RAM_END)
 
+if SAMA5_DDRCS_HEAP
+config SAMA5_DDRCS_HEAP_OFFSET
+	int "DDR-SDRAM offset"
+	default 0
+	---help---
+		Preserve this number of bytes at the beginning of SDRAM.  The
+		portion of DRAM beginning at this offset from the DDRCS base will
+		be added to the heap.
+
+config SAMA5_DDRCS_HEAP_SIZE
+	int "DDR-SDRAM size"
+	default 0
+	---help---
+		Add the region of DDR-SDRAM beginning at SAMA5_DDRCS_HEAP_OFFSET
+		and of size SAMA5_DDRCS_HEAP_SIZE to the heap.
+
+endif #SAMA5_DDRCS_HEAP
+
 config SAMA5_EBICS0_HEAP
-	bool "Include SRAM/PSRAM in heap"
+	bool "Include EBICS0 SRAM/PSRAM in heap"
 	default y
 	depends on (SAMA5_EBICS0_SRAM || SAMA5_EBICS0_PSRAM) && !SAMA5_BOOT_CS0SRAM
 	---help---
@@ -1153,8 +2351,26 @@ config SAMA5_EBICS0_HEAP
 		In this case, the remaining SRAM will automatically be added to the
 		heap (using RAM_END).
 
+if SAMA5_EBICS0_HEAP
+config SAMA5_EBICS0_HEAP_OFFSET
+	int "EBICS0 RAM offset"
+	default 0
+	---help---
+		Preserve this number of bytes at the beginning of RAM.  The
+		portion of RAM beginning at this offset from the EBICS0 base will
+		be added to the heap.
+
+config SAMA5_EBICS0_HEAP_SIZE
+	int "EBICS0 RAM size"
+	default 0
+	---help---
+		Add the region of RAM beginning at SAMA5_EBICS0_HEAP_OFFSET
+		and of size SAMA5_EBICS0_HEAP_SIZE to the heap.
+
+endif #SAMA5_EBICS0_HEAP
+
 config SAMA5_EBICS1_HEAP
-	bool "Include SRAM/PSRAM in heap"
+	bool "Include EBICS1 SRAM/PSRAM in heap"
 	default y
 	depends on (SAMA5_EBICS1_SRAM || SAMA5_EBICS1_PSRAM) && !SAMA5_BOOT_CS1SRAM
 	---help---
@@ -1167,8 +2383,26 @@ config SAMA5_EBICS1_HEAP
 		In this case, the remaining SRAM will automatically be added to the
 		heap (using RAM_END).
 
+if SAMA5_EBICS1_HEAP
+config SAMA5_EBICS1_HEAP_OFFSET
+	int "EBICS1 RAM offset"
+	default 0
+	---help---
+		Preserve this number of bytes at the beginning of RAM.  The
+		portion of DRAM beginning at this offset from the EBICS1 base will
+		be added to the heap.
+
+config SAMA5_EBICS1_HEAP_SIZE
+	int "EBICS1 RAM size"
+	default 0
+	---help---
+		Add the region of RAM beginning at SAMA5_EBICS1_HEAP_OFFSET
+		and of size SAMA5_EBICS1_HEAP_SIZE to the heap.
+
+endif #SAMA5_EBICS1_HEAP
+
 config SAMA5_EBICS2_HEAP
-	bool "Include SRAM/PSRAM in heap"
+	bool "Include EBICS2 SRAM/PSRAM in heap"
 	default y
 	depends on (SAMA5_EBICS2_SRAM || SAMA5_EBICS2_PSRAM) && !SAMA5_BOOT_CS2SRAM
 	---help---
@@ -1181,8 +2415,26 @@ config SAMA5_EBICS2_HEAP
 		In this case, the remaining SRAM will automatically be added to the
 		heap (using RAM_END).
 
+if SAMA5_EBICS2_HEAP
+config SAMA5_EBICS2_HEAP_OFFSET
+	int "EBICS2 RAM offset"
+	default 0
+	---help---
+		Preserve this number of bytes at the beginning of RAM.  The
+		portion of DRAM beginning at this offset from the EBICS2 base will
+		be added to the heap.
+
+config SAMA5_EBICS2_HEAP_SIZE
+	int "EBICS2 RAM size"
+	default 0
+	---help---
+		Add the region of RAM beginning at SAMA5_EBICS2_HEAP_OFFSET
+		and of size SAMA5_EBICS2_HEAP_SIZE to the heap.
+
+endif #SAMA5_EBICS2_HEAP
+
 config SAMA5_EBICS3_HEAP
-	bool "Include SRAM/PSRAM in heap"
+	bool "Include EBICS3 SRAM/PSRAM in heap"
 	default y
 	depends on (SAMA5_EBICS3_SRAM || SAMA5_EBICS3_PSRAM) && !SAMA5_BOOT_CS3SRAM
 	---help---
@@ -1192,5 +2444,22 @@ config SAMA5_EBICS3_HEAP
 		In this case, the remaining SRAM will automatically be added to the
 		heap (using RAM_END).
 
+if SAMA5_EBICS3_HEAP
+config SAMA5_EBICS3_HEAP_OFFSET
+	int "EBICS3 RAM offset"
+	default 0
+	---help---
+		Preserve this number of bytes at the beginning of RAM.  The
+		portion of DRAM beginning at this offset from the EBICS3 base will
+		be added to the heap.
+
+config SAMA5_EBICS3_HEAP_SIZE
+	int "EBICS3 RAM size"
+	default 0
+	---help---
+		Add the region of RAM beginning at SAMA5_EBICS3_HEAP_OFFSET
+		and of size SAMA5_EBICS3_HEAP_SIZE to the heap.
+
+endif #SAMA5_EBICS3_HEAP
 endmenu # Heap Configuration
 endif # ARCH_CHIP_SAMA5

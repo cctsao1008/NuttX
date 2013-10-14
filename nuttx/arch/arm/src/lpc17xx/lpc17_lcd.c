@@ -136,7 +136,7 @@ static int lpc17_setcursor(FAR struct fb_vtable_s *vtable,
  * Private Data
  ****************************************************************************/
 
-/* This structure describes the simulated video controller */
+/* This structure describes the video controller */
 
 static const struct fb_videoinfo_s g_videoinfo =
 {
@@ -146,7 +146,7 @@ static const struct fb_videoinfo_s g_videoinfo =
   .nplanes  = 1,
 };
 
-/* This structure describes the single, simulated color plane */
+/* This structure describes the single color plane */
 
 static const struct fb_planeinfo_s g_planeinfo =
 {
@@ -168,8 +168,8 @@ static struct fb_cursorsize_s g_csize;
 #endif
 #endif
 
-/* The framebuffer object -- There is no private state information in this simple
- * framebuffer simulation.
+/* The framebuffer object -- There is no private state information in this
+ * framebuffer driver.
  */
 
 struct fb_vtable_s g_fbobject =
@@ -452,7 +452,7 @@ static int lpc17_setcursor(FAR struct fb_vtable_s *vtable,
  ****************************************************************************/
 
 /****************************************************************************
- * Name: lpc17_fbinitialize
+ * Name: up_fbinitialize
  *
  * Description:
  *   Initialize the framebuffer video hardware
@@ -727,7 +727,7 @@ FAR struct fb_vtable_s *up_fbgetvplane(int vplane)
 }
 
 /****************************************************************************
- * Name: lpc17_fbinitialize
+ * Name: fb_uninitialize
  *
  * Description:
  *   Unitialize the framebuffer support

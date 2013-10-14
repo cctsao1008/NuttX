@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/arm/src/sama5/sam_adc.h
+ * include/net/route.h
  *
  *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -33,33 +33,45 @@
  *
  ****************************************************************************/
 
-#ifndef __ARCH_ARM_SRC_SAMA5_SAM_ADC_H
-#define __ARCH_ARM_SRC_SAMA5_SAM_ADC_H
+#ifndef __INCLUDE_NET_ROUTE_H
+#define __INCLUDE_NET_ROUTE_H
 
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
-#include "chip/sam_adc.h"
 
-#if defined(CONFIG_SAMA5_ADC) && defined(CONFIG_SAMA5_TOUCHSCREEN)
+#include <sys/socket.h>
+
+#include <nuttx/net/ioctl.h>
+
+#ifdef CONFIG_NET_ROUTE
 
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-/* Configuration ************************************************************/
 
 /****************************************************************************
  * Public Types
  ****************************************************************************/
 
+/* This structure describes the route information passed with the SIOCADDRT
+ * and SIOCDELRT ioctl commands (see include/nuttx/net/ioctl.h).
+ */
+
+struct rtentry
+{
+  FAR struct sockaddr_storage *rt_target;  /* Address of the network */
+  FAR struct sockaddr_storage *rt_netmask; /* Network mask defining the sub-net */
+  FAR struct sockaddr_storage *rt_router; /* Gateway address associated with the hop */
+};
+
 /****************************************************************************
  * Public Data
  ****************************************************************************/
 
-#undef EXTERN
-#if defined(__cplusplus)
+#ifdef __cplusplus
 #define EXTERN extern "C"
 extern "C"
 {
@@ -68,51 +80,56 @@ extern "C"
 #endif
 
 /****************************************************************************
- * Public Functions
+ * Public Function Prototypes
  ****************************************************************************/
 
 /****************************************************************************
- * Name: sam_tsd_register
+ * Function: net_addroute
  *
  * Description:
- *   Configure the SAMA5 touchscreen.  This will register the driver as
- *   /dev/inputN where N is the minor device number
+ *   Add a new route to the routing table.  This is just a convenience
+ *   wrapper for the SIOCADDRT ioctl call.
  *
- * Input Parameters:
- *   dev   - The ADC device handle received from sam_adc_initialize()
- *   minor - The input device minor number
+ * Parameters:
+ *   sockfd   - Any socket descriptor
+ *   target   - Target address on external network(required)
+ *   netmask  - Network mask defining the external network (required)
+ *   router   - Router address that on our network that can forward to the
+ *              external network.
  *
  * Returned Value:
- *   Zero is returned on success.  Otherwise, a negated errno value is
- *   returned to indicate the nature of the failure.
+ *   OK on success; -1 on failure with the errno variable set appropriately.
  *
  ****************************************************************************/
 
-int sam_tsd_register(FAR struct adc_dev_s *dev, int minor);
+int addroute(int sockfd, FAR struct sockaddr_storage *target,
+             FAR struct sockaddr_storage *netmask,
+             FAR struct sockaddr_storage *router);
 
 /****************************************************************************
- * Interfaces exported from the touchscreen to the ADC driver
- ****************************************************************************/
-/****************************************************************************
- * Name: sam_tsd_interrupt
+ * Function: net_delroute
  *
  * Description:
- *   Handles ADC interrupts associated with touchscreen channels
+ *   Add a new route to the routing table.  This is just a convenience
+ *   wrapper for the SIOCADDRT ioctl call.
  *
- * Input parmeters:
- *   pending - Current set of pending interrupts being handled
+ * Parameters:
+ *   sockfd   - Any socket descriptor
+ *   target   - Target address on the remote network (required)
+ *   netmask  - Network mask defining the external network (required)
  *
  * Returned Value:
- *   None
+ *   OK on success; -1 on failure with the errno variable set appropriately.
  *
  ****************************************************************************/
 
-void sam_tsd_interrupt(uint32_t pending);
+int delroute(int sockfd, FAR struct sockaddr_storage *target,
+             FAR struct sockaddr_storage *netmask);
 
 #undef EXTERN
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CONFIG_SAMA5_ADC && CONFIG_SAMA5_TOUCHSCREEN */
-#endif /* __ARCH_ARM_SRC_SAMA5_SAM_ADC_H */
+#endif /* CONFIG_NET_ROUTE */
+#endif /* __INCLUDE_NET_ROUTE_H */

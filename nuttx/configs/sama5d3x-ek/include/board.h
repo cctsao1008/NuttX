@@ -71,6 +71,27 @@
 
 #endif
 
+/* LCD Interface, Geometry and Timing */
+
+#define BOARD_LCDC_OUTPUT_BPP 24       /* Output format to H/W is 24BPP RGB */
+#define BOARD_LCDC_WIDTH      800      /* Display width (pixels) */
+#define BOARD_LCDC_HEIGHT     480      /* Display height (rows) */
+#undef  BOARD_LCDC_MCK_MUL2            /* Source clock is Mck (vs 2*Mck) */
+#define BOARD_LCDC_PIXCLK_INV 1        /* Invert pixel clock, use falling edge */
+#define BOARD_LCDC_PIXELCLOCK 33260000 /* Pixel clock frequency */
+#define BOARD_LCDC_GUARDTIME  9        /* Guard time (frames) */
+#define BOARD_LCDC_VSPW       2        /* Vertical pulse width (lines) */
+#define BOARD_LCDC_HSPW       128      /* Horizontal pulse width (LCDDOTCLK) */
+#define BOARD_LCDC_VFPW       37       /* Vertical front porch (lines) */
+#define BOARD_LCDC_VBPW       8        /* Vertical back porch (lines) */
+#define BOARD_LCDC_HFPW       168      /* Horizontal front porch (LCDDOTCLK) */
+#define BOARD_LCDC_HBPW       88       /* Horizontal back porch (LCDDOTCLK) */
+
+/* Backlight prescaler value and PWM output polarity */
+
+#define BOARD_LCDC_PWMPS      LCDC_LCDCFG6_PWMPS_DIV1
+#define BOARD_LCDC_PWMPOL     LCDC_LCDCFG6_PWMPOL
+
 /* LED definitions ******************************************************************/
 /* There are two LEDs on the SAMA5D3 series-CM board that can be controlled
  * by software.  A  blue LED is controlled via PIO pins.  A red LED normally
@@ -96,7 +117,6 @@
 
 #define BOARD_BLUE_BIT    (1 << BOARD_BLUE)
 #define BOARD_RED_BIT     (1 << BOARD_RED)
-
 
 /* These LEDs are not used by the board port unless CONFIG_ARCH_LEDS is
  * defined.  In that case, the usage by the board port is defined in
@@ -143,6 +163,18 @@
 #define NUM_BUTTONS       1
 
 #define BUTTON_USER1_BIT  (1 << BUTTON_USER1)
+
+/* PIO configuration ****************************************************************/
+/* LCDC */
+
+#define PIO_LCD_DAT16     PIO_LCD_DAT16_2
+#define PIO_LCD_DAT17     PIO_LCD_DAT17_2
+#define PIO_LCD_DAT18     PIO_LCD_DAT18_2
+#define PIO_LCD_DAT19     PIO_LCD_DAT19_2
+#define PIO_LCD_DAT20     PIO_LCD_DAT20_2
+#define PIO_LCD_DAT21     PIO_LCD_DAT21_2
+#define PIO_LCD_DAT22     PIO_LCD_DAT22_1
+#define PIO_LCD_DAT23     PIO_LCD_DAT23_1
 
 /************************************************************************************
  * Assembly Language Macros

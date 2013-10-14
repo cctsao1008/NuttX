@@ -177,9 +177,13 @@ static inline void recvfrom_newtcpdata(FAR struct uip_driver_s *dev,
       FAR struct uip_conn *conn   = (FAR struct uip_conn *)pstate->rf_sock->s_conn;
       FAR uint8_t         *buffer = (FAR uint8_t *)dev->d_appdata + recvlen;
       uint16_t             buflen = dev->d_len - recvlen;
+#ifdef CONFIG_DEBUG_NET
       uint16_t             nsaved;
 
       nsaved = uip_datahandler(conn, buffer, buflen);
+#else
+      (void)uip_datahandler(conn, buffer, buflen);
+#endif
 
       /* There are complicated buffering issues that are not addressed fully
        * here.  For example, what if up_datahandler() cannot buffer the
@@ -949,13 +953,9 @@ static ssize_t udp_recvfrom(FAR struct socket *psock, FAR void *buf, size_t len,
       state.rf_cb->priv    = (void*)&state;
       state.rf_cb->event   = recvfrom_udpinterrupt;
 
-      /* Enable the UDP socket */
-
-      uip_udpenable(conn);
-
       /* Notify the device driver of the receive call */
 
-      netdev_rxnotify(&conn->ripaddr);
+      netdev_rxnotify(conn->ripaddr);
 
       /* Wait for either the receive to complete or for an error/timeout to occur.
        * NOTES:  (1) uip_lockedwait will also terminate if a signal is received, (2)
@@ -967,7 +967,6 @@ static ssize_t udp_recvfrom(FAR struct socket *psock, FAR void *buf, size_t len,
 
       /* Make sure that no further interrupts are processed */
 
-      uip_udpdisable(conn);
       uip_udpcallbackfree(conn, state.rf_cb);
       ret = recvfrom_result(ret, &state);
     }

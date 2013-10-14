@@ -912,6 +912,10 @@ Configurations
       demo configuration.  The nsh configuration is, however, bare bones.
       It is the simplest possible NSH configuration and is useful as a
       platform for debugging and integrating new features in isolation.
+    nx: A simple test using the NuttX graphics system (NX) that has been
+      used to verify the SAMA5D3x-EK TFT LCD.  This test case focuses on
+      general window controls, movement, mouse and keyboard input.  It
+      requires no user interaction.
     ostest:  This is another configuration that is only useful for bring-up.
       It executes an exhaustive OS test to verify a correct port of NuttX
       to the SAMA5D3-EK.  Since it now passes that test, the configuration
@@ -1836,7 +1840,7 @@ Configurations
          nsh> cat /mnt/at24/atest.txt
          This is a test
 
-    13. I2C Tool. NuttX supports an I2C tool at apps/system/i2c that can be
+    14. I2C Tool. NuttX supports an I2C tool at apps/system/i2c that can be
         used to peek and poke I2C devices.  That tool cal be enabled by
         setting the following:
 
@@ -1910,7 +1914,7 @@ Configurations
         Address 0x1a is the WM8904.  Address 0x39 is the SIL9022A. I am
         not sure what is at address 0x3d and 0x60
 
-    14. Networking support via the can be added to NSH be selecting the
+    15. Networking support via the can be added to NSH be selecting the
         following configuration options.  The SAMA5D3x supports two different
         Ethernet MAC peripherals:  (1) The 10/100Base-T EMAC peripheral and
         and (2) the 10/100/1000Base-T GMAC peripheral.  Only the SAMA5D31
@@ -2083,7 +2087,38 @@ Configurations
           This delay will be especially long if the board is not connected to
           a network.
 
+    16. You can enable the touchscreen by modifying the configuration
+        in the following ways:
+
+        System Type:
+          CONFIG_SAMA5_ADC=y                     : ADC support is required
+          CONFIG_SAMA5_TSD=y                     : Enabled touchcreen device support
+          SAMA5_TSD_4WIRE=y                      : 4-Wire interface with pressure
+
+        You might want to tinker with the SWAPXY and THRESHX and THRESHY
+        settings to get the result that you want.
+
+        Drivers:
+          CONFIG_INPUT=y                         : (automatically selected)
+
+        Board Selection:
+           CONFIG_SAMA5_TSD_DEVMINOR=0           : Register as /dev/input0
+
+        Library Support:
+          CONFIG_SCHED_WORKQUEUE=y               : Work queue support required
+
+        These options may also be applied to enable a built-in touchscreen
+        test application:
+
+        Applicaton Configuration:
+          CONFIG_EXAMPLES_TOUCHSCREEN=y          : Enable the touchscreen built-int test
+          CONFIG_EXAMPLES_TOUCHSCREEN_MINOR=0    : To match the board selection
+          CONFIG_EXAMPLES_TOUCHSCREEN_DEVPATH="/dev/input0"
+
+        Defaults should be okay for all related settings.
+
     STATUS:
+
       PCK FREQUENCY
       2013-7-19:  This configuration (as do the others) run at 396MHz.
         The SAMA5D3 can run at 536MHz.  I still need to figure out the
@@ -2146,13 +2181,21 @@ Configurations
         integrated.
 
       EMAC:
-      2013-9-17:  Driver created, but not fully integrated yet.
+      2013-9-17:  Driver created and (subsequently) integrated.
+
+  nx:
+
+    A simple test using the NuttX graphics system (NX) that has been used to
+    verify the SAMA5D3x-EK TFT LCD.  This test case focuses on general
+    window controls, movement, mouse and keyboard input.  It requires no
+    user interaction.
 
   ostest:
     This configuration directory, performs a simple OS test using
     examples/ostest.
 
     NOTES:
+
     1. This configuration uses the default USART1 serial console.  That
        is easily changed by reconfiguring to (1) enable a different
        serial peripheral, and (2) selecting that serial peripheral as
@@ -2209,3 +2252,74 @@ Configurations
       2013-7-31:  Using delay loop calibration from the hello configuration.
         That configuration runs out of internal SRAM and, as a result, this
         configuration needs to be recalibrated.
+
+  nxwm:
+    This is a special configuration setup for the NxWM window manager
+    UnitTest.  It includes support for both the SAMA5 LCDC and the
+    SAMA5 ADC touchscreen controller.
+
+    The NxWM window manager is a tiny window manager tailored for use
+    with smaller LCDs.  It supports a toolchain, a start window, and
+    multiple application windows.  However, to make the best use of
+    the visible LCD space, only one application window is visiable at
+    at time.
+
+    The NxWM window manager can be found here:
+
+      nuttx-git/NxWidgets/nxwm
+
+    The NxWM unit test can be found at:
+
+      nuttx-git/NxWidgets/UnitTests/nxwm
+
+    Documentation for installing the NxWM unit test can be found here:
+
+      nuttx-git/NxWidgets/UnitTests/README.txt
+
+    Here is the quick summary of the build steps.  These steps assume that
+    you have the entire NuttX GIT in some directory ~/nuttx-git.  You may
+    have these components installed elsewhere.  In that case, you will need
+    to adjust all of the paths in the following accordingly:
+
+    1. Intall the nxwm configuration
+
+       $ cd ~/nuttx-git/nuttx/tools
+       $ ./configure.sh sama5d3x-ek/nxwm
+
+    2. Make the build context (only)
+
+       $ cd ..
+       $ . ./setenv.sh
+       $ make context
+       ...
+
+       NOTE: the use of the setenv.sh file is optional.  All that it will
+       do is to adjust your PATH variable so that the build system can find
+       your tools.  If you use it, you will most likely need to modify the
+       script so that it has the correct path to your tool binaries
+       directory.
+
+    3. Install the nxwm unit test
+
+       $ cd ~/nuttx-git/NxWidgets
+       $ tools/install.sh ~/nuttx-git/apps nxwm
+       Creating symbolic link
+        - To ~/nuttx-git/NxWidgets/UnitTests/nxwm
+        - At ~/nuttx-git/apps/external
+
+    4. Build the NxWidgets library
+
+       $ cd ~/nuttx-git/NxWidgets/libnxwidgets
+       $ make TOPDIR=~/nuttx-git/nuttx
+       ...
+
+    5. Build the NxWM library
+
+       $ cd ~/nuttx-git/NxWidgets/nxwm
+       $ make TOPDIR=~/nuttx-git/nuttx
+       ...
+
+    6. Built NuttX with the installed unit test as the application
+
+       $ cd ~/nuttx-git/nuttx
+       $ make

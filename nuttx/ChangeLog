@@ -5688,4 +5688,81 @@
 	  now functional.  From Max Holtzberg (2013-9-30).
 	* tools/define.sh:  'cut' long because as it once did.  Script
 	  adapted to observed behavior (2013-9-30).
+	* include/nuttx/net/route.h and net/net_*route.c:  Partial
+	  implementation of a routing table. Not yet hooked into the
+	  build system (2013-10-1)
+	* include/net/route.h:  Defines the application interface to
+	  the routing table (2013-10-2).
+	* configs/spark:  Add configuratino for the Spark Core.  The
+	  initial check-in is basically the Maple Mini board (2013-10-2).
+	* include/net/route.h and libc/net/lib_addroute.c and delroute.c:
+	  Add an application interface to manage the routing table
+	  (2013-10-2).
+	* arch/arm/src/sama5/sam_adc.c and sam_tsc.c:  The SAMA5
+	  touschscreen drive is basically functional) (2013-10-3)
+	* arch/arm/src/sama5/chip/sam_lcdc.h:  Add SAMA5 LCD register
+	  definition header file (2013-10-4).
+	* net/netdev_findbyaddr.c:  Now (1) uses the routing table
+	  if available to look up the router to get to a remote network,
+	  and (2) if there is only a single network device and no
+	  route, then it will simply return that single device.  The
+	  ARP logic will use the default router address associated with
+	  the interface in this case (2013-10-5).
+	* net/netdev_router.c and net/uip/uip-arp.c:  When the target IP address
+	  does not lie on the device's networker when we have a routing table,
+	  looking the the correct router IP address to use in the ARP request.
+	  In that case, we want the MAC address of the router, not of the the
+	  target endpoint (2013-10-5).
+	* net/netdev_rxnotify.c and others: Use the new signature of rxnotify
+	  caused by the routing table.  From Max Holtzberg (2013-10-6).
+	* arch/arm/src/sama5/sam_lcdc.c and .h: Empty "skeleton" file that
+	  will eventually become an LCDC driver for the SAMA5 (2013-10-6).
+	* net/net_close.c, net/uip/uip_tcpcon, and include/nuttx/net/uip/uip-tcp.h:
+	  Make net_close() nonblocking and free unestablished connections if no
+	  free connections available.  From Max Holtzberg (2013-10-6).
+	* net/net_close.c and other:  Update of change of 2013-10-6 from
+	  Max Holtzberg (2013-10-8).
+	* arch/arm/src/sama5/sam_lcd.c: LCDC driver is code complete and
+	  incorporated into the build system (but still untested (2013-10-8).
+	* configs/sama5d3x-ek/nx:  Add an examples/nx configuratino that
+	  will be used for the SAMA5 LCD bring-up (2013-10-8).
+	* configs/arduino-due/Kconfig and include/board.h:  Add configuration
+	  to select revision 3 of the Arduino Due which has some small
+	  but important differences.  Suggested by gdi@embedders.org.
+	* arch/arm/src/sama5/sam_allocateheap.c, Kconfig, chip/sama5d3_memorymap.h:
+	  Add support so that subsets of the total DRAM (and other external
+	  memory) can be added to the heap, leaving other memory reserved for
+	  other purposes (like LCDC framebuffers) (2013-10-10).
+	* arch/arm/src/sama5/sam_lcd.c:  Change how DMA descriptors are
+	  allocated.  My reading of the SAMA5 MATRIX is that the LCDC will
+	  be unable to DMA from internal SRAM (2012-10-10).
+	* arch/arm/src/sama5/Kconfig and configs/sama5d3x-ek/nx/defconfig:  The
+	  default LCD resolution is now RGB565.  Added output resolution selection
+	  which can be different from the software resolution (2013-10-10.
+	* arch/arm/src/sama5/sam_lcd.c wait before modifying register if the LCDC
+	  is re-synchronizing (SIF). Use start-up configuration settings from
+	  Barebox.  They still don't work (2013-10-10).
+	* net/net_monitor.c: Notify the socket layer if a connection is lost
+	  before the monitoring callback has been registered.  From Max
+	  Holtzberg (2013-10-11).
+	* net/recvfrom.c, sendto.c, uip/uip_input.c, uip/uip_udpcallback.c,
+	  uip/uip_udpconn.c, uip/uip_udpinput.c:  Changed the meaning of the
+	  uip_*input functions. They now return success when a packet is
+	  dropped; This is needed for the ENCX24J600 driver that must make
+	  a decision to return the packet or not:  It should not retai
+	  dropped packets. From Max Holtzberg (2013-10-11).
+	* drivers/net/encx24j600.c and Kconfig: ENCX24J600: Improved descriptor
+	  handling, free packets on rx abort interrupt. From Max Holtzberg
+	  (2013-10-11).
+	* arch/arm/src/sama4/sam_lcd.c and configs/sama5d3x-ek/include/board.h:
+	  Fix PWM precealler divider.  This eliminiates the backlight flicker
+	 (2013-10-11).
+	* arch/arm/src/sama5/sam_boot.c: Correct how framebuffer memory was
+	  being mapped.  The mapping was getting overrwritten and the
+	  framebuffer memory was ending up cacheable (2013-10-13).
+	* arch/arm/src/sama5/Kconfig, sam_lcdc.c, defconfig, and related files:
+	  Remove options for obtaining framebuffer memory in other ways.  That
+	  option just really cannot work (2013-10-13).
+	* configs/sama5d3x-ek/nxwm:  Add NxWM configuration for SAMA5D3x-EK
+	  (2013-10-13).
 
