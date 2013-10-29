@@ -121,7 +121,7 @@ struct telnetd_dev_s
 
 #ifdef CONFIG_TELNETD_DUMPBUFFER
 static inline void telnetd_dumpbuffer(FAR const char *msg,
-                 FAR const char *buffer, unsigned int nbytes)
+                 FAR const char *buffer, unsigned int nbytes);
 #else
 # define telnetd_dumpbuffer(msg,buffer,nbytes)
 #endif
@@ -505,7 +505,7 @@ static int telnetd_close(FAR struct file *filep)
           ret = unregister_driver(devpath);
           if (ret < 0)
             {
-              nlldbg("Failed to unregister the driver %s: %d\n", ret);
+              nlldbg("Failed to unregister the driver %s: %d\n", devpath, ret);
             }
 
           free(devpath);

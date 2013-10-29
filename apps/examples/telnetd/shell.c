@@ -45,6 +45,7 @@
 #include <string.h>
 
 #include <net/if.h>
+#include <arpa/inet.h>
 
 #include <apps/netutils/telnetd.h>
 #include <apps/netutils/uiplib.h>

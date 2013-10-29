@@ -457,10 +457,19 @@ void stm32_dmafree(DMA_HANDLE handle)
  *
  ****************************************************************************/
 
-void stm32_dmasetup(DMA_HANDLE handle, uint32_t paddr, uint32_t maddr, size_t ntransfers, uint32_t ccr)
+void stm32_dmasetup(DMA_HANDLE handle, uint32_t paddr, uint32_t maddr,
+                    size_t ntransfers, uint32_t ccr)
 {
   struct stm32_dma_s *dmach = (struct stm32_dma_s *)handle;
   uint32_t regval;
+
+  /* Then DMA_CNDTRx register can only be modified if the DMA channel is
+   * disabled.
+   */
+
+  regval  = dmachan_getreg(dmach, STM32_DMACHAN_CCR_OFFSET);
+  regval &= ~(DMA_CCR_EN);
+  dmachan_putreg(dmach, STM32_DMACHAN_CCR_OFFSET, regval);
 
   /* Set the peripheral register address in the DMA_CPARx register. The data
    * will be moved from/to this address to/from the memory after the
@@ -508,7 +517,8 @@ void stm32_dmasetup(DMA_HANDLE handle, uint32_t paddr, uint32_t maddr, size_t nt
  *
  ****************************************************************************/
 
-void stm32_dmastart(DMA_HANDLE handle, dma_callback_t callback, void *arg, bool half)
+void stm32_dmastart(DMA_HANDLE handle, dma_callback_t callback,
+                    void *arg, bool half)
 {
   struct stm32_dma_s *dmach = (struct stm32_dma_s *)handle;
   uint32_t ccr;
@@ -542,7 +552,6 @@ void stm32_dmastart(DMA_HANDLE handle, dma_callback_t callback, void *arg, bool 
        */
 
       ccr |= (half ? (DMA_CCR_HTIE|DMA_CCR_TEIE) : (DMA_CCR_TCIE|DMA_CCR_TEIE));
-
     }
   else
     {
@@ -617,17 +626,17 @@ bool stm32_dmacapable(uint32_t maddr, uint32_t count, uint32_t ccr)
   uint32_t mend;
 
   /* Verify that the address conforms to the memory transfer size.
-   * Transfers to/from memory performed by the DMA controller are 
+   * Transfers to/from memory performed by the DMA controller are
    * required to be aligned to their size.
    *
    * See ST RM0090 rev4, section 9.3.11
    *
-   * Compute mend inline to avoid a possible non-constant integer 
+   * Compute mend inline to avoid a possible non-constant integer
    * multiply.
    */
 
   switch (ccr & STM32_DMA_SCR_MSIZE_MASK)
-    { 
+    {
       case DMA_SCR_MSIZE_8BITS:
         transfer_size = 1;
         mend = maddr + count - 1;
@@ -648,7 +657,7 @@ bool stm32_dmacapable(uint32_t maddr, uint32_t count, uint32_t ccr)
     }
 
   if ((maddr & (transfer_size - 1)) != 0)
-    { 
+    {
       return false;
     }
 
@@ -670,10 +679,12 @@ bool stm32_dmacapable(uint32_t maddr, uint32_t count, uint32_t ccr)
       case STM32_SRAM_BASE:
       case STM32_CODE_BASE:
         /* All RAM and flash is supported */
+
         return true;
 
       default:
         /* Everything else is unsupported by DMA */
+
         return false;
     }
 }

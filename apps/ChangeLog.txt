@@ -646,7 +646,7 @@
 	* apps/nshlib/nsh_fscmds.c:  Fix NSH listing output for the case
 	  of a single file.  Provided by Lorenz Meier (2013-9-13).
 
-6.31 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+6.31 2013-10-28 Gregory Nutt <gnutt@nuttx.org>
 
 	* apps/nshlib/nsh_netcmds.c:  Remove a warning when DHCP is not
 	  enabled (2013-9-17).
@@ -655,10 +655,10 @@
 	  (2013-9017).
 	* apps/examples/ostest/Kconfig:  Add configuration options for
 	  the FPU test.  There are still many OS test configuration
-	  optionst that do not appear in Kconfig (2013-9-18).
+	  options that do not appear in Kconfig (2013-9-18).
 	* apps/examples/cc3000:  Condition the CC3000 example on having
 	  selected the CC3000 device.  Otherwise, you are prompted for
-	  this the CC3000 option on each 'make oldconfig' (2013-9-18).
+	  this option on each 'make oldconfig' (2013-9-18).
 	* apps/system/usbmonitor/usbmonitor.c:  Fix some bad conditional
 	  compilation probably introduced on 2013-9-9 (2013-9-23).
 	* apps/system/stackmonitor:  Add a daemon that can be used to
@@ -676,4 +676,33 @@
 	  commands (2013-10-5).
 	* apps/system/i2ctool/Kconfig:  Fix default I2C frequency:  400KHz
 	  instead of 4MHz.  Suggested by Max Kriegleder (2013-10-10).
+	* apps/system/info/Kconfig and Makefile:  Increase stack size.
+	  Ken Petit reports that this simple command can exceed its 768
+	  stack size under certain conditions.  The size is marginal and
+	  has been increased to 1024 by default but is also now configurable
+	  (2013-10-14).
+	* apps/Makefile:  Need to include external/Make.defs if we want
+	  allow external applications to participate in the NuttX
+	  configuration.  Suggested by gdi@embedders.org (2013-10-14).
+	* apps/examples/cc3300: Updates as part of larger re-organizaion
+	  of CC3000 logic by David Sidrane (2013-10-16).
+	* apps/examples/random:  Add a simple test that dumps values from
+	  /dev/random (2013-10-20).
+	* apps/examples/cc3000:  Extensions and enhancements from David
+	  Sidrane (2013-10-23).
+	* apps/netutils/telnetd/telnetd_driver.c:  Missing argument to
+	  debug statement can cause crashes in certain error conditions.
+	  From David Sidrane (2013-10-24).
+	* apps/examples/cc3000:  Updates from David Sidrane.  Plus
+	  some kruft removal (2013-10-24).
+	* apps/examples/can/can_main.c:  Correct an error in a debug
+	  statement.  From Martin Lederhilger (2013-10-24).
+	* apps/examples/adc:  Add support so that a ADC driven by
+	  software triggering can be tested (2013-10-25).
+	* apps/examples/cc3000:  Updates from David Sidrane (2013-10-25).
+	* apps/system/nxplayer:  Implements a command line media
+	  player.  From Ken Pettit (2013-10-27).
+	* apps/system/nxplayer: Add logic to verify the audio sub-format.
+	  From Ken Pettit (2013-10-28).
 
+6.31 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>

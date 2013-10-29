@@ -152,6 +152,12 @@ static uint16_t ack_interrupt(FAR struct uip_driver_s *dev, FAR void *pvconn,
 
   if ((flags & UIP_ACKDATA) != 0)
     {
+      /* Update the timeout */
+
+#if defined(CONFIG_NET_SOCKOPTS) && !defined(CONFIG_DISABLE_CLOCK)
+      pstate->snd_time = clock_systimer();
+#endif
+
       /* The current acknowledgement number number is the (relative) offset
        * of the of the next byte needed by the receiver.  The snd_isn is the
        * offset of the first byte to send to the receiver.  The difference
@@ -164,11 +170,17 @@ static uint16_t ack_interrupt(FAR struct uip_driver_s *dev, FAR void *pvconn,
 
       dev->d_sndlen = 0;
 
-      /* Wake up the waiting thread */
-
-      sem_post(&pstate->snd_sem);
-
       flags &= ~UIP_ACKDATA;
+    }
+  else if ((flags & UIP_REXMIT) != 0)
+    {
+      nlldbg("REXMIT\n");
+
+      /* Yes.. in this case, reset the number of bytes that have been sent
+       * to the number of bytes that have been ACKed.
+       */
+
+      pstate->snd_sent = pstate->snd_acked;
     }
 
   /* Check for a loss of connection */
@@ -181,9 +193,11 @@ static uint16_t ack_interrupt(FAR struct uip_driver_s *dev, FAR void *pvconn,
 
       net_lostconnection(pstate->snd_sock, flags);
       pstate->snd_sent = -ENOTCONN;
-
-      sem_post(&pstate->snd_sem);
     }
+
+  /* Wake up the waiting thread */
+
+  sem_post(&pstate->snd_sem);
 
   return flags;
 }
@@ -218,20 +232,9 @@ static uint16_t sendfile_interrupt(FAR struct uip_driver_s *dev, FAR void *pvcon
   nllvdbg("flags: %04x acked: %d sent: %d\n",
           flags, pstate->snd_acked, pstate->snd_sent);
 
-  if ((flags & UIP_REXMIT) != 0)
-    {
-      /* Yes.. in this case, reset the number of bytes that have been sent
-       * to the number of bytes that have been ACKed.
-       */
-
-      pstate->snd_sent = pstate->snd_acked;
-
-      /* Fall through to re-send data from the last that was ACKed */
-    }
-
   /* Check for a loss of connection */
 
-  else if ((flags & (UIP_CLOSE|UIP_ABORT|UIP_TIMEDOUT)) != 0)
+  if ((flags & (UIP_CLOSE|UIP_ABORT|UIP_TIMEDOUT)) != 0)
     {
       /* Report not connected */
 
@@ -326,12 +329,6 @@ static uint16_t sendfile_interrupt(FAR struct uip_driver_s *dev, FAR void *pvcon
               pstate->snd_sent += sndlen;
               nllvdbg("pid: %d SEND: acked=%d sent=%d flen=%d\n", getpid(),
                      pstate->snd_acked, pstate->snd_sent, pstate->snd_flen);
-
-              /* Update the send time */
-
-#if defined(CONFIG_NET_SOCKOPTS) && !defined(CONFIG_DISABLE_CLOCK)
-              pstate->snd_time = clock_systimer();
-#endif
             }
         }
       else
@@ -346,7 +343,7 @@ static uint16_t sendfile_interrupt(FAR struct uip_driver_s *dev, FAR void *pvcon
    */
 
 #if defined(CONFIG_NET_SOCKOPTS) && !defined(CONFIG_DISABLE_CLOCK)
-  else if (sendfile_timeout(pstate))
+  if (sendfile_timeout(pstate))
     {
       /* Yes.. report the timeout */
 
@@ -355,6 +352,14 @@ static uint16_t sendfile_interrupt(FAR struct uip_driver_s *dev, FAR void *pvcon
       goto end_wait;
     }
 #endif /* CONFIG_NET_SOCKOPTS && !CONFIG_DISABLE_CLOCK */
+
+  if (pstate->snd_sent >= pstate->snd_flen
+      && pstate->snd_acked < pstate->snd_flen)
+    {
+      /* All data has been sent, but there are outstanding ACK's */
+
+      goto wait;
+    }
 
 end_wait:
 
@@ -521,7 +526,7 @@ ssize_t net_sendfile(int outfd, struct file *infile, off_t *offset,
 
   /* Set up the ACK callback in the connection */
 
-  state.snd_ackcb->flags = UIP_ACKDATA|UIP_CLOSE|UIP_ABORT|UIP_TIMEDOUT;
+  state.snd_ackcb->flags = UIP_ACKDATA|UIP_REXMIT|UIP_CLOSE|UIP_ABORT|UIP_TIMEDOUT;
   state.snd_ackcb->priv  = (void*)&state;
   state.snd_ackcb->event = ack_interrupt;
 
@@ -529,17 +534,17 @@ ssize_t net_sendfile(int outfd, struct file *infile, off_t *offset,
 
   do
     {
-      state.snd_datacb->flags = UIP_REXMIT|UIP_POLL;
+      state.snd_datacb->flags = UIP_POLL;
       state.snd_datacb->priv  = (void*)&state;
       state.snd_datacb->event = sendfile_interrupt;
 
       /* Notify the device driver of the availaibilty of TX data */
 
-      netdev_txnotify(&conn->ripaddr);
+      netdev_txnotify(conn->ripaddr);
 
       uip_lockedwait(&state.snd_sem);
     }
-  while (state.snd_sent > 0 && state.snd_acked < state.snd_flen);
+  while (state.snd_sent >= 0 && state.snd_acked < state.snd_flen);
 
   /* Set the socket state to idle */
 

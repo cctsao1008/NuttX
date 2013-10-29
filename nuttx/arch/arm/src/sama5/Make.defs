@@ -58,7 +58,7 @@ CMN_ASRCS += cp15_clean_dcache.S cp15_flush_dcache.S cp15_invalidate_dcache_all.
 
 CMN_CSRCS  = up_initialize.c up_idle.c up_interruptcontext.c up_exit.c
 CMN_CSRCS += up_createstack.c up_releasestack.c up_usestack.c up_vfork.c
-CMN_CSRCS += up_mdelay.c up_udelay.c
+CMN_CSRCS += up_puts.c up_mdelay.c up_udelay.c
 CMN_CSRCS += up_modifyreg8.c up_modifyreg16.c up_modifyreg32.c
 
 CMN_CSRCS += arm_assert.c arm_blocktask.c arm_copyfullstate.c arm_dataabort.c
@@ -108,6 +108,18 @@ endif
 
 ifeq ($(CONFIG_SAMA5_PIO_IRQ),y)
 CHIP_CSRCS += sam_pioirq.c
+endif
+
+ifeq ($(CONFIG_SAMA5_RTC),y)
+CHIP_CSRCS += sam_rtc.c
+endif
+
+ifeq ($(CONFIG_SAMA5_WDT),y)
+CHIP_CSRCS += sam_wdt.c
+endif
+
+ifeq ($(CONFIG_SAMA5_TRNG),y)
+CHIP_CSRCS += sam_trng.c
 endif
 
 ifeq ($(CONFIG_SAMA5_SPI0),y)
@@ -166,6 +178,14 @@ CHIP_CSRCS += sam_gmac.c
 endif
 endif
 
+ifeq ($(CONFIG_SAMA5_CAN0),y)
+CHIP_CSRCS += sam_can.c
+else
+ifeq ($(CONFIG_SAMA5_CAN1),y)
+CHIP_CSRCS += sam_can.c
+endif
+endif
+
 ifeq ($(CONFIG_SAMA5_TWI0),y)
 CHIP_CSRCS += sam_twi.c
 else
@@ -182,5 +202,13 @@ ifeq ($(CONFIG_SAMA5_ADC),y)
 CHIP_CSRCS += sam_adc.c
 ifeq ($(CONFIG_SAMA5_TSD),y)
 CHIP_CSRCS += sam_tsd.c
+endif
+endif
+
+ifeq ($(CONFIG_SAMA5_TC0),y)
+CHIP_CSRCS += sam_tc.c
+else
+ifeq ($(CONFIG_SAMA5_TC1),y)
+CHIP_CSRCS += sam_tc.c
 endif
 endif

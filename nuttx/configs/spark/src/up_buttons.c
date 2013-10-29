@@ -1,9 +1,8 @@
 /****************************************************************************
- * configs/spark/src/up_leds.c
+ * configs/spark/src/up_buttons.c
  *
- *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2011-2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
- *           Librae <librae8226@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,32 +40,15 @@
 #include <nuttx/config.h>
 
 #include <stdint.h>
-#include <stdbool.h>
-#include <debug.h>
 
 #include <arch/board/board.h>
-
-#include "chip.h"
-#include "up_arch.h"
-#include "up_internal.h"
-#include "stm32.h"
 #include "spark.h"
+
+#ifdef CONFIG_ARCH_BUTTONS
 
 /****************************************************************************
  * Definitions
  ****************************************************************************/
-
-/* CONFIG_DEBUG_LEDS enables debug output from this file (needs CONFIG_DEBUG
- * with CONFIG_DEBUG_VERBOSE too)
- */
-
-#ifdef CONFIG_DEBUG_LEDS
-#  define leddbg  lldbg
-#  define ledvdbg llvdbg
-#else
-#  define leddbg(x...)
-#  define ledvdbg(x...)
-#endif
 
 /****************************************************************************
  * Private Data
@@ -76,77 +58,76 @@
  * Private Functions
  ****************************************************************************/
 
-static inline void set_led(bool v)
-{
-  ledvdbg("Turn LED %s\n", v? "on":"off");
-  stm32_gpiowrite(GPIO_LED, v);
-}
-
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_ledinit
+ * Name: up_buttoninit
+ *
+ * Description:
+ *   up_buttoninit() must be called to initialize button resources.  After
+ *   that, up_buttons() may be called to collect the current state of all
+ *   buttons or up_irqbutton() may be called to register button interrupt
+ *   handlers.
+ *
  ****************************************************************************/
 
-#ifdef CONFIG_ARCH_LEDS
-void up_ledinit(void)
+void up_buttoninit(void)
 {
-  /* Configure LED GPIO for output */
+  /* Configure the GPIO pins as inputs.  NOTE that EXTI interrupts are 
+   * configured for all pins.
+   */
 
-  stm32_configgpio(GPIO_LED);
+   stm32_configgpio(GPIO_BTN);
 }
 
 /****************************************************************************
- * Name: up_ledon
+ * Name: up_buttons
+ *
+ * N.B The return state in true logic, the button polarity is dealt here in
  ****************************************************************************/
 
-void up_ledon(int led)
+uint8_t up_buttons(void)
 {
-  ledvdbg("up_ledon(%d)\n", led);
-  switch (led)
-    {
-    case LED_STARTED:
-    case LED_HEAPALLOCATE:
-      /* As the board provides only one soft controllable LED, we simply turn
-       * it on when the board boots
-       */
-
-      set_led(true);
-      break;
-
-    case LED_PANIC:
-      /* For panic state, the LED is blinking */
-
-      set_led(true);
-      break;
-
-    default:
-      break;
-    }
+  return stm32_gpioread(GPIO_BTN)==0 ? BUTTON_USER_BIT : 0;
 }
 
-/****************************************************************************
- * Name: up_ledoff
- ****************************************************************************/
+/************************************************************************************
+ * Button support.
+ *
+ * Description:
+ *   up_buttoninit() must be called to initialize button resources.  After
+ *   that, up_buttons() may be called to collect the current state of all
+ *   buttons or up_irqbutton() may be called to register button interrupt
+ *   handlers.
+ *
+ *   After up_buttoninit() has been called, up_buttons() may be called to
+ *   collect the state of all buttons.  up_buttons() returns an 8-bit bit set
+ *   with each bit associated with a button.  See the BUTTON_*_BIT
+ *   definitions in board.h for the meaning of each bit.
+ *
+ *   up_irqbutton() may be called to register an interrupt handler that will
+ *   be called when a button is depressed or released.  The ID value is a
+ *   button enumeration value that uniquely identifies a button resource. See the
+ *   BUTTON_* definitions in board.h for the meaning of enumeration
+ *   value.  The previous interrupt handler address is returned (so that it may
+ *   restored, if so desired).
+ *
+ ************************************************************************************/
 
-void up_ledoff(int led)
+#ifdef CONFIG_ARCH_IRQBUTTONS
+xcpt_t up_irqbutton(int id, xcpt_t irqhandler)
 {
-  ledvdbg("up_ledoff(%d)\n", led);
+  xcpt_t oldhandler = NULL;
 
-  switch (led)
+  /* The following should be atomic */
+
+  if (id == BUTTON_USER)
     {
-    case LED_STARTED:
-    case LED_PANIC:
-      /* For panic state, the LED is blinking */
-
-      set_led(false);
-      break;
-
-    default:
-      break;
+      oldhandler = stm32_gpiosetevent(GPIO_BTN, true, true, true, irqhandler);
     }
+  return oldhandler;
 }
-
-#endif /* CONFIG_ARCH_LEDS */
+#endif
+#endif /* CONFIG_ARCH_BUTTONS */

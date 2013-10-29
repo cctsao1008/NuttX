@@ -5559,7 +5559,7 @@
 	  are just hacked out and gutted versions of the corresponding
 	  STM32 files (2013-9-13).
 
-6.31 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+6.31 2013-10-28 Gregory Nutt <gnutt@nuttx.org>
 
 	* nuttx/fs/romfs/fs_romfsutil.c:  Back out part of a recent
 	  ROMFS change (2013-9-14).
@@ -5571,7 +5571,7 @@
 	* configs/ and a few Ethernet drivers:  Add the prefix ETH0
 	  to all PHY configuration selections.  This will allow us
 	  to support to Ethernet MAC drivers with two different
-	  PHYS (identified with ETH0 and ETH1) (2013-9-17).
+	  PHYs (identified with ETH0 and ETH1) (2013-9-17).
 	* net/Kconfig and drivers/net/Kconfig:  Move PHY selections from
 	  net/Kconfig to drivers/net/Kconfig where they belong.  Add the previx
 	  ETH0_ to each PHY selection.  And a new configuration
@@ -5587,7 +5587,7 @@
 	  that the you now also have to set CONFIG_NETDEVICES=y if you
 	  need to set a PHY configuration (2013-9-17).
 	* arch/arm/src/lpc17xx/lpc17_spi.c:  Remove undefined spi_select()
-	  prototype.  This was cause compile time warnings (2013-9-17).
+	  prototype.  This was causing compile time warnings (2013-9-17).
 	* configs/sama5d3x-ek/src/sam_ostest.c:  Add OS test support for
 	  the FPU test (2013-9-18).
 	* arch/arm/src/sama5/sam_usbhost.h and include/nuttx/usb/usbhost_trace.h
@@ -5617,7 +5617,7 @@
 	  endpoint from 0xff (invalid) to 10.  This is not a critical change
 	  but will avoid a complaint from the Linux driver when it overrides
 	  the 0xff value (2013-9-22).
-	* configs/zkit-arm-1769:  LED1 is not user controllable after booting.
+	* configs/zkit-arm-1769:  LED1 is now user controllable after booting.
 	  From Rashid Fatah (2013-9-23).
 	* arch/arm/src/sama5/sam_hsmci.c:  TX DMA disabled.  It is just not
 	  reliable. No idea why.  RX DMA is still used (2013-9-23).
@@ -5654,9 +5654,9 @@
 	  next outgoing packet from the TX done interrupt handling.  From
 	  Max Holtzberg (2013-9-27)
 	* sched/os_start.c:  Should not call group_setupidlefiles() if there
-	  are not file descriptors (and, hence, no file system) (2013-9-27).
+	  are no file descriptors (and, hence, no file system) (2013-9-27).
 	* arch/arm/src/sama5/sam_gmac.c:  GMAC driver and GMII logic is
-	  code complete and readay for test (2013-9-27)
+	  code complete and ready for test (2013-9-27)
 	* configs/compal_e86: Basic board support for the Motorola C139
 	  (Compal E86) phone.  From Craig Comstock (2013-9-27).
 	* configs/compal_e86: Converted to use the kconfig-frontends
@@ -5686,14 +5686,14 @@
 	  From Alan Carvalho de Assis. (2013-9-30).
 	* net/net_sendfile:  The high performance sendfile logic is
 	  now functional.  From Max Holtzberg (2013-9-30).
-	* tools/define.sh:  'cut' long because as it once did.  Script
+	* tools/define.sh:  'cut' no longer works as it once did.  Script
 	  adapted to observed behavior (2013-9-30).
 	* include/nuttx/net/route.h and net/net_*route.c:  Partial
 	  implementation of a routing table. Not yet hooked into the
 	  build system (2013-10-1)
 	* include/net/route.h:  Defines the application interface to
 	  the routing table (2013-10-2).
-	* configs/spark:  Add configuratino for the Spark Core.  The
+	* configs/spark:  Add configuration for the Spark Core.  The
 	  initial check-in is basically the Maple Mini board (2013-10-2).
 	* include/net/route.h and libc/net/lib_addroute.c and delroute.c:
 	  Add an application interface to manage the routing table
@@ -5724,7 +5724,7 @@
 	  Max Holtzberg (2013-10-8).
 	* arch/arm/src/sama5/sam_lcd.c: LCDC driver is code complete and
 	  incorporated into the build system (but still untested (2013-10-8).
-	* configs/sama5d3x-ek/nx:  Add an examples/nx configuratino that
+	* configs/sama5d3x-ek/nx:  Add an examples/nx configuration that
 	  will be used for the SAMA5 LCD bring-up (2013-10-8).
 	* configs/arduino-due/Kconfig and include/board.h:  Add configuration
 	  to select revision 3 of the Arduino Due which has some small
@@ -5749,7 +5749,7 @@
 	  uip/uip_udpconn.c, uip/uip_udpinput.c:  Changed the meaning of the
 	  uip_*input functions. They now return success when a packet is
 	  dropped; This is needed for the ENCX24J600 driver that must make
-	  a decision to return the packet or not:  It should not retai
+	  a decision to return the packet or not:  It should not retry
 	  dropped packets. From Max Holtzberg (2013-10-11).
 	* drivers/net/encx24j600.c and Kconfig: ENCX24J600: Improved descriptor
 	  handling, free packets on rx abort interrupt. From Max Holtzberg
@@ -5765,4 +5765,146 @@
 	  option just really cannot work (2013-10-13).
 	* configs/sama5d3x-ek/nxwm:  Add NxWM configuration for SAMA5D3x-EK
 	  (2013-10-13).
+	* configs/sama5d3x-ek/nxwm/defconfig:  Now uses scaled icons in the
+	  the NxWM taskbar (2013-10-15).
+	* configs/sama5d3x-ek/nxwm/defconfig:  Use the 320x320 NuttX logo as
+	  the NxWM background (2013-10-15).
+	* arch/arm/src/stm32/chip/stm32f103c_pinmap.h:  Pinmapping corrections
+	  from David Sidrane (2013-10-16).
+	* configs/spark:  The Spark device configuration is receiving some
+	  TLC from David Sidrane (2013-10-16).
+	* drivers/mtd/sst25.c:  Add support for the SST25VF016B.  From David
+	  Sidrane (2013-10-16).
+	* net/net_close.c: Changed net_close debug output to verbose.  From
+	  Max Holtzberg (2013-10-17).
+	* net/send.c and net_sendfile.c:  Reset the send timeout when the
+	  data is ACKed, not when the data is sent.  Remove conditions on
+	  checking for timeout.  From Max Holtzberg (2013-10-17).
+	* net/net_sendfile.c:  Correct paramter passed to netdev_txnotify()
+	  from Max Holtzberg (2013-10-17).
+	* include/nuttx/net/uip/uip-tcp.h, net/send.c, uip/uip_tcpconn.c, and
+	  uip/uip_tcpinput.c:  Change how the initial minimum MSS is calculated.
+	  Max Holtzberg (2013-10-17).
+	* net/uip/uip_tcpinput.c:  Move tcp connection into SYN_RCVD state
+	  after aception instead of bypassing and moving directly into ESTABLISHED.
+	  From Max Holtzberg (2013-10-17).
+	* net/net_sendfile.c:  Let the ACK callback handle the REXMIT flag and
+	  don't return until all data has been ACK'd. From Max Holtzberg
+	  (2013-10-17).
+	* arch/arm/src/stm32/chip/stm32f40xxx_dma.h: Typo fixes for UART7 and
+	  UART8 DMA configs.  From Mike Smith (2013-10-18).
+	* arch/arm/src/stm32/Kconfig:  DMA priority corrections from Mike Smith
+	  (2013-10-18).
+	* arch/arm/src/stm32/stm32*_dma.c, stm32_sdio.c, and stm32_dma.h:
+	  Changes to the stm32_dmacapable API. In order to correctly verify that
+	  a buffer can be transferred, the transfer count and the CCR value are
+	  required.  Implemented stm32_dmacapable for stm32f1xx devices. Enhanced
+	  stm32_dmacapable for stm32f2xx and stm32f4xx devices to check for
+	  additional conditions that will cause DMA to fail or lose data (2013-10-18).
+	* include/nuttx/sdio.h:  Add a preflight method to the SDIO interface.
+	  From Mike Smith (2013-10-18).
+	* drivers/mmcsd/mmscd_sdio.c: Enhanced the mmcdd_sdio driver to perform
+	  DMA preflight operations and fail DMA read/write requests that fail
+	  preflighting. From Mike Smith (2013-10-18).
+	* fs/fat/fs_fat32.c: Enhanced the FAT32 filesystem code to understand DMA
+	  preflight failures, and to use the file sector buffer as a bounce buffer
+	  when a user-supplied buffer is not suitable for DMA. From Mike Smith
+	  (2013-10-18).
+	* arch/arm/src/sama5/chip/sam_rtc.h and sam_wdt.h:  Add WDT and RTC
+	  register definition header files (2013-10-18).
+	* arch/arm/src/sama5/chip/sam_rtc.c and sam_rtc.h:  Basic RTC driver.
+	  Support for RTC alarms is fragmentary and this has not yet been hooked
+	  into the build system  (2013-10-18).
+	* Various Spark and CC3000 files:  Update by David Sidrane (2013-10-18).
+	* arch/arm/src/sama5/chip/sam_gpbr.h:  Add SAMA5 GPBR register
+	  definitions (2013-10-19).
+	* Kconfig:  Add support for CONFIG_DEBUG_RTC (2013-10-19).
+	* configs/sama5d3x-ek/README.txt, demo/defconfig:  Describe how to
+	  enable RTC support for the nsh/ configuration; RTC is now enabled by
+	  default in the demo configuration (2013-10-19).
+	* arch/arm/src/sama5/sam_rtc.h and other files:  Hook the SAMA5 RTC
+	  driver into the build system; Verify the correct operation of the
+	  SAMA5 RTC driver (2013-10-19).
+	* arch/arm/src/sama5/sam_wdt.c and .h:  Add a SAMA5 watchdog timer
+	  driver. Untested on initial check-in (2013-10-19).
+	* arch/arm/src/sama5/sam_trng.c, sam_trng.h, and chip/sam_trng.h:  Add
+	  a /dev/random driver based on the SAMA5D3 TRNG peripheral (2013-10-20).
+	* configs/sama5d3x-3k/demo:  The TRNG and /dev/random are now enabled
+	  by default in the demo configuration (2013-10-20).
+	* arch/arm/src/sama5/chip/sam_tc.h:  SAMA5D3 timer/counter register
+	  definition header file (2013-10-20).
+	* libc/stdio/lib_sscanf.c:  scanf() fixes from kfrolov: 1) sscanf()
+	  function hangs in the following example: sscanf("2", "%u,%u,%u,%u", ...),
+	  2) sscanf() returns incorrect number of parsed numbers if some arguments
+	  can't be parsed: sscanf("=2", "%u,%u,%u,%u",...)==1 instead of 0, and
+	  3) using of char* instead of const char* in vsscanf function leads to
+	  warnings from GCC (2013-10-21).
+	* arch/arm/src/sama5/chip/sam_can.h:  SAMA5D3X CAN register definition
+	  header file (2013-10-21)
+	* arch/arm/src/sama5/sam_can.c and .h:  Framework for a SAMA5 CAN driver.
+	  Initial checkin is the STM32 CAN driver with name changes (2013-10-21).
+	* arch/arm/src/sama5/sam_can.c and .h: SAMA5 CAN driver is code complete
+	  but still untested (2013-10-22).
+	* configs/spark:  Spark configuration updated by David Sidrane (2013-10-23).
+	* drivers/wireless/cc3000:  CC3000 driver updates from David Sidrane
+	  (2013-10-23).
+	* include/nuttx/wireless/cc3000:  More CC3000 driver updates from David
+	  Sidrane (2013-10-23).
+	* net/Kconfig, drivers/net/wireless/cc3000/Kconfig, and Kconfig:  Add
+	  ARCH_HAVE_NET that determines if a network is present or not.  This
+	  currently can happen if CONFIG_NET is set or if CONFIG_WL_CC3000 is
+	  is set (23013-10-23).
+	* arch/arm/src/stm32/stm32f10xxx_dma.c:  DMA fix from David Sidrane:
+	  The DMA_CNDTRx register cannot be modified if the DMA channel is
+	  disabled (2013-10-23).
+	* arch/arm/src/sama5/sam_tc.c and .h:  First cut at a timer/counter
+	  library for the SAMA5D3 (2013-10-23).
+	* configs/spark/nsh/defconfig:  Spark configuration update from David
+	  Sidrane (2013-10-24).
+	* drivers/wireless/cc3000/cc3000.c:  CC3000 driver update from David
+	  Sidrane (2013-10-24).
+	* arch/arm/include/stm32/chip.h and arch/arm/src/stm32/Kconfig:
+	  Add support for the STM32F207ZE chip. From Martin Lederhilger
+	  (2013-10-24).
+	* arch/arm/src/stm32/stm32_adc.c and stm32_pwm.c:  Fix some bits
+	  that should have been cleared in a register.  From Martin Lederhilger
+	  (2013-10-24).
+	* configs/olimex-stm32-p207 and other files:  Support for the Olimex
+	  STM32 P207 board added by Martin Lederhilger (2013-10-24).
+	* arch/arm/src/sama5/sam_adc.c, sam_tc.c and sam_tc.h:  Hook in the
+	  timer/counter logic so that it can driver periodic ADC sampling
+	  (2013-10-24).
+	* configs/freedom-kl25z/src/Makefile:  Only build kl_wifi.c if
+	  CONFIG_WL_CC3000 is selected.  From Alan Carvalho de Assis
+	  (2013-10-24).
+	* configs/sama5d3x-ek/src/sam_adc.c:  Integrate support for the
+	  apps/examples/adc into the SAMA5D3x-EK configuration (2013-10-24).
+	* include/nuttx/fs/ioctl.h and arch/arm/src/sama5/sam_adc.c:  Add
+	  and ioctl command that can be used to trigger ADC/DAC conversion
+	  (2015-10-25).
+	* configs/spark:  Spark configuration updated by David Sidrane
+	  (2013-10-25).
+	* drivers/wireless/cc3000 and include/nuttx/wireless/cc3000:
+	  CC3000 driver update from David Sidrane (2013-10-25).
+	* arch/arm/src/sama5/chip/sam_isi.h:  Camera interface register
+	  definitions added (2013-10-26).
+	* audio/ and include/nuttx/audio/audio.h:  Updated audio subsystem
+	  from Ken Pettit (2013-10-27).
+	* drivers/audio/ and include/nuttx/audio/vs1053.h:  Updated
+	  VS1053 driver from ken Pettit (2013-10-27).
+	* configs/mikroe-stm32f4/: Updated configuration for the
+	  Mikroe STM32F4 board from Ken Pettit (2013-10-27).
+	* arch/arm/src/stm32/stm32_spi.c:  DMA-related fixes from Ken
+	  Pettit (2013-10-27).
+	* sched/sched_releasetcb.c: Fix a cornercase:  If sched_releasetcb()
+	  is called as part of a failed pthread startup before the flags
+	  field in the TCB has been initialized, then a crash occurs.
+	  Pointed out by David Sidrane (2013-10-27)
+	* arch/arm/src/sama5/sam_adc.c:  ADC now works in all implemented
+	  modes:  single channel or multiple channel with sequencer support.
+	  software trigger or timer trigger;  ADC channel interrupts or
+	  DMA (2013-10-28).
+	* nuttx/drivers/audio/vs1053.c and nuttx/include/nuttx/audio/audio.h:
+	  Add logic to verify the audio sub-format.  From Ken Pettit (2013-10-28).
 
+6.32 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>

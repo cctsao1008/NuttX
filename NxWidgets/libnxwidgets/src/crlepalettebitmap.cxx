@@ -155,7 +155,7 @@ const nxgl_coord_t CRlePaletteBitmap::getHeight(void) const
  * @return The bitmap's width.
  */
 
-const nxgl_coord_t CRlePaletteBitmap::getStride(void) const
+const size_t CRlePaletteBitmap::getStride(void) const
 {
   // This only works if the bpp is an even multiple of 8-bit bytes
 
@@ -192,7 +192,7 @@ bool CRlePaletteBitmap::getRun(nxgl_coord_t x, nxgl_coord_t y, nxgl_coord_t widt
 {
   // Check ranges.  Casts to unsigned int are ugly but permit one-sided comparisons
 
-  if (((unsigned int)x           <  (unsigned int)width) &&
+  if (((unsigned int)x           <  (unsigned int)m_bitmap->width) &&
       ((unsigned int)(x + width) <= (unsigned int)m_bitmap->width))
     {
       // Seek to the requested row

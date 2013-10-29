@@ -5,7 +5,7 @@
 
 if ARCH_CHIP_SAMA5
 
-comment "ATSAMA5 Configuration Options"
+comment "SAMA5 Configuration Options"
 
 # Chip Capabilities
 
@@ -87,7 +87,7 @@ config ARCH_CHIP_ATSAMA5D35
 
 endchoice # Atmel AT91SAMA5 Chip Selection
 
-menu "ATSAMA5 Peripheral Support"
+menu "SAMA5 Peripheral Support"
 
 config SAMA5_DBGU
 	bool "Debug Unit Interrupt (DBGU)"
@@ -100,6 +100,13 @@ config SAMA5_PIT
 config SAMA5_WDT
 	bool "Watchdog timer Interrupt (WDT)"
 	default n
+	select WATCHDOG
+
+config SAMA5_RTC
+	bool "Real time clock calendar (RTC)"
+	default n
+	select RTC
+	select RTC_DATETIME
 
 config SAMA5_HSMC
 	bool "Static Memory Controller (HSMC)"
@@ -193,6 +200,8 @@ config SAMA5_PWM
 config SAMA5_ADC
 	bool "Touch Screen ADC Controller (ADC)"
 	default n
+	select ANALOG
+	select ADC
 
 config SAMA5_DMAC0
 	bool "DMA Controller 0 (DMAC0)"
@@ -247,10 +256,12 @@ config SAMA5_SSC1
 config SAMA5_CAN0
 	bool "CAN controller 0 (CAN0)"
 	default n
+	select CAN
 
 config SAMA5_CAN1
 	bool "CAN controller 1 (CAN1)"
 	default n
+	select CAN
 
 config SAMA5_SHA
 	bool "Secure Hash Algorithm (SHA)"
@@ -267,6 +278,7 @@ config SAMA5_TDES
 config SAMA5_TRNG
 	bool "True Random Number Generator (TRNG)"
 	default n
+	select DEV_RANDOM
 
 config SAMA5_ARM
 	bool "Performance Monitor Unit (ARM)"
@@ -280,7 +292,7 @@ config SAMA5_MPDDRC
 	bool "MPDDR controller (MPDDRC)"
 	default n
 
-endmenu # ATSAMA5 Peripheral Support
+endmenu # SAMA5 Peripheral Support
 
 config SAMA5_PIO_IRQ
 	bool "PIO pin interrupts"
@@ -687,7 +699,7 @@ endif # SAMA5_LCDC_HEO
 config SAMA5_LCDC_HCR
 	bool "Enable hardware cursor (HCR)"
 	default n
-	depends on EXPERIMENTAL
+	depends on EXPERIMENTAL && FB_HWCURSOR
 
 if SAMA5_LCDC_HCR
 
@@ -1071,12 +1083,223 @@ config SAMA5_EMAC_REGDEBUG
 		Enable very low-level register access debug.  Depends on DEBUG.
 
 config SAMA5_EMAC_ISETH0
-    bool
-    default y if !SAMA5_EMAC || !SAMA5_GMAC_ISETH0
-    default n if SAMA5_EMAC && SAMA5_GMAC_ISETH0
+	bool
+	default y if !SAMA5_EMAC || !SAMA5_GMAC_ISETH0
+	default n if SAMA5_EMAC && SAMA5_GMAC_ISETH0
 
 endmenu # EMAC device driver options
 endif # SAMA5_EMAC
+
+if SAMA5_CAN0 || SAMA5_CAN1
+
+menu "CAN device driver options"
+
+if SAMA5_CAN0
+
+config SAMA5_CAN0_BAUD
+	int "CAN0 BAUD"
+	default 250000
+	depends on SAMA5_CAN0
+	---help---
+		CAN0 BAUD rate.  Required if SAMA5_CAN0 is defined.
+
+config SAMA5_CAN0_NRECVMB
+	int "Number of receive mailboxes"
+	default 1
+	range 1 3
+	---help---
+		The SAMA5 CAN0 peripheral supports 8 mailboxes that can be used for
+		sending and receiving messages.  Up the three of these can be set
+		aside statically for message reception.  The remainder can be
+		configured dynamically to send CAN messages.  Multiple receive
+		mailboxes might needed to either (1) receive bursts of messages, or
+		(2) to support multiple groups of messages filtered on message ID.
+
+		NOTE:  The maximum of 3 is a completely arbitrary design decision
+		and can certainly be changed if you need more.
+
+config SAMA5_CAN0_ADDR0
+	hex "Mailbox 0 address"
+	---help---
+		This setting defines the address for receive mailbox 0.  If CAN_EXTID
+		is defined, this should be a 29-bit extended CAN address; otherwise
+		it should be an 11-bit standard CAN address.
+
+config SAMA5_CAN0_MASK0
+	hex "Mailbox 0 address mask"
+	default 0x7fff if !CAN_EXTID
+	default 0x1fffffff if CAN_EXTID
+	---help---
+		This setting defines the address mask for receive mailbox 0.  And
+		address matching SAMA5_CAN0_ADDR0 under this mask are accepted.  The
+		default, all ones, forces an exact match.  A value of zero will accept
+		any address.
+
+		If CAN_EXTID is defined, this should be a 29-bit extended CAN address
+		mask; otherwise it should be an 11-bit standard CAN address.
+
+config SAMA5_CAN0_ADDR1
+	hex "Mailbox 1 address"
+	---help---
+		This setting defines the address for receive mailbox 1.  If CAN_EXTID
+		is defined, this should be a 29-bit extended CAN address; otherwise
+		it should be an 11-bit standard CAN address.
+
+		This setting is ignored if SAMA5_CAN0_NRECVMB is less than 2.
+
+config SAMA5_CAN0_MASK1
+	hex "Mailbox 1 address mask"
+	default 0x7fff if !CAN_EXTID
+	default 0x1fffffff if CAN_EXTID
+	---help---
+		This setting defines the address mask for receive mailbox 1.  And
+		address matching SAMA5_CAN0_ADDR1 under this mask are accepted.  The
+		default, all ones, forces an exact match.  A value of zero will accept
+		any address.
+
+		If CAN_EXTID is defined, this should be a 29-bit extended CAN address
+		mask; otherwise it should be an 11-bit standard CAN address.
+
+		This setting is ignored if SAMA5_CAN0_NRECVMB is less than 2.
+
+config SAMA5_CAN0_ADDR2
+	hex "Mailbox 2 address"
+	---help---
+		This setting defines the address for receive mailbox 2.  If CAN_EXTID
+		is defined, this should be a 29-bit extended CAN address; otherwise
+		it should be an 11-bit standard CAN address.
+
+		This setting is ignored if SAMA5_CAN0_NRECVMB is less than 3.
+
+config SAMA5_CAN0_MASK2
+	hex "Mailbox 1 address mask"
+	default 0x7fff if !CAN_EXTID
+	default 0x1fffffff if CAN_EXTID
+	---help---
+		This setting defines the address mask for receive mailbox 2.  And
+		address matching SAMA5_CAN0_ADDR2 under this mask are accepted.  The
+		default, all ones, forces an exact match.  A value of zero will accept
+		any address.
+
+		If CAN_EXTID is defined, this should be a 29-bit extended CAN address
+		mask; otherwise it should be an 11-bit standard CAN address.
+
+		This setting is ignored if SAMA5_CAN0_NRECVMB is less than 2.
+
+endif # SAMA5_CAN0
+
+if SAMA5_CAN1
+
+config SAMA5_CAN1_BAUD
+	int "CAN1 BAUD"
+	default 250000
+	depends on SAMA5_CAN1
+	---help---
+		CAN1 BAUD rate.  Required if SAMA5_CAN1 is defined.
+
+config SAMA5_CAN1_NRECVMB
+	int "Number of receive mailboxes"
+	default 1
+	range 1 3
+	---help---
+		The SAMA5 CAN1 peripheral supports 8 mailboxes that can be used for
+		sending and receiving messages.  Up the three of these can be set
+		aside statically for message reception.  The remainder can be
+		configured dynamically to send CAN messages.  Multiple receive
+		mailboxes might needed to either (1) receive bursts of messages, or
+		(2) to support multiple groups of messages filtered on message ID.
+
+		NOTE:  The maximum of 3 is a completely arbitrary design decision
+		and can certainly be changed if you need more.
+
+config SAMA5_CAN1_ADDR0
+	hex "Mailbox 0 address"
+	---help---
+		This setting defines the address for receive mailbox 0.  If CAN_EXTID
+		is defined, this should be a 29-bit extended CAN address; otherwise
+		it should be an 11-bit standard CAN address.
+
+config SAMA5_CAN1_MASK0
+	hex "Mailbox 0 address mask"
+	default 0x7fff if !CAN_EXTID
+	default 0x1fffffff if CAN_EXTID
+	---help---
+		This setting defines the address mask for receive mailbox 0.  And
+		address matching SAMA5_CAN1_ADDR0 under this mask are accepted.  The
+		default, all ones, forces an exact match.  A value of zero will accept
+		any address.
+
+		If CAN_EXTID is defined, this should be a 29-bit extended CAN address
+		mask; otherwise it should be an 11-bit standard CAN address.
+
+config SAMA5_CAN1_ADDR1
+	hex "Mailbox 1 address"
+	---help---
+		This setting defines the address for receive mailbox 1.  If CAN_EXTID
+		is defined, this should be a 29-bit extended CAN address; otherwise
+		it should be an 11-bit standard CAN address.
+
+		This setting is ignored if SAMA5_CAN0_NRECVMB is less than 2.
+
+config SAMA5_CAN1_MASK1
+	hex "Mailbox 1 address mask"
+	default 0x7fff if !CAN_EXTID
+	default 0x1fffffff if CAN_EXTID
+	---help---
+		This setting defines the address mask for receive mailbox 1.  And
+		address matching SAMA5_CAN1_ADDR1 under this mask are accepted.  The
+		default, all ones, forces an exact match.  A value of zero will accept
+		any address.
+
+		If CAN_EXTID is defined, this should be a 29-bit extended CAN address
+		mask; otherwise it should be an 11-bit standard CAN address.
+
+		This setting is ignored if SAMA5_CAN1_NRECVMB is less than 2.
+
+config SAMA5_CAN1_ADDR2
+	hex "Mailbox 2 address"
+	---help---
+		This setting defines the address for receive mailbox 2.  If CAN_EXTID
+		is defined, this should be a 29-bit extended CAN address; otherwise
+		it should be an 11-bit standard CAN address.
+
+		This setting is ignored if SAMA5_CAN1_NRECVMB is less than 3.
+
+config SAMA5_CAN1_MASK2
+	hex "Mailbox 2 address mask"
+	default 0x7fff if !CAN_EXTID
+	default 0x1fffffff if CAN_EXTID
+	---help---
+		This setting defines the address mask for receive mailbox 2.  And
+		address matching SAMA5_CAN1_ADDR2 under this mask are accepted.  The
+		default, all ones, forces an exact match.  A value of zero will accept
+		any address.
+
+		If CAN_EXTID is defined, this should be a 29-bit extended CAN address
+		mask; otherwise it should be an 11-bit standard CAN address.
+
+		This setting is ignored if SAMA5_CAN1_NRECVMB is less than 3.
+
+endif # SAMA5_CAN1
+
+config SAMA5_CAN_AUTOBAUD
+	bool "Enable auto-baud"
+	default n
+	depends on EXPERIMENTAL
+	---help---
+		Enable the SAMA5 auto-baud feature.  NOTE:  This feature is not yet
+		fully implemented.
+
+config SAMA5_CAN_REGDEBUG
+	bool "CAN Register level debug"
+	depends on DEBUG
+	default n
+	---help---
+		Output detailed register-level CAN device debug information.
+		Requires also DEBUG.
+
+endmenu # SPI device driver options
+endif # SAMA5_CAN0 || SAMA5_CAN1
 
 if SAMA5_SPI0 || SAMA5_SPI1
 
@@ -1113,7 +1336,8 @@ config SAMA5_SPI_REGDEBUG
 	depends on DEBUG
 	default n
 	---help---
-		Output detailed register-level SPI device debug information.  Requires also DEBUG.
+		Output detailed register-level SPI device debug information.
+		Requires also DEBUG.
 
 endmenu # SPI device driver options
 endif # SAMA5_SPI0 || SAMA5_SPI1
@@ -1447,11 +1671,38 @@ if SAMA5_ADC_HAVE_CHAN
 config SAMA5_ADC_DMA
 	bool "DMA Support"
 	default n
+	depends on SAMA5_DMAC1
 	---help---
 		Enable DMA transfers of converted data.  This option is only
 		useful if you have numerous DMA channels enabled.  The end result
 		is that there will be one DMA interrupt per conversion sequence vs.
 		one interrupt per conversion.
+
+config SAMA5_ADC_DMASAMPLES
+	int "Number of DMA samples"
+	default 2
+	depends on SAMA5_ADC_DMA
+	---help---
+		If DMA is enabled, then this will specify the number of sample to
+		collect before the DMA completes.  This is actually the number of
+		triggers; the number of collected samples will be this value times
+		the number of channels that are enabled.  You should also enable the
+		sequencer if you are DMAing multiple channels.
+
+		A value of "1" would DMA one set of samples.  That is not advised.
+		In that case the processing and data transfer overhead would be
+		greater than if DMA were disabled.  A value of 2 or more should be
+		selected.
+
+		The DMA logic uses ping-pong buffers, so the total buffering
+		requirement will be
+
+			2 Buffers * Number_of_ADC_Channels * SAMA5_ADC_DMASAMPLES * sizeof(uint16_t)
+
+		So, for example, if you had 8 ADC channels and 8 triggers per DMA
+		transfer, then the total DMA buffering requirment would be:
+
+			2 * 8 * 8 * 2 = 256 bytes.
 
 config SAMA5_ADC_AUTOCALIB
 	bool "ADC auto-calibration"
@@ -1479,7 +1730,7 @@ menu "Channel gain"
 
 config SAMA5_ADC_GAIN0
 	int "Channel 0 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN0
 	range 0 3
 	---help---
@@ -1490,7 +1741,7 @@ config SAMA5_ADC_GAIN0
 
 config SAMA5_ADC_GAIN1
 	int "Channel 1 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN1
 	range 0 3
 	---help---
@@ -1501,7 +1752,7 @@ config SAMA5_ADC_GAIN1
 
 config SAMA5_ADC_GAIN2
 	int "Channel 2 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN2
 	range 0 3
 	---help---
@@ -1512,7 +1763,7 @@ config SAMA5_ADC_GAIN2
 
 config SAMA5_ADC_GAIN3
 	int "Channel 3 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN3
 	range 0 3
 	---help---
@@ -1523,7 +1774,7 @@ config SAMA5_ADC_GAIN3
 
 config SAMA5_ADC_GAIN4
 	int "Channel 4 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN4
 	range 0 3
 	---help---
@@ -1534,7 +1785,7 @@ config SAMA5_ADC_GAIN4
 
 config SAMA5_ADC_GAIN5
 	int "Channel 5 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN5
 	range 0 3
 	---help---
@@ -1545,7 +1796,7 @@ config SAMA5_ADC_GAIN5
 
 config SAMA5_ADC_GAIN6
 	int "Channel 6 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN6
 	range 0 3
 	---help---
@@ -1556,7 +1807,7 @@ config SAMA5_ADC_GAIN6
 
 config SAMA5_ADC_GAIN7
 	int "Channel 7 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN7
 	range 0 3
 	---help---
@@ -1567,7 +1818,7 @@ config SAMA5_ADC_GAIN7
 
 config SAMA5_ADC_GAIN8
 	int "Channel 8 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN8
 	range 0 3
 	---help---
@@ -1578,7 +1829,7 @@ config SAMA5_ADC_GAIN8
 
 config SAMA5_ADC_GAIN9
 	int "Channel 9 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN9
 	range 0 3
 	---help---
@@ -1589,7 +1840,7 @@ config SAMA5_ADC_GAIN9
 
 config SAMA5_ADC_GAIN10
 	int "Channel 10 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN10
 	range 0 3
 	---help---
@@ -1600,7 +1851,7 @@ config SAMA5_ADC_GAIN10
 
 config SAMA5_ADC_GAIN11
 	int "Channel 11 gain"
-	default 0
+	default 1
 	depends on SAMA5_ADC_CHAN11
 	range 0 3
 	---help---
@@ -1804,6 +2055,7 @@ if !SAMA5_ADC_ANARCH
 
 config SAMA5_ADC_GAIN
 	int "Analog gain"
+	default 1
 	depends on SAMA5_ADC_CHAN0
 	range 0 3
 	---help---
@@ -1846,6 +2098,7 @@ config SAMA5_ADC_ADTRG
 
 config SAMA5_ADC_TIOATRIG
 	bool "TC0 ouput A trigger"
+	depends on SAMA5_TC0
 	---help---
 		A-to-D Conversion is initiated the A output from one of
 		Timer/Counter 0 channels.
@@ -1876,12 +2129,20 @@ endchoice # ADTRG edge
 
 if SAMA5_ADC_TIOATRIG
 
+config SAMA5_ADC_TIOAFREQ
+	int "ADC sampling frequency"
+	default 1
+	---help---
+		This setting provides the rate at which the timer will driver ADC
+		sampling.
+
 choice
 	prompt "TC0 channel"
 	default SAMA5_ADC_TIOA0TRIG
 
 config SAMA5_ADC_TIOA0TRIG
 	bool "TC0 Channel 0 Output A"
+	select SAMA5_TC0_TIOA0
 	---help---
 		A-to-D conversion is triggered by the TC0 channel 0 output A signal.
 		This output must be enabled independently in the Timer/Counter
@@ -1889,6 +2150,7 @@ config SAMA5_ADC_TIOA0TRIG
 
 config SAMA5_ADC_TIOA1TRIG
 	bool "TC0 Channel 1 Output A"
+	select SAMA5_TC0_TIOA1
 	---help---
 		A-to-D conversion is triggered by the TC0 channel 1 output A signal.
 		This output must be enabled independently in the Timer/Counter
@@ -1896,6 +2158,7 @@ config SAMA5_ADC_TIOA1TRIG
 
 config SAMA5_ADC_TIOA2TRIG
 	bool "TC0 Channel 2 Output A"
+	select SAMA5_TC0_TIOA2
 	---help---
 		A-to-D conversion is triggered by the TC0 channel 2 output A signal.
 		This output must be enabled independently in the Timer/Counter
@@ -1906,7 +2169,7 @@ endchoice # TC0 channel
 choice
 	prompt "TIOAx edge"
 	default SAMA5_ADC_TIOA_BOTH
-	depends on SAMA5_ADC_ADTRG
+	depends on SAMA5_ADC_TIOATRIG
 
 config SAMA5_ADC_TIOA_RISING
 	bool "Rising edge"
@@ -1937,11 +2200,106 @@ config SAMA5_ADC_REGDEBUG
 
 endmenu # ADC Configuration
 
+if SAMA5_TC0 || SAMA5_TC1
+menu "Timer/counter Configuration"
+
+if SAMA5_TC0
+
+config SAMA5_TC0_CLK0
+	bool "Enable TC0 channel 0 clock input pin"
+	default n
+
+config SAMA5_TC0_TIOA0
+	bool "Enable TC0 channel 0 ouput A"
+	default n
+
+config SAMA5_TC0_TIOB0
+	bool "Enable TC0 channel 0 ouput B"
+	default n
+
+config SAMA5_TC0_CLK1
+	bool "Enable TC0 channel 1 clock input pin"
+	default n
+
+config SAMA5_TC0_TIOA1
+	bool "Enable TC0 channel 1 ouput A"
+	default n
+
+config SAMA5_TC0_TIOB1
+	bool "Enable TC0 channel 1 ouput B"
+	default n
+
+config SAMA5_TC0_CLK2
+	bool "Enable TC0 channel 2 clock input pin"
+	default n
+
+config SAMA5_TC0_TIOA2
+	bool "Enable TC0 channel 2 ouput A"
+	default n
+
+config SAMA5_TC0_TIOB2
+	bool "Enable TC0 channel 2 ouput B"
+	default n
+
+endif # SAMA5_TC0
+
+if SAMA5_TC1
+
+config SAMA5_TC1_CLK3
+	bool "Enable TC1 channel 3 clock input pin"
+	default n
+
+config SAMA5_TC1_TIOA3
+	bool "Enable TC1 channel 3 ouput A"
+	default n
+
+config SAMA5_TC1_TIOB3
+	bool "Enable TC1 channel 3 ouput B"
+	default n
+
+config SAMA5_TC1_CLK4
+	bool "Enable TC1 channel 4 clock input pin"
+	default n
+
+config SAMA5_TC1_TIOA4
+	bool "Enable TC1 channel 4 ouput A"
+	default n
+
+config SAMA5_TC1_TIOB4
+	bool "Enable TC1 channel 4 ouput B"
+	default n
+
+config SAMA5_TC1_CLK5
+	bool "Enable TC1 channel 5 clock input pin"
+	default n
+
+config SAMA5_TC1_TIOA5
+	bool "Enable TC1 channel 5 ouput A"
+	default n
+
+config SAMA5_TC1_TIOB5
+	bool "Enable TC1 channel 5 ouput B"
+	default n
+
+endif # SAMA5_TC1
+
+config SAMA5_TC_REGDEBUG
+	bool "TC Register level debug"
+	depends on DEBUG
+	default n
+	---help---
+		Output detailed register-level Timer/Counter device debug information.
+		Very invasive! Requires also DEBUG.
+
+endmenu # Timer/counter Configuration
+endif # SAMA5_TC0 || SAMA5_TC1
+
 menu "Touchscreen configuration"
 
 config SAMA5_TSD
 	bool "Touchscreen support"
 	default n
+	depends on !SAMA5_ADC_HAVE_CHAN || EXPERIMENTAL
 	select INPUT
 	---help---
 		Configure the ADC to support a touchscreen
@@ -2009,6 +2367,41 @@ config SAMA5_TSD_NPOLLWAITERS
 endif # SAMA5_TSD
 endmenu # Touchscreen Configuration
 endif # SAMA5_ADC
+
+if SAMA5_WDT
+
+menu "Watchdog Configuration"
+
+config SAMA5_WDT_INTERRUPT
+	bool "Interrupt on timeout"
+	default n
+	---help---
+		The normal behavior is to reset everything when a watchdog timeout
+		occurs.  An alternative behavior is to simply interrupt when the
+		timeout occurs.  This setting enables that alternative behavior.
+
+config SAMA5_WDT_DEBUGHALT
+	bool "Halt on DEBUG"
+	default y if DEBUG
+	default n if !DEBUG
+	---help---
+		Halt the watchdog timer in the debug state
+
+config SAMA5_WDT_IDLEHALT
+	bool "Halt in IDLE"
+	default y
+	---help---
+		Halt the watchdog timer in the IDLE state
+
+config SAMA5_WDT_REGDEBUG
+	bool "Register level debug"
+	default n
+	depends on DEBUG
+	---help---
+		Enable low-level register debug output
+
+endmenu # Watchdog configuration
+endif # SAMA5_WDT
 
 menu "External Memory Configuration"
 
@@ -2320,6 +2713,7 @@ config SAMA5_DDRCS_HEAP
 		heap (using RAM_END)
 
 if SAMA5_DDRCS_HEAP
+
 config SAMA5_DDRCS_HEAP_OFFSET
 	int "DDR-SDRAM offset"
 	default 0

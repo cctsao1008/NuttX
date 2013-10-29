@@ -77,6 +77,8 @@ Contents
   - HSMCI Card Slots
   - USB Ports
   - AT24 Serial EEPROM
+  - CAN Usage
+  - SAMA5 ADC Support
   - SAMA5D3x-EK Configuration Options
   - Configurations
 
@@ -353,7 +355,9 @@ Creating and Using NORBOOT
        cd <nuttx>
        make distclean
 
-  2. Install and build the norboot configuration:
+  2. Install and build the norboot configuration.  This steps will establish
+     the norboot configuration and setup the PATH variable in order to do
+     the build:
 
        cd tools
        ./configure.sh sama5d3x-ek/<subdir>
@@ -363,6 +367,17 @@ Creating and Using NORBOOT
      Before sourcing the setenv.sh file above, you should examine it and
      perform edits as necessary so that TOOLCHAIN_BIN is the correct path
      to the directory than holds your toolchain binaries.
+
+     NOTE:  Be aware that the default norboot also disables the watchdog.
+     Since you will not be able to re-enable the watchdog later, you may
+     need to set CONFIG_SAMA5_WDT=y in the NuttX configuration file.
+
+     Then make norboot:
+
+       make
+
+     This will result in an ELF binary called 'nuttx' and also HEX and
+     binary versions called 'nuttx.hex' and 'nuttx.bin'.
 
   3. Rename the binaries.  Since you will need two versions of NuttX:  this
      norboot version that runs in internal SRAM and another under test in
@@ -402,9 +417,11 @@ Creating and Using NORBOOT
        (gdb) mon go                   # And jump into NOR flash
 
       The norboot program can also be configured to jump directly into
-      NOR FLASH without requiring the final halt and go, but since I
-      have been debugging the early boot sequence, the above sequence has
-      been most convenient for me.
+      NOR FLASH without requiring the final halt and go by setting
+      CONFIG_SAMA5_NOR_START=y in the NuttX configuration.  However,
+      since I have been debugging the early boot sequence, the above
+      sequence has been most convenient for me since it allows me to
+      step into the program in NOR.
 
     STATUS:
       2013-7-30:  I have been unable to execute this configuration from NOR
@@ -636,6 +653,154 @@ AT24 Serial EEPROM
 
   By default, PA30 and PA31 are SWJ-DP pins, it can be used as a pin for TWI
   peripheral in the end application.
+
+CAN Usage
+=========
+
+  CAN Configuration
+  -----------------
+
+  The following steps illustrate how to enable CAN0 and/or CAN1 in the NuttX
+  configuration:
+
+    System Type -> SAMA5 Peripheral Support
+       CONFIG_SAMA5_CAN0=y            : Select CAN0 and/or CAN1
+       CONFIG_SAMA5_CAN1=y
+
+    Device Drivers -> CAN Driver Support
+       CONFIG_CAN=y                   : (Automatically selected)
+       CONFIG_CAN_EXTID=y             : For extended, 29-bit CAN IDs
+
+    System Type -> CAN Drive Support
+       CONFIG_SAMA5_CAN0_BAUD=250000  : Select some BAUD for CAN0 (if enabled)
+       CONFIG_SAMA5_CAN0_NRECVMB=1    : Select number of receive mailboxes (see below)
+       CONFIG_SAMA5_CAN1_BAUD=250000  : Select some BAUD for CAN1 (if enabled)
+       CONFIG_SAMA5_CAN1_NRECVMB=1    : Select number of receive mailboxes (see below)
+
+  Receive Mailboxes and Address Filtering
+  ---------------------------------------
+
+  The SAMA5 CAN0 peripheral supports 8 mailboxes that can be used for sending
+  and receiving messages.  Note that the number of dedicated receive mailboxes
+  (CONFIG_SAMA5_CANn_NRECVMB) was set to one in the above configuration.  This
+  could be set to any value from 1 to 3 (the upper limit of 3 is purely
+  arbrary and can be increased with some minor code enhancement).  The
+  remainder can be configured dynamically to send CAN messages.
+
+  Why would you want to use more than one receive mailbox?  There are two
+  reasons. Multiple receive mailboxes might needed to either (1) receive
+  bursts of messages, or (2) to support multiple groups of messages filtered
+  on message ID.
+
+  You must also specify the address filtering for each dedicated receive mailbox:
+
+    System Type -> CAN Drive Support
+       CONFIG_SAMA5_CAN0_ADDR0 and CONFIG_SAMA5_CAN0_MASK0 : If CONFIG_SAMA5_CAN0_NRECVMB >= 1
+       CONFIG_SAMA5_CAN0_ADDR1 and CONFIG_SAMA5_CAN0_MASK1 : If CONFIG_SAMA5_CAN0_NRECVMB >= 2
+       CONFIG_SAMA5_CAN0_ADDR2 and CONFIG_SAMA5_CAN0_MASK2 : If CONFIG_SAMA5_CAN0_NRECVMB >= 3
+       CONFIG_SAMA5_CAN1_ADDR0 and CONFIG_SAMA5_CAN1_MASK0 : If CONFIG_SAMA5_CAN1_NRECVMB >= 1
+       CONFIG_SAMA5_CAN1_ADDR1 and CONFIG_SAMA5_CAN1_MASK1 : If CONFIG_SAMA5_CAN1_NRECVMB >= 2
+       CONFIG_SAMA5_CAN1_ADDR2 and CONFIG_SAMA5_CAN1_MASK2 : If CONFIG_SAMA5_CAN1_NRECVMB >= 3
+
+  Only messages that have IDs that match the CONFIG_SAMA5_CANn_ADDRn when both
+  the received and the configured address are masked by CONFIG_SAMA5_CANn_MASKn
+  will be accepted.  For eacmple, if the mask is all ones, then only messasges
+  with exact address matches will be accepted; if the mask is all zeroes than
+  any address will be accepted.
+
+  CAN connectors
+  --------------
+
+  CAN1 and CAN2 are available via RJ-11 connectors on the SAMA5Dx-EK.  Each
+  is wired as follows.  Also shown below is the matching pins if you want connect
+  the CAN to a device that uses an DB-9 connector.  Both connector types are
+  common.
+
+                    +----------+     RJ-11       DB-9
+                    |    O     |     ----------- --------------
+  +------------+    |          |     Pin 1 3v3   Pin 1 N/C
+  |    +--+    |    |  o5      |     Pin 2 5v    Pin 2 CANL
+  |    |  |    |    |       o9 |     Pin 3 N/C   Pin 3 GND
+  |  +-+  +-+  |    |  o4      |     Pin 4 CANL  Pin 4 N/C
+  |  |      |  |    |       o8 |     Pin 5 CANH  Pin 5 N/C
+  |  |654321|  |    |  o3      |     Pin 6 N/C   Pin 6 N/C
+  |  |oooooo|  |    |       o7 |                 Pin 7 CANH
+  |  +------+  |    |  o2      |                 Pin 8 N/C
+  +------------+    |       o6 |                 Pin 9 N/C
+   RJ-11 Female     |  x1      |
+                    |          |
+                    |    O     |
+                    +----------+
+                      DB-9 Male
+
+SAMA5 ADC Support
+=================
+
+  ADC support can be added to the NSH configuration.  However, there are no
+  ADC input pins available to the user for ADC testing (the touchscreen ADC
+  inputs are intended for other functionality).  Because of this, there is
+  not much motivation to enable ADC support on the SAMA5D3x-EK.  This
+  paragraph is included here, however, for people using a custom SAMA5D3x
+  board thay requires ADC support.
+
+  Basic driver configuration:
+
+    System Type -> SAMA5 Peripheral Support
+      CONFIG_SAMA5_ADC=y               : Enable ADC driver support
+      CONFIG_SAMA5_TC0=y               : Enable the Timer/counter library need for periodic sampling
+
+    Drivers
+      CONFIG_ANALOG=y                  : Should be automatically selected
+      CONFIG_ADC=y                     : Should be automatically selected
+
+    System Type -> ADC Configuration
+      CONFIG_SAMA5_ADC_CHAN0=y         : These settings enable the sequencer to collect
+      CONFIG_SAMA5_ADC_CHAN1=y         : Samples from ADC channels 0-3 on each trigger
+      CONFIG_SAMA5_ADC_CHAN2=y
+      CONFIG_SAMA5_ADC_CHAN3=y
+      CONFIG_SAMA5_ADC_SEQUENCER=y
+
+      CONFIG_SAMA5_ADC_TIOA0TRIG=y     : Trigger on the TC0, channel 0 output A
+      CONFIG_SAMA5_ADC_TIOAFREQ=2      : At a frequency of 2Hz
+      CONFIG_SAMA5_ADC_TIOA_RISING=y   : Trigger on the rising edge
+
+    Default ADC settings (like gain and offset) may also be set if desired.
+
+    System Type -> Timer/counter Configuration
+      CONFIG_SAMA5_TC0_TIOA0=y         : Should be automatically selected
+
+  Work queue supported is also needed:
+
+    Library routines
+      CONFIG_SCHED_WORKQUEUE=y
+
+  For testing purposes, there is an ADC program at apps/examples/adc that
+  will collect a specified number of samples.  This test program can be
+  enabled as follows:
+
+    Application Configuration -> Examples -> ADC eample
+      CONFIG_EXAMPLES_ADC=y            : Enables the example code
+      CONFIG_EXAMPLES_ADC_DEVPATH="/dev/adc0"
+
+    Other default settings for the ADC example should be okay.
+
+  At 2Hz, DMA is not necessary nor desire-able.  The ADC driver has support
+  for DMA transfers of converted data (although that support has not been
+  tested as of this writing).  DMA support can be added by include the
+  following in the configuration.
+
+    System Type -> SAMA5 Peripheral Support
+      CONFIG_SAMA5_DMAC1=y             : Enable DMAC1 support
+
+    System Type -> ADC Configuration
+      CONFIG_SAMA5_ADC_DMA=y           : Enable ADC DMA transfers
+      CONFIG_SAMA5_ADC_DMASAMPLES=2    : Collect two sets of samples per DMA
+
+    Drivers -> Analog device (ADC/DAC) support
+      CONFIG_ADC_FIFOSIZE=16           : Driver may need a large ring buffer
+
+    Application Configuration -> Examples -> ADC eample
+      CONFIG_EXAMPLES_ADC_GROUPSIZE=16 : Larger buffers in the test
 
 SAMA5D3x-EK Configuration Options
 =================================
@@ -916,14 +1081,22 @@ Configurations
       used to verify the SAMA5D3x-EK TFT LCD.  This test case focuses on
       general window controls, movement, mouse and keyboard input.  It
       requires no user interaction.
-    ostest:  This is another configuration that is only useful for bring-up.
+   nxwm: This is a special configuration setup for the NxWM window manager
+      UnitTest.  It integrates support for both the SAMA5 LCDC and the
+      SAMA5 ADC touchscreen controller and provides a more advance
+      graphics demo. It provides an interactive windowing experience.
+   ostest:  This is another configuration that is only useful for bring-up.
       It executes an exhaustive OS test to verify a correct port of NuttX
       to the SAMA5D3-EK.  Since it now passes that test, the configuration
       has little further use other than for reference.
 
+  There may be issues with some of these configurations.  See the details
+  before of the status of individual configurations.
+
   Now for the gory details:
 
   demo:
+
     This configuration directory provide the NuttShell (NSH).  There are
     two NSH configurations:  nsh and demo.  The difference is that nsh is
     intended to be a very simple NSH configuration upon which you can build
@@ -990,11 +1163,23 @@ Configurations
 
        System Type->Heap Configuration
          CONFIG_SAMA5_DDRCS_HEAP=y             : Add the SDRAM to the heap
+         CONFIG_SAMA5_DDRCS_HEAP_OFFSET=0
+         CONFIG_SAMA5_DDRCS_HEAP_SIZE=268435456
 
        Memory Management
          CONFIG_MM_REGIONS=2                   : Two heap memory regions:  ISRAM and SDRAM
 
-    5. The Embest or Ronetix CPU module includes an Atmel AT25DF321A,
+    5. The Real Time Clock/Calendar RTC) is enabled.  These are the relevant
+       settings:
+
+        System Type:
+          CONFIG_SAMA5_RTC=y                   : Enable the RTC driver
+
+        Drivers (these values will be selected automatically):
+          CONFIG_RTC=y                         : Use the RTC for system time
+          CONFIG_RTC_DATETIME=y                : RTC supports data/time
+
+    6. The Embest or Ronetix CPU module includes an Atmel AT25DF321A,
        32-megabit, 2.7-volt SPI serial flash.  Support for that serial
        FLASH can is enabled in this configuration.  These are the relevant
        configuration settings:
@@ -1049,7 +1234,7 @@ Configurations
        NOTE:  It appears that if Linux runs out of NAND, it will destroy the
        contents of the AT25.
 
-    6. Support for HSMCI car slots. The SAMA5D3x-EK provides a two SD memory
+    7. Support for HSMCI car slots. The SAMA5D3x-EK provides a two SD memory
        card slots:  (1) a full size SD card slot (J7 labeled MCI0), and (2)
        a microSD memory card slot (J6 labeled MCI1).  The full size SD card
        slot connects via HSMCI0; the microSD connects vi HSMCI1.  Relevant
@@ -1123,7 +1308,7 @@ Configurations
           volume when it is removed.  But those callbacks are not used in
           this configuration.
 
-    7. Support the USB high-speed device (UDPHS) driver is enabled.
+    8. Support the USB high-speed device (UDPHS) driver is enabled.
        These are the relevant NuttX configuration settings:
 
        Device Drivers -> USB Device Driver Support
@@ -1182,7 +1367,7 @@ Configurations
              first have to use mkrd to create the RAM disk and mkfatfs to put
              a FAT file system on it.
 
-    8. The USB high-speed EHCI and the low-/full- OHCI host drivers are supported
+    9. The USB high-speed EHCI and the low-/full- OHCI host drivers are supported
        in this configuration.
 
        Here are the relevant configuration options that enable EHCI support:
@@ -1255,10 +1440,29 @@ Configurations
 
        nsh> cat /dev/kbda
 
+    10. Support SAMA5D3 TRNG peripheral is enabled so that it provides
+        /dev/random.  The following configuration settings are relevant:
+
+        System Type:
+          CONFIG_SAMA5_TRNG=y                 : Enable the TRNG peripheral
+
+        Drivers (automatically selected):
+          CONFIG_DEV_RANDOM=y                 : Enable /dev/random
+
     The following features are *not* enabled in the demo configuration but
     might be of some use to you:
 
-    9.  Debugging USB.  There is normal console debug output available that
+    10. The RTC supports an alarm that may be enable with the following settings.
+        However, there is nothing in the system that currently makes use of this
+        alarm.
+
+        Drivers:
+          CONFIG_RTC_ALARM=y                   : Enable the RTC alarm
+
+        Library Routines
+         CONFIG_SCHED_WORKQUEUE=y              : Alarm needs work queue support
+
+    11. Debugging USB.  There is normal console debug output available that
         can be enabled with CONFIG_DEBUG + CONFIG_DEBUG_USB.  However, USB
         operation is very time critical and enabling this debug output WILL
         interfere with some operation.  USB tracing is a less invasive way
@@ -1322,6 +1526,7 @@ Configurations
         not bring up Windows Explorer with Windows.  No idea why yet.
 
   hello:
+
     This configuration directory, performs the (almost) simplest of all
     possible examples:  examples/hello.  This just comes up, says hello
     on the serial console and terminates.  This configuration is of
@@ -1370,8 +1575,19 @@ Configurations
     under debug control.
 
     NOTES:
+
     1. This program derives from the hello configuration.  All of the
        notes there apply to this configuration as well.
+
+    2. The default norboot program initializes the NOR memory,
+       displays a message and halts.  The norboot program can also be
+       configured to jump directly into NOR FLASH without requiring the
+       final halt and go by setting CONFIG_SAMA5_NOR_START=y in the
+       NuttX configuration.
+
+    3. Be aware that the default norboot also disables the watchdog.
+       Since you will not be able to re-enable the watchdog later, you may
+       need to set CONFIG_SAMA5_WDT=y in the NuttX configuration file.
 
     STATUS:
       2013-7-19:  This configuration (as do the others) run at 396MHz.
@@ -1381,6 +1597,7 @@ Configurations
       2013-7-31:  Delay loop calibrated.
 
   nsh:
+
     This configuration directory provide the NuttShell (NSH).  There are
     two NSH configurations:  nsh and demo.  The difference is that nsh is
     intended to be a very simple NSH configuration upon which you can build
@@ -1437,22 +1654,24 @@ Configurations
        configuration file:
 
        System Type->ATSAMA5 Peripheral Support
-       CONFIG_SAMA5_MPDDRC=y                   : Enable the DDR controller
+         CONFIG_SAMA5_MPDDRC=y                 : Enable the DDR controller
 
        System Type->External Memory Configuration
-       CONFIG_SAMA5_DDRCS=y                    : Tell the system that DRAM is at the DDR CS
-       CONFIG_SAMA5_DDRCS_SIZE=268435456       : 2Gb DRAM -> 256GB
-       CONFIG_SAMA5_DDRCS_LPDDR2=y             : Its DDR2
-       CONFIG_SAMA5_MT47H128M16RT=y            : This is the type of DDR2
+         CONFIG_SAMA5_DDRCS=y                  : Tell the system that DRAM is at the DDR CS
+         CONFIG_SAMA5_DDRCS_SIZE=268435456     : 2Gb DRAM -> 256GB
+         CONFIG_SAMA5_DDRCS_LPDDR2=y           : Its DDR2
+         CONFIG_SAMA5_MT47H128M16RT=y          : This is the type of DDR2
 
        Now that you have SDRAM enabled, what are you going to do with it?  One
        thing you can is add it to the heap
 
        System Type->Heap Configuration
-       CONFIG_SAMA5_DDRCS_HEAP=y               : Add the SDRAM to the heap
+         CONFIG_SAMA5_DDRCS_HEAP=y             : Add the SDRAM to the heap
+         CONFIG_SAMA5_DDRCS_HEAP_OFFSET=0
+         CONFIG_SAMA5_DDRCS_HEAP_SIZE=268435456
 
        Memory Management
-       CONFIG_MM_REGIONS=2                     : Two memory regions:  ISRAM and SDRAM
+         CONFIG_MM_REGIONS=2                   : Two memory regions:  ISRAM and SDRAM
 
        Another thing you could do is to enable the RAM test built-in
        application:
@@ -1462,15 +1681,15 @@ Configurations
        it can be tested without crashing programs using the memory:
 
        System Type->Heap Configuration
-       CONFIG_SAMA5_DDRCS_HEAP=n               : Don't add the SDRAM to the heap
+         CONFIG_SAMA5_DDRCS_HEAP=n             : Don't add the SDRAM to the heap
 
        Memory Management
-       CONFIG_MM_REGIONS=1                     : One memory regions:  ISRAM
+         CONFIG_MM_REGIONS=1                   : One memory regions:  ISRAM
 
        Then enable the RAM test built-in application:
 
        Application Configuration->System NSH Add-Ons->Ram Test
-       CONFIG_SYSTEM_RAMTEST=y
+         CONFIG_SYSTEM_RAMTEST=y
 
        In this configuration, the SDRAM is not added to heap and so is not
        excessible to the applications.  So the RAM test can be freely
@@ -2117,6 +2336,71 @@ Configurations
 
         Defaults should be okay for all related settings.
 
+    17. The Real Time Clock/Calendar RTC) may be enabled with these settings:
+
+        System Type:
+          CONFIG_SAMA5_RTC=y                   : Enable the RTC driver
+
+        Drivers (these values will be selected automatically):
+          CONFIG_RTC=y                         : Use the RTC for system time
+          CONFIG_RTC_DATETIME=y                : RTC supports data/time
+
+        The RTC supports an alarm that may be enable with the following settings.
+        However, there is nothing in the system that currently makes use of this
+        alarm.
+
+        Drivers:
+          CONFIG_RTC_ALARM=y                   : Enable the RTC alarm
+
+        Library Routines
+         CONFIG_SCHED_WORKQUEUE=y              : Alarm needs work queue support
+
+    18. This example can be configured to exercise the watchdog timer test
+        (apps/examples/watchdog).  This can be selected with the following
+        settings in the NuttX configuration file:
+
+        System Type:
+          CONFIG_SAMA5_WDT=y                  : Enable the WDT peripheral
+                                              : Defaults in "RTC Configuration" should be OK
+
+        Drivers (this will automatically be selected):
+          CONFIG_WATCHDOG=y                   : Enables watchdog timer driver support
+
+        Application Configuration -> Eamples
+          CONFIG_EXAMPLES_WATCHDOG=y          : Enable apps/examples/watchdog
+
+        The WDT timer is driven off the slow, 32768Hz clock divided by 128.
+        As a result, the watchdog a maximum timeout value of 16 seconds.  The
+        SAMA5 WDT may also only be programmed one time; the processor must be
+        reset before the WDT can be reprogrammed.
+
+        The SAMA5 always boots with the watchdog timer enabled at its maximum
+        timeout (16 seconds).  In the normal case where no watchdog timer driver
+        has been configured, the watchdog timer is disabled as part of the start
+        up logic.  But, since we are permitted only one opportunity to program
+        the WDT, we cannot disable the watchdog time if CONFIG_SAMA5_WDT=y.  So,
+        be forewarned:  You have only 16 seconds to run your watchdog timer test!
+
+        NOTE:  If you are using the norboot program to run from FLASH as I did,
+        beware that the default version also disables the watchdog.  You will
+        need a special version of norboot with CONFIG_SAMA5_WDT=y.
+
+    19. This example can be configured to enable the SAMA5 TRNG peripheral so
+        that it provides /dev/random.  The following configuration will enable
+        the TRNG, /dev/random, and the simple test of /dev/random at
+        apps/examples/ranadom:
+
+        System Type:
+          CONFIG_SAMA5_TRNG=y                 : Enable the TRNG peripheral
+
+        Drivers (automatically selected):
+          CONFIG_DEV_RANDOM=y                 : Enable /dev/random
+
+        Applications -> Examples
+          CONFIG_EXAMPLES_RANDOM=y            : Enable apps/examples/random
+          CONFIG_EXAMPLES_MAXSAMPLES=64       : Default settings are probably OK
+          CONFIG_EXAMPLES_NSAMPLES=8
+
     STATUS:
 
       PCK FREQUENCY
@@ -2190,73 +2474,12 @@ Configurations
     window controls, movement, mouse and keyboard input.  It requires no
     user interaction.
 
-  ostest:
-    This configuration directory, performs a simple OS test using
-    examples/ostest.
-
-    NOTES:
-
-    1. This configuration uses the default USART1 serial console.  That
-       is easily changed by reconfiguring to (1) enable a different
-       serial peripheral, and (2) selecting that serial peripheral as
-       the console device.
-
-    2. By default, this configuration is set up to build on Windows
-       under either a Cygwin or MSYS environment using a recent, Windows-
-       native, generic ARM EABI GCC toolchain (such as the CodeSourcery
-       toolchain).  Both the build environment and the toolchain
-       selection can easily be changed by reconfiguring:
-
-       CONFIG_HOST_WINDOWS=y                   : Windows operating system
-       CONFIG_WINDOWS_CYGWIN=y                 : POSIX environment under windows
-       CONFIG_ARMV7A_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery for Windows
-
-    3. This configuration executes out of CS0 NOR flash and can only
-       be loaded via SAM-BA.  These are the relevant configuration options
-       the define the NOR FLASH configuration:
-
-       CONFIG_SAMA5_BOOT_CS0FLASH=y            : Boot from FLASH on CS0
-       CONFIG_BOOT_RUNFROMFLASH=y              : Run in place on FLASH (vs copying to RAM)
-
-       CONFIG_SAMA5_EBICS0=y                   : Enable CS0 external memory
-       CONFIG_SAMA5_EBICS0_SIZE=134217728      : Memory size is 128KB
-       CONFIG_SAMA5_EBICS0_NOR=y               : Memory type is NOR FLASH
-
-       CONFIG_FLASH_START=0x10000000           : Physical FLASH start address
-       CONFIG_FLASH_VSTART=0x10000000          : Virtual FLASH start address
-       CONFIG_FLASH_SIZE=134217728             : FLASH size (again)
-
-       CONFIG_RAM_START=0x00300400             : Data stored after page table
-       CONFIG_RAM_VSTART=0x00300400
-       CONFIG_RAM_SIZE=114688                  : Available size of 128KB - 16KB for page table
-
-       NOTE:  In order to boot in this configuration, you need to close the
-       BMS jumper.
-
-    STATUS:
-      2013-7-19:  This configuration (as do the others) run at 396MHz.
-        The SAMA5D3 can run at 536MHz.  I still need to figure out the
-        PLL settings to get that speed.
-
-        If the CPU speed changes, then so must the NOR and SDRAM
-        initialization!
-
-      2013-7-30:  I have been unable to execute this configuration from NOR
-        FLASH by closing the BMS jumper (J9).  As far as I can tell, this
-        jumper does nothing on my board???  I have been using the norboot
-        configuration to start the program in NOR FLASH (see just above).
-        See "Creating and Using NORBOOT" above.
-
-      2013-7-31:  The OS test configuration is functional.
-
-      2013-7-31:  Using delay loop calibration from the hello configuration.
-        That configuration runs out of internal SRAM and, as a result, this
-        configuration needs to be recalibrated.
-
   nxwm:
+
     This is a special configuration setup for the NxWM window manager
-    UnitTest.  It includes support for both the SAMA5 LCDC and the
-    SAMA5 ADC touchscreen controller.
+    UnitTest.  It integrates support for both the SAMA5 LCDC and the
+    SAMA5 ADC touchscreen controller and provides a more advance
+    graphics demo. It provides an interactive windowing experience.
 
     The NxWM window manager is a tiny window manager tailored for use
     with smaller LCDs.  It supports a toolchain, a start window, and
@@ -2323,3 +2546,102 @@ Configurations
 
        $ cd ~/nuttx-git/nuttx
        $ make
+
+    STATUS:
+    2013-10-18.  This example kind of works, but there are still far too
+    many outstanding issues:
+
+    a) It runs of the SAMA5D31 and SAMA5D34, but not on the SAMA5D33.  This
+       board is from a different manufacturer and there may be some SDRAM-
+       related issues?
+    b) There may be an SDRAM noise issue on the SAMA5D31 and SAMA5D34.
+       I suspect that the SDRAM setup is non-optimal.  The symptom is that
+       writing into frame buffer (in SDRAM) occasionally corrupts the DMA
+       descriptors (also in SDRAM)  When the bad DMA descriptors are
+       fetched, the channel shuts down and the display goes black.  This
+       problem could also be cause by a bad write outside of the framebuffer
+       and, in fact, putting a guard band around the framebuffers seems to
+       eliminate the problem.
+    c) There are some occasional start up issues.  It appears that the LCDC
+       is programed incorrectly and groups of pixels in the images are
+       reversed (producing an odd serrated look to the images).
+    d) I think that there may be more issues if GRAPHICS and INPUT debug is
+       off.  I have not tested with DEBUG off.
+    e) The biggest problem is the touchscreen accuracy.  The touchscreen
+       seems stable during calibration, but the first thing that this
+       example requires is a touch in the far, far, upper left corner of
+       the display.  In that region, I cannot get reliable touch measurements
+       and so I cannot get past the opening display.
+    f) The NxWM example was designed tiny displays.  On this large 800x480
+       display, the icons are too tiny to be usable.  I have created a large
+       320x320 logo for the opening screen and added image scaling to expand
+       the images in the taskbar.  The expanded images are not great.  If I
+       ever get past the opening screen, the same problems will exist in the
+       application toolbar and in the start winow.  These icons are not yet
+       scaled.
+
+    Bottom line:  Not ready for prime time.
+
+  ostest:
+
+    This configuration directory, performs a simple OS test using
+    examples/ostest.
+
+    NOTES:
+
+    1. This configuration uses the default USART1 serial console.  That
+       is easily changed by reconfiguring to (1) enable a different
+       serial peripheral, and (2) selecting that serial peripheral as
+       the console device.
+
+    2. By default, this configuration is set up to build on Windows
+       under either a Cygwin or MSYS environment using a recent, Windows-
+       native, generic ARM EABI GCC toolchain (such as the CodeSourcery
+       toolchain).  Both the build environment and the toolchain
+       selection can easily be changed by reconfiguring:
+
+       CONFIG_HOST_WINDOWS=y                   : Windows operating system
+       CONFIG_WINDOWS_CYGWIN=y                 : POSIX environment under windows
+       CONFIG_ARMV7A_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery for Windows
+
+    3. This configuration executes out of CS0 NOR flash and can only
+       be loaded via SAM-BA.  These are the relevant configuration options
+       the define the NOR FLASH configuration:
+
+       CONFIG_SAMA5_BOOT_CS0FLASH=y            : Boot from FLASH on CS0
+       CONFIG_BOOT_RUNFROMFLASH=y              : Run in place on FLASH (vs copying to RAM)
+
+       CONFIG_SAMA5_EBICS0=y                   : Enable CS0 external memory
+       CONFIG_SAMA5_EBICS0_SIZE=134217728      : Memory size is 128KB
+       CONFIG_SAMA5_EBICS0_NOR=y               : Memory type is NOR FLASH
+
+       CONFIG_FLASH_START=0x10000000           : Physical FLASH start address
+       CONFIG_FLASH_VSTART=0x10000000          : Virtual FLASH start address
+       CONFIG_FLASH_SIZE=134217728             : FLASH size (again)
+
+       CONFIG_RAM_START=0x00300400             : Data stored after page table
+       CONFIG_RAM_VSTART=0x00300400
+       CONFIG_RAM_SIZE=114688                  : Available size of 128KB - 16KB for page table
+
+       NOTE:  In order to boot in this configuration, you need to close the
+       BMS jumper.
+
+    STATUS:
+      2013-7-19:  This configuration (as do the others) run at 396MHz.
+        The SAMA5D3 can run at 536MHz.  I still need to figure out the
+        PLL settings to get that speed.
+
+        If the CPU speed changes, then so must the NOR and SDRAM
+        initialization!
+
+      2013-7-30:  I have been unable to execute this configuration from NOR
+        FLASH by closing the BMS jumper (J9).  As far as I can tell, this
+        jumper does nothing on my board???  I have been using the norboot
+        configuration to start the program in NOR FLASH (see just above).
+        See "Creating and Using NORBOOT" above.
+
+      2013-7-31:  The OS test configuration is functional.
+
+      2013-7-31:  Using delay loop calibration from the hello configuration.
+        That configuration runs out of internal SRAM and, as a result, this
+        configuration needs to be recalibrated.

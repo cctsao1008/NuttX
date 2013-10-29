@@ -2527,6 +2527,8 @@ static int stm32_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffer,
 
   stm32_datadisable();
 
+  /* Initialize register sampling */
+
   stm32_sampleinit();
   stm32_sample(priv, SAMPLENDX_BEFORE_SETUP);
 
@@ -2584,7 +2586,6 @@ static int stm32_dmasendsetup(FAR struct sdio_dev_s *dev,
 {
   struct stm32_dev_s *priv = (struct stm32_dev_s *)dev;
   uint32_t dblocksize;
-  int ret = -EINVAL;
 
   DEBUGASSERT(priv != NULL && buffer != NULL && buflen > 0);
   DEBUGASSERT(stm32_dmapreflight(dev, buffer, buflen) == 0);
@@ -2592,6 +2593,8 @@ static int stm32_dmasendsetup(FAR struct sdio_dev_s *dev,
   /* Reset the DPSM configuration */
 
   stm32_datadisable();
+
+  /* Initialize register sampling */
 
   stm32_sampleinit();
   stm32_sample(priv, SAMPLENDX_BEFORE_SETUP);
@@ -2830,6 +2833,9 @@ void sdio_mediachange(FAR struct sdio_dev_s *dev, bool cardinslot)
     {
       priv->cdstatus &= ~SDIO_STATUS_PRESENT;
     }
+
+  irqrestore(flags);
+
   fvdbg("cdstatus OLD: %02x NEW: %02x\n", cdstatus, priv->cdstatus);
 
   /* Perform any requested callback if the status has changed */
@@ -2838,7 +2844,6 @@ void sdio_mediachange(FAR struct sdio_dev_s *dev, bool cardinslot)
     {
       stm32_callback(priv);
     }
-  irqrestore(flags);
 }
 
 /****************************************************************************

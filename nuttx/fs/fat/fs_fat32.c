@@ -556,7 +556,7 @@ fat_read_restart:
               /* The low-level driver may return -EFAULT in the case where
                * the transfer cannot be performed due to DMA constraints.
                * It is probable that the buffer is completely un-DMA-able,
-               * so force indirect transfers via the sector buffer and 
+               * so force indirect transfers via the sector buffer and
                * restart the operation.
                */
 
@@ -790,7 +790,7 @@ fat_write_restart:
               /* The low-level driver may return -EFAULT in the case where
                * the transfer cannot be performed due to DMA constraints.
                * It is probable that the buffer is completely un-DMA-able,
-               * so force indirect transfers via the sector buffer and 
+               * so force indirect transfers via the sector buffer and
                * restart the operation.
                */
 
@@ -824,12 +824,11 @@ fat_write_restart:
            * - If the write is aligned to the beginning of the sector and
            *   extends beyond the end of the file, i.e. sectorindex == 0 and
            *   file pos + buflen >= file size.
-           *
            */
 
-          if ((sectorindex == 0) && 
-              ((buflen >= fs->fs_hwsectorsize) || ((filep->f_pos + buflen) >= ff->ff_size)))
-            { 
+          if ((sectorindex == 0) && ((buflen >= fs->fs_hwsectorsize) ||
+              ((filep->f_pos + buflen) >= ff->ff_size)))
+            {
                /* Flush unwritten data in the sector cache. */
 
                ret = fat_ffcacheflush(fs, ff);

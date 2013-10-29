@@ -657,7 +657,7 @@ static uint8_t sam_channel(uint8_t pid, const struct sam_pidmap_s *table,
         }
     }
 
-  fdbg("No channel found for pid %d\n", pid);
+  dmadbg("No channel found for pid %d\n", pid);
   DEBUGPANIC();
   return 0x3f;
 }
@@ -2154,7 +2154,7 @@ int sam_dmatxsetup(DMA_HANDLE handle, uint32_t paddr, uint32_t maddr,
           remaining -= maxtransfer;
 
           /* Increment the memory & peripheral address (if it is appropriate to
-           * do do).
+           * do so).
            */
 
           if ((dmach->flags & DMACH_FLAG_PERIPHINCREMENT) != 0)
@@ -2233,7 +2233,7 @@ int sam_dmarxsetup(DMA_HANDLE handle, uint32_t paddr, uint32_t maddr,
           remaining -= maxtransfer;
 
           /* Increment the memory & peripheral address (if it is appropriate to
-           * do do).
+           * do so).
            */
 
           if ((dmach->flags & DMACH_FLAG_PERIPHINCREMENT) != 0)

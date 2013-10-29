@@ -974,6 +974,8 @@ nuttx
  |   |       |- z80/README.txt
  |   |       `- z180/README.txt, z180_mmu.txt
  |   `- README.txt
+ |- audio/
+ |   `-README.txt
  |- configs/
  |   |- amber/
  |   |   `- README.txt
@@ -1058,6 +1060,8 @@ nuttx
  |   |- olimex-lpc1766stk/
  |   |   `- README.txt
  |   |- olimex-lpc2378/
+ |   |   `- README.txt
+ |   |- olimex-stm32-p207/
  |   |   `- README.txt
  |   |- olimex-strp711/
  |   |   `- README.txt
@@ -1205,6 +1209,8 @@ apps
  |   |- i2c
  |   |  `- README.txt
  |   |- install
+ |   |  `- README.txt
+ |   |- nxplayer
  |   |  `- README.txt
  |   |- usbmsc
  |   |  `- README.txt

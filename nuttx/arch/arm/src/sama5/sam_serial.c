@@ -884,7 +884,7 @@ static int up_interrupt(int irq, void *context)
 
       priv->sr = up_serialin(priv, SAM_UART_SR_OFFSET);  /* Save for error reporting */
       imr      = up_serialin(priv, SAM_UART_IMR_OFFSET); /* Interrupt mask */
-      pending  = priv->sr & imr;                        /* Mask out disabled interrupt sources */
+      pending  = priv->sr & imr;                         /* Mask out disabled interrupt sources */
 
       /* Handle an incoming, receive byte.  RXRDY: At least one complete character
        * has been received and US_RHR has not yet been read.
@@ -1059,13 +1059,12 @@ static void up_txint(struct uart_dev_s *dev, bool enable)
 #ifndef CONFIG_SUPPRESS_SERIAL_INTS
       up_serialout(priv, SAM_UART_IER_OFFSET, UART_INT_TXRDY);
 
-#  if 0 /* Seems to be unnecessary */
       /* Fake a TX interrupt here by just calling uart_xmitchars() with
        * interrupts disabled (note this may recurse).
        */
 
       uart_xmitchars(dev);
-#  endif
+
 #endif
     }
   else

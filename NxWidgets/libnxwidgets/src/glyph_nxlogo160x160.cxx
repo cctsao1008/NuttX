@@ -1,7 +1,7 @@
 /****************************************************************************
- * NxWidgets/libnxwidgets/src/glyph_nxlogo.cxx
+ * NxWidgets/libnxwidgets/src/glyph_nxlogo160x160.cxx
  *
- *   Copyright (C) 2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2012-2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -3438,7 +3438,7 @@ static const struct SRlePaletteBitmapEntry g_nuttxRleEntries[] =
  * Public Bitmap Structure Defintions
  ****************************************************************************/
 
-const struct SRlePaletteBitmap NXWidgets::g_nuttxBitmap =
+const struct SRlePaletteBitmap NXWidgets::g_nuttxBitmap160x160 =
 {
   CONFIG_NXWIDGETS_BPP,  // bpp    - Bits per pixel
   CONFIG_NXWIDGETS_FMT,  // fmt    - Color format

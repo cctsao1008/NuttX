@@ -271,8 +271,8 @@ size_t stm32_dmaresidual(DMA_HANDLE handle);
  *
  * Description:
  *   Check if the DMA controller can transfer data to/from given memory
- *   address with the given configuration. This depends on the internal 
- *   connections in the ARM bus matrix of the processor. Note that this 
+ *   address with the given configuration. This depends on the internal
+ *   connections in the ARM bus matrix of the processor. Note that this
  *   only applies to memory addresses, it will return false for any peripheral
  *   address.
  *
