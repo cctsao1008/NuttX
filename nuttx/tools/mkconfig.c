@@ -222,15 +222,15 @@ int main(int argc, char **argv, char **envp)
   printf("# undef CONFIG_NFS\n");
   printf("#endif\n\n");
   printf("/* Check if any readable and writable filesystem (OR USB storage) is supported */\n\n");
-  printf("#undef CONFIG_FS_READABLE\n");
-  printf("#undef CONFIG_FS_WRITABLE\n");
   printf("#if defined(CONFIG_FS_FAT) || defined(CONFIG_FS_ROMFS) || defined(CONFIG_USBMSC) || \\\n");
   printf("    defined(CONFIG_FS_NXFFS) || defined(CONFIG_FS_SMARTFS) || defined(CONFIG_FS_BINFS) || \\\n");
-  printf("    defined(CONFIG_NFS)\n");
+  printf("    defined(CONFIG_NFS) || defined(CONFIG_FS_PROCFS)\n");
+  printf("# undef  CONFIG_FS_READABLE\n");
   printf("# define CONFIG_FS_READABLE 1\n");
   printf("#endif\n\n");
   printf("#if defined(CONFIG_FS_FAT) || defined(CONFIG_USBMSC) || defined(CONFIG_FS_NXFFS) || \\\n");
-  printf("    defined(CONFIG_NFS)\n");
+  printf("    defined(CONFIG_FS_SMARTFS) || defined(CONFIG_NFS)\n");
+  printf("# undef  CONFIG_FS_WRITABLE\n");
   printf("# define CONFIG_FS_WRITABLE 1\n");
   printf("#endif\n\n");
   printf("/* There can be no network support with no socket descriptors */\n\n");
@@ -270,6 +270,7 @@ int main(int argc, char **argv, char **envp)
   printf("# undef CONFIG_DEBUG_GPIO\n");
   printf("# undef CONFIG_DEBUG_SPI\n");
   printf("# undef CONFIG_DEBUG_STACK\n");
+  printf("# undef CONFIG_DEBUG_HEAP\n");
   printf("#endif\n\n");
   printf("/* User entry point. This is provided as a fall-back to keep compatibility\n");
   printf(" * with existing code, for builds which do not define CONFIG_USER_ENTRYPOINT.\n");

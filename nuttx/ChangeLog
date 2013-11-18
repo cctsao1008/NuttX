@@ -5908,3 +5908,177 @@
 	  Add logic to verify the audio sub-format.  From Ken Pettit (2013-10-28).
 
 6.32 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+
+	* configs/spark:  Spark configuration updated by David Sidrane
+	  (2013-10-30).
+	* drivers/wireless/cc3000 and include/nuttx/wireless/cc3000:
+	  CC3000 driver updates from David Sidrane (2013-10-13).
+	* arch/arm/src/sama5/chip/sam_ssc.h:  SSC register definition
+	  header file (2013-10-30).
+	* arch/arm/src/sama5/chip/sam_pwm.h:  PWM register definition
+	  header file (2013-10-31).
+	* drivers/mtd/mtd_partition.c: Fix erase block vs page block confusion.
+	  From Ken Pettit (2013-10-31).
+	* arch/arm/src/stm32/stm32_usbdev.c: On a failure to bind the class
+	  driver, the driver reference was being nullified too soon.  This
+	  caused an exception in usbdev_reset() later.  The driver reference
+	  will be nullified later usbdev_unregister when the caller gets the
+	  error.  From David Sidrane (2013-10-31).
+	* drivers/mtd/mtd_config.c and include/nuttx/configdata.h:  Add a container
+	  for an MTD device that can be used to provide a simple, lightweight
+	  interface to configation data storage that resides on some storage
+	  media that is wrapped as an MTD device.  From Ken Pettit (2013-11-1).
+	* configs/mikroe-stm32f4:  Now uses /dev/config for configuration data
+	  storage.  From Ken Pettit (2013-11-1).
+	* arch/ stack management functions:  Extension and standardization of
+	  stack debug logic.  Now includes coloration of the IDLE and interrupt
+	  stacks as well as the heap.  Suggested by David Sidrane (2013-11-1).
+	* configs/spark/usbmsc:  Add spark USB MSC configuration.  From David
+	  Sidrane (2013-11-1).
+	* fs/fat/fs_fat32util.c:  In one error return case, the error return
+	  value was not being set, making the failure look like success. From
+	  David Sidrane (2011-10-1).
+	* drivers/usbdev/usbmsc.c and usbmsc_scsi.c:  pthread_join() does not
+	  work if called from a different task group than the pthread.  This
+	  is correct behavior, but a problem.  The correct solution would be
+	  configure the USB MSC thread to a task, however, this workaround
+	  from David Sidrane plugs the hole for now (2013-11-1).
+	* drivers/mtd/mtd_config.c:  Reduce configuration header size.  From
+	  Ken Pettit (2013-11-1).
+	* drivers/mtd/sst25.c:  Improved write performance by fixing a bug
+	  that prevented operation in the faster write mode.  The code did
+	  not wait on the last write complete before issuing the WRDI  The
+	  loop in general failed to wait on the fist 2 bytes after the
+	  SST25_AAI if the next 2 were FF FF, then it would reissue the
+	  address but not cancel the write. Reorganized to always wait for
+	  completion after and address with data write and on any data
+	  write so  that the device is complete before WRDI is sent.  From
+	  David Sidrane (2013-11-2).
+	* configs/sama5/src/sam_can.c:  Add CAN initialization logic
+	  and fix a data alignment problem (2013-11-3).
+	* drivers/mtd/mtd_config.c:  Updated configuration driver from
+	  Ken Pettit (2013-11-4).
+	* configs/sim/configdata:  MTD configuration driver unit test for
+	  the simulation platform.  From Ken Pettit (2013-11-4).
+	* configs/mikroe-stm32f4/fulldemo: Configuration updated by Ken
+	  Pettit (2013-11-4).
+	* arch/arm/src/stm32/stm32_usbdev.c:  Correct EP0 state handling
+	  logic when buffers larger than the EP0 packet size are sent.
+	  Also add support for decoded USB trace strings.  From David
+	  Sidrane (2013-11-5).
+	* drivers/usbdev/cdcacm.c, composite.c, usbmsc.c:  uninitialization
+	  logic cause re-use of a stale pointer.  Changed to a two pass
+	  uninitialization for the case of the composite driver:  Memory
+	  resources are not freed until the second uninitialization pass.
+	  From David Sidrane (2011-11-5).
+	* arch/arm/src/sama5/sam_pwm.c and .h:  Add PWM driver for SAMA5
+	  untested on initial checkout (not even incorporated in to build
+	  system) (2013-11-6).
+	* arch/arm/src/sama5/Make.defs and Kconfig:  SAMA5 PWM driver now
+	  incorporated into build and configuration system.  Builds with
+	  no errors (2013-11-6).
+	* configs/sama5d3x-ek:  Add support for the PWM test for the
+	  SAMA5D3x-EK board (2013-11-6).
+	* arch/arm/src/sama5/sam_pwm.c and .h: SAMA5 PWM driver is now
+	  function (2013-11-7).
+	* include/nuttx/audio/i2s.h:  First cut at an I2S interface
+	  definition.  This initial definition is sparse will will
+	  probably evolve significantly (2011-11-7).
+	* arch/arm/src/sama5/sam_ssc.c and .h:  Skeleton and build setup
+	  for a forthcoming SSC (aka I2S) driver for the SAMA5.  The
+	  initial check-in is just the SAMA5 SPI driver gutted and hacked
+	  to use the I2S interface.  More coming (2013-11-7).
+	* arch/arm/src/stm32 and arch/arm/include/stm32:  Added support for
+	  the STM32F429.  From Ken Pettit (2013-11-7).
+	* configs/stm32f429i-disco:  Support for the STM32F429I-Discovery
+	  board from Ken Pettit (2013-11-7).
+	* arch/arm/src/stm32/stm32_usbdev.c:  The long outstanding bug
+	  involviing the handling of OUT SETUP commands has been fixed in
+	  the STM32 F1 USB device driver by David Sidrane (2013-11-7).
+	* configs/spark/composite/cdc-acm.inf:  Windows CDC/ACM driver
+	  provided by David Sidrane (2013-11-7).
+	* configs/spark/usbserial.c:  Add an apps/examples/usbserial
+	  configuration for the Spark.  From David Sidran (2013-11-7).
+	* arch/arm/src/sama5/sam_ssc.c and .h:  First cut of SAMA5
+	  SSC/I2S driver is code complete (2013-11-9).
+	* arch/arm/src/stm32 (numerous files):  OTG FS device and host
+	  drivers extended so that they can support either the OTG FS
+	  peripheral or the OTG HS peripheral (in FS mode).  This was
+	  done as a quick way to get USB support on the STM32F429 which
+	  has only OTG HS.  From Ken Pettit (2013-11-10).
+	* configs/stm32f429i-disco:  Add support for the usbnsh and
+	  usbmsc configurations using the OTG HS peripheral in FS mode.
+	  From Ken Pettit (2013-11-10)
+	* drivers/audio/i2schar.c:  A simple character driver to support I2S
+	  accesses.  This driver in its current state is intended only to
+	  support I2C testing and would not be appropriate to used for any real
+	  driver application. (2013-11-10).
+	* arch/arm/src/kl/kl_pwm.c and .h:  PWM driver for the Freescale
+	  Kinetis KL family from Alan Carvalho de Assis (2013-11-10).
+	* configs/freedom-kl25z:  Add PWM support.  From Alan Carvalho de Assis
+	  (2013-11-10).
+	* drivers/audio/vs1053:  VS1053 worker thread stack size is now
+	  configurable and assigned a name via pthread_setname_np(). From Ken
+	  Pettit (2013-11-10).
+	* libc/audio/lib_buffer.c:  Moved audio/buffer/c to libc/audio/lib_buffer.c.
+	  This file was moved because it contains buffer management functions
+	  that must be available to audio applications.  If it was left in the
+	  audio/ directory then it would not be available to applications in the
+	  NuttX Kernel build (2013-11-10).
+	* arch/arm/src/sama5/sam_ssc.c and Kconfig:  Add configurable support
+	  for SSC loopback mode (2013-11-10).
+	* include/nuttx/audio/i2s.h, arch/arm/src/sama5/sam_ssc.c, and
+	  drivers/audio/i2schar.c:  Improvied I2S interface design:  Simplified
+	  audio buffer queuing (2013-11-10).
+	* arch/arm/src/sam34 and arch/arm/include/sam34:  Basic support for
+	  the Atmal SAM4E family.  From Mitko (2013-11-11).
+	* libc/audio/lib_buffer.c:  Remove unused apb_prepare() function
+	  (2013-11-11).
+	* arch/arm/src/stm32:  Added header files and driver framework for the
+	  STM32F429 LTDC framebuffer driver.  From Ken Pettit (2013-11-11).
+	* configs/sama5d3x-ek/src/sam_i2schar.c: Add support for the
+	  apps/examples/i2schar test (2011-11-11).
+	* arch/arm/src/sama5/sam_ssc.c:  I2S loopback test finally works
+	  (2013-11-11).
+	* fs/procfs:  Add a little, primitive procfs file system. (2013-11-13).
+	* fs/binfs/README.txt:  Add a README file for binfs (2013-11-13).
+	* arch/arm/src/stm32/Kconfig:  Add missing setup of CAN TSEG1 and
+	  TSEG2 values.  From Martin Lederhilger (2013-11-14).
+	* arch/arm/src/sama5/sam_pck.c and .h:  Add support for programmable
+	  clock outputs (2013-11-14).
+	* configs/ea3131/nsh:  Converted to use kconfig-frontend tools
+	  (2013-11-14).
+	* arch/arm/src/lpc31: Create configuration and build support for a
+	  forthcoming USB host controller driver (2013-11-14).
+	* arch/arm/src/lpc31/lpc31_ehci.c:  First cut at an EHCI driver
+	  tailed for the LPC31 (2013-11-14).
+	* fs/fs_mount.c:  SMART FS must be included in the conditional
+	  compilation for the set of file systems that require block
+	  drivers.  From Daniel Palmer (2013-11-15).
+	* tools/mkconfig.c:  SMART FS must be included in the conditional
+	  compilation for the set of writable file systems.  Noted by
+	  Daniel Palmer (2013-11-15).
+	* arch/arm/src/sama5/sam_nand.c and .h:  Framework for an MTD driver
+	  that will provide raw access to NAND (2013-11-15).
+	* configs/sama5d3x-ek/src/sam_nandflash.c:  Provides board-specific
+	  memory controller initialize for NAND flash (2013-11-15).
+	* include/nuttx/mtd/mtd.h:  Move include/nutt/mtd.h to
+	  include/nuttx/mtd/mtd.h where it will, hopefully, soon be joined by
+	  other MTD-related header files (2013-11-15).
+	* drivers/mtd/mtd_onfi.c and include/nuttx/mtd/onfi.h:  Add sharedi
+	  NAND routines for use with ONFI compatible NAND FLASH devices
+	  (2013-11-15).
+	* configs/ea3131/src/up_usbhost.c:  Board-specific USB host support
+	  for the EA3131 board (2013-11-15).
+	* drivers/mtd/mtd_nand.c, include/nuttx/mtd/nand.h, nand_config.h,
+	  and nand_scheme.h:  Further NAND support (still incomplete).
+	  (2013-11-16).
+	* drivers/mtd/mtd_modeltab.c:  Further NAND support (still incomplete).
+	  (2013-11-16).
+	* drivers/mtd/mtd_nandmodel.c: More NAND support (same story).
+	  (2013-11-16).
+	* drivers/mtd/mtd_rawnand.c and include/nuttx/mtd/nand_raw.h: More
+	  NAND support (2013-11-17).
+	* drivers/mtd/mtd_nandscheme.c:  More NAND support (2013-11-17).
+	* include/nuttx/mtd/nand_ecc.h: More NAND (2013-11-17).
+

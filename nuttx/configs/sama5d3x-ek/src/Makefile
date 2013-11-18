@@ -58,8 +58,12 @@ ifeq ($(CONFIG_SAMA5_DDRCS),y)
 CSRCS += sam_sdram.c
 endif
 
-ifeq ($(CONFIG_SAMA5_BOOT_CS0FLASH),y)
+ifeq ($(CONFIG_SAMA5_EBICS0_NOR),y)
 CSRCS += sam_norflash.c
+endif
+
+ifeq ($(CONFIG_SAMA5_EBICS3_NAND),y)
+CSRCS += sam_nandflash.c
 endif
 
 ifeq ($(CONFIG_SAMA5_NOR_MAIN),y)
@@ -108,6 +112,24 @@ endif
 
 ifeq ($(CONFIG_ADC),y)
 CSRCS += sam_adc.c
+endif
+
+ifeq ($(CONFIG_PWM),y)
+CSRCS += sam_pwm.c
+endif
+
+ifeq ($(CONFIG_CAN),y)
+CSRCS += sam_can.c
+endif
+
+ifeq ($(CONFIG_AUDIO_I2SCHAR),y)
+ifeq ($(CONFIG_SAMA5_SSC0),y)
+CSRCS += sam_i2schar.c
+else
+ifeq ($(CONFIG_SAMA5_SSC1),y)
+CSRCS += sam_i2schar.c
+endif
+endif
 endif
 
 ifeq ($(CONFIG_USBMSC),y)

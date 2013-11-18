@@ -613,7 +613,7 @@ bool sam_writeprotected(int slotno);
  *
  * Description:
  *   Called from sam_usbinitialize very early in inialization to setup USB-related
- *   GPIO pins for the STM32F4Discovery board.
+ *   PIO pins for the SAMA5D3x-EK board.
  *
  ************************************************************************************/
 
@@ -652,6 +652,24 @@ void weak_function sam_netinitialize(void);
 
 #ifdef CONFIG_ARCH_LEDS
 void up_ledinit(void);
+#endif
+
+/************************************************************************************
+ * Name: nsh_archinitialize
+ *
+ * Description:
+ *   Perform architecture specific initialization for NSH.
+ *
+ *   CONFIG_NSH_ARCHINIT=y :
+ *     Called from the NSH library
+ *
+ *   CONFIG_BOARD_INITIALIZE=y, CONFIG_NSH_LIBRARY=y, && CONFIG_NSH_ARCHINIT=n :
+ *     Called from board_initialize().
+ *
+ ************************************************************************************/
+
+#ifdef CONFIG_NSH_LIBRARY
+int nsh_archinitialize(void);
 #endif
 
 #endif /* __ASSEMBLY__ */

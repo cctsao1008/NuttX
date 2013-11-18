@@ -79,8 +79,12 @@ Contents
   - AT24 Serial EEPROM
   - CAN Usage
   - SAMA5 ADC Support
+  - SAMA5 PWM Support
+  - OV2640 Camera Interface
+  - I2S Audio Support
   - SAMA5D3x-EK Configuration Options
   - Configurations
+  - To-Do List
 
 Development Environment
 =======================
@@ -656,6 +660,12 @@ AT24 Serial EEPROM
 
 CAN Usage
 =========
+  I planned to verify CAN using the IXXAT USB-to-CAN Compact.  This section
+  provides miscellaneous CAN-related notes, mostly to myself but perhaps of
+  interest to others.
+
+  [Unfortunately, as of this writing, I still do not have a proper CAN test
+   bed to verify the CAN driver.]
 
   CAN Configuration
   -----------------
@@ -704,7 +714,7 @@ CAN Usage
 
   Only messages that have IDs that match the CONFIG_SAMA5_CANn_ADDRn when both
   the received and the configured address are masked by CONFIG_SAMA5_CANn_MASKn
-  will be accepted.  For eacmple, if the mask is all ones, then only messasges
+  will be accepted.  For example, if the mask is all ones, then only messasges
   with exact address matches will be accepted; if the mask is all zeroes than
   any address will be accepted.
 
@@ -713,8 +723,8 @@ CAN Usage
 
   CAN1 and CAN2 are available via RJ-11 connectors on the SAMA5Dx-EK.  Each
   is wired as follows.  Also shown below is the matching pins if you want connect
-  the CAN to a device that uses an DB-9 connector.  Both connector types are
-  common.
+  the CAN to a device that uses an DB-9 connector (Such as the IXXAT USB-to-CAN
+  Compact).  Both connector types (as well as RJ-45) are common.
 
                     +----------+     RJ-11       DB-9
                     |    O     |     ----------- --------------
@@ -726,8 +736,7 @@ CAN Usage
   |  |654321|  |    |  o3      |     Pin 6 N/C   Pin 6 N/C
   |  |oooooo|  |    |       o7 |                 Pin 7 CANH
   |  +------+  |    |  o2      |                 Pin 8 N/C
-  +------------+    |       o6 |                 Pin 9 N/C
-   RJ-11 Female     |  x1      |
+  +------------+    |       o6 |                 Pin 9 CANV+ (N/C on IXXAT)   RJ-11 Female     |  x1      |
                     |          |
                     |    O     |
                     +----------+
@@ -736,14 +745,14 @@ CAN Usage
 SAMA5 ADC Support
 =================
 
+  Basic driver configuration
+  --------------------------
   ADC support can be added to the NSH configuration.  However, there are no
   ADC input pins available to the user for ADC testing (the touchscreen ADC
   inputs are intended for other functionality).  Because of this, there is
   not much motivation to enable ADC support on the SAMA5D3x-EK.  This
   paragraph is included here, however, for people using a custom SAMA5D3x
-  board thay requires ADC support.
-
-  Basic driver configuration:
+  board that requires ADC support.
 
     System Type -> SAMA5 Peripheral Support
       CONFIG_SAMA5_ADC=y               : Enable ADC driver support
@@ -774,16 +783,20 @@ SAMA5 ADC Support
     Library routines
       CONFIG_SCHED_WORKQUEUE=y
 
+  ADC Test Example
+  ----------------
   For testing purposes, there is an ADC program at apps/examples/adc that
   will collect a specified number of samples.  This test program can be
   enabled as follows:
 
-    Application Configuration -> Examples -> ADC eample
+    Application Configuration -> Examples -> ADC example
       CONFIG_EXAMPLES_ADC=y            : Enables the example code
       CONFIG_EXAMPLES_ADC_DEVPATH="/dev/adc0"
 
     Other default settings for the ADC example should be okay.
 
+  ADC DMA Support
+  ---------------
   At 2Hz, DMA is not necessary nor desire-able.  The ADC driver has support
   for DMA transfers of converted data (although that support has not been
   tested as of this writing).  DMA support can be added by include the
@@ -799,8 +812,263 @@ SAMA5 ADC Support
     Drivers -> Analog device (ADC/DAC) support
       CONFIG_ADC_FIFOSIZE=16           : Driver may need a large ring buffer
 
-    Application Configuration -> Examples -> ADC eample
+    Application Configuration -> Examples -> ADC example
       CONFIG_EXAMPLES_ADC_GROUPSIZE=16 : Larger buffers in the test
+
+SAMA5 PWM Support
+=================
+
+  Basic driver configuration
+  --------------------------
+  PWM support can be added to the NSH configuration.  However, there are no
+  PWM output pins available to the user for PWM testing.  Because of this,
+  there is not much motivation to enable PWM support on the SAMA5D3x-EK.  This
+  paragraph is included here, however, for people using a custom SAMA5D3x
+  board that requires PWM support.
+
+  Basic driver configuration:
+
+    System Type -> SAMA5 Peripheral Support
+      CONFIG_SAMA5_PWM=y               : Enable PWM driver support
+
+    Drivers
+      CONFIG_PWM=y                     : Should be automatically selected
+
+    PWM Channel/Output Selection
+    ----------------------------
+    In order to use the PWM, you must enable one or more PWM Channels:
+
+    System Type -> PWM Configuration
+      CONFIG_SAMA5_PWM_CHAN0=y         : Enable one or more of channels 0-3
+      CONFIG_SAMA5_PWM_CHAN1=y
+      CONFIG_SAMA5_PWM_CHAN2=y
+      CONFIG_SAMA5_PWM_CHAN3=y
+
+    For each channel that is enabled, you must also specify the output pins
+    to be enabled and the clocking supplied to the PWM channel.
+
+      CONFIG_SAMA5_PWM_CHANx_FAULTINPUT=n : (not used currently)
+      CONFIG_SAMA5_PWM_CHANx_OUTPUTH=y  : Enable One of both of the H and L output pins
+      CONFIG_SAMA5_PWM_CHANx_OUTPUTL=y
+
+    Where x=0..3.
+
+    Care must be taken because all PWM output pins conflict with some other
+    usage of the pin by other devices.  Furthermore, many of these pins have
+    not been brought out to an external connector:
+
+      -----+---+---+----+------+----------------
+       PWM  PIN PER PIO   I/O   CONFLICTS
+      -----+---+---+----+------+----------------
+       PWM0 FI   B  PC28 J2.30  SPI1, ISI
+            H    B  PB0   ---   GMAC
+                 B  PA20 J1.14  LCDC, ISI
+            L    B  PB1   ---   GMAC
+                 B  PA21 J1.16  LCDC, ISI
+      -----+---+---+----+------+----------------
+       PWM1 FI   B  PC31 J2.36  HDMI
+            H    B  PB4   ---   GMAC
+                 B  PA22 J1.18  LCDC, ISI
+            L    B  PB5   ---   GMAC
+                 B  PE31 J3.20  ISI, HDMI
+                 B  PA23 J1.20  LCDC, ISI
+      -----+---+---+----+------+----------------
+       PWM2 FI   B  PC29 J2.29  UART0, ISI, HDMI
+            H    C  PD5   ---   HSMCI0
+                 B  PB8   ---   GMAC
+            L    C  PD6   ---   HSMCI0
+                 B  PB9   ---   GMAC
+      -----+---+---+----+------+----------------
+       PWM3 FI   C  PD16  ---  SPI0, Audio
+            H    C  PD7   ---  HSMCI0
+                 B  PB12 J3.7  GMAC
+            L    C  PD8   ---  HSMCI0
+                 B  PB13  ---  GMAC
+      -----+---+---+----+--------------------
+
+    See configs/sama5d3x-ek/include/board.h for all of the default PWM
+    pin selections.  I used PWM channel 0, pins PA20 and PA21 for testing.
+
+    Clocking is addressed in the next paragraph.
+
+    PWM Clock Configuration
+    -----------------------
+    PWM Channels can be clocked from either a coarsely divided divided down
+    MCK or from a custom frequency from PWM CLKA and/or CLKB.  If you want
+    to use CLKA or CLKB, you must enable and configure them.
+
+    System Type -> PWM Configuration
+      CONFIG_SAMA5_PWM_CLKA=y
+      CONFIG_SAMA5_PWM_CLKA_FREQUENCY=3300
+      CONFIG_SAMA5_PWM_CLKB=y
+      CONFIG_SAMA5_PWM_CLKB_FREQUENCY=3300
+
+    Then for each of the enabled, channels you must select the input clock
+    for that channel:
+
+    System Type -> PWM Configuration
+      CONFIG_SAMA5_PWM_CHANx_CLKA=y     : Pick one of MCK, CLKA, or CLKB (only)
+      CONFIG_SAMA5_PWM_CHANx_CLKB=y
+      CONFIG_SAMA5_PWM_CHANx_MCK=y
+      CONFIG_SAMA5_PWM_CHANx_MCKDIV=128 : If MCK is selected, then the MCK divider must
+                                        : also be provided (1,2,4,8,16,32,64,128,256,512, or 1024).
+
+  PWM Test Example
+  ----------------
+  For testing purposes, there is an PWM program at apps/examples/pwm that
+  will collect a specified number of samples.  This test program can be
+  enabled as follows:
+
+    Application Configuration -> Examples -> PWM example
+      CONFIG_EXAMPLES_PWM=y            : Enables the example code
+
+    Other default settings for the PWM example should be okay.
+
+      CONFIG_EXAMPLES_PWM_DEVPATH="/dev/pwm0"
+      CONFIG_EXAMPLES_PWM_FREQUENCY=100
+
+  Usage of the example is straightforward:
+
+    nsh> pwm -h
+    Usage: pwm [OPTIONS]
+
+    Arguments are "sticky".  For example, once the PWM frequency is
+    specified, that frequency will be re-used until it is changed.
+
+    "sticky" OPTIONS include:
+      [-p devpath] selects the PWM device.  Default: /dev/pwm0 Current: /dev/pwm0
+      [-f frequency] selects the pulse frequency.  Default: 100 Hz Current: 100 Hz
+      [-d duty] selects the pulse duty as a percentage.  Default: 50 % Current: 50 %
+      [-t duration] is the duration of the pulse train in seconds.  Default: 5 Current: 5
+      [-h] shows this message and exits
+
+OV2640 Camera Interface
+=======================
+
+    SAMA5D3x PIN             SAMA5D3x-EK    OV2640
+    PIO  PER SIGNAL        ISI Socket J11
+    ---- --- ------------- --- ------------ ------------
+                            1  VDDISI
+                            2  GND
+                            3  VDDISI
+                            4  GND
+    PE28  ?  ?              5  ZB_SLPTR
+    PE29  ?  ?              6  ZB_RST
+    PC27  B  TWI1_CK        7  TWCK1
+    PC26  B  TWI1_D         8  TWD1
+                                9  GND
+    PD31  B  PCK1 (ISI_MCK) 10 ISI_MCK
+                            11 GND
+    PA30  C  ISI_VSYNC      12 ISI_VSYNC
+                            13 GND
+    PA31  C  ISI_HSYNC      14 ISI_HSYNC
+                            15 GND
+    PC30  C  ISI_PCK        16 ISI_PCK
+                            17 GND
+    PA16  C  ISI_D0         18 ISI_D0
+    PA17  C  ISI_D1         19 ISI_D1
+    PA18  C  ISI_D2         20 ISI_D2
+    PA19  C  ISI_D3         21 ISI_D3
+    PA20  C  ISI_D4         22 ISI_D4
+    PA21  C  ISI_D5         23 ISI_D5
+    PA22  C  ISI_D6         24 ISI_D6
+    PA23  C  ISI_D7         25 ISI_D7
+    PC29  C  ISI_D8         26 ISI_D8
+    PC28  C  ISI_D9         27 ISI_D9
+    PC27  C  ISI_D10        28 ISI_D10
+    PC26  C  ISI_D11        29 ISI_D11
+                            30 GND
+
+I2S Audio Support
+=================
+
+  The SAMA5D3x-EK has two devices on-board that can be used for verification
+  of I2S functionaly:  HDMI and a WM8904 audio CODEC.  As of this writing,
+  the I2S driver is present, but there are not drivers for either the HDMI
+  or the WM8904.
+
+  WM8904 Audio CODEC Interface
+  ----------------------------
+
+    ------------- ---------------- -----------------
+    WM8904        SAMA5D3          NuttX Pin Name
+    ------------- ---------------- -----------------
+     3 SDA        PA30 TWD0        PIO_TWI0_D
+     2 SCLK       PA31 TWCK0       PIO_TWI0_CK
+    28 MCLK       PD30 PCK0        PIO_PMC_PCK0
+    29 BCLK/GPIO4 PC16 TK          PIO_SSC0_TK
+    "" "        " PC19 RK          PIO_SSC0_RK
+    30 LRCLK      PC17 TF          PIO_SSC0_TF
+    "" "   "      PC20 RF          PIO_SSC0_RF
+    31 ADCDAT     PC21 RD          PIO_SSC0_RD
+    32 DACDAT     PC18 TD          PIO_SSC0_TD
+     1 IRQ/GPIO1  PD16 INT_AUDIO   N/A
+    ------------- ---------------- -----------------
+
+  I2S Loopback Test
+  -----------------
+
+  The I2S driver was verified using a special I2C character driver (at
+  nuttx/drivers/audio/i2schar.c) and a test driver at apps/examples/i2schar.
+  The I2S driver was verified in loopback mode with no audio device.
+
+  [NOTE: The above statement is anticipatory:  As of this writing I2S driver
+   verification is underway and still not complete].
+
+  This section describes the modifications to the NSH configuration that were
+  used to perform the I2S testing:
+
+    System Type -> SAMA5 Peripheral Support
+      CONFIG_SAMA5_SSCO=y              : Enable SSC0 driver support
+      CONFIG_SAMA5_DMAC0=y             : DMAC0 required by SSC0
+
+    Alternatively, SSC1 could have be used:
+
+    System Type -> SAMA5 Peripheral Support
+      CONFIG_SAMA5_SSC1=y              : Enable SSC0 driver support
+      CONFIG_SAMA5_DMAC1=y             : DMAC0 required by SSC0
+
+    System Type -> SSC Configuration
+      CONFIG_SAMA5_SSC_MAXINFLIGHT=16  : Up to 16 pending DMA transfers
+      CONFIG_SAMA5_SSC0_MASTER=y       : Master mode
+      CONFIG_SAMA5_SSC0_DATALEN=16     : 16-bit data
+      CONFIG_SAMA5_SSC0_RX=y           : Support a receiver
+      CONFIG_SAMA5_SSC0_RX_RKINPUT=y   : Receiver gets clock from RK input
+      CONFIG_SAMA5_SSC0_TX=y           : Support a transmitter
+      CONFIG_SAMA5_SSC0_TX_MCKDIV=y    : Transmitter gets clock from MCK/2
+      CONFIG_SAMA5_SSC0_MCKDIV_SAMPLERATE=48000 : Sampling at 48K samples/sec
+      CONFIG_SAMA5_SSC0_TX_TKOUTPUT_XFR=y  : Outputs clock on TK when transferring data
+      CONFIG_SAMA5_SSC0_LOOPBACK=y     : Loopmode mode connects RD/TD and RK/TK
+
+    Audio
+      CONFIG_AUDIO=y                   : Audio support needed
+                                       : Defaults should be okay
+
+    Drivers -> Audio
+      CONFIG_I2S=y                     : General I2S support
+      CONFIG_AUDIO_DEVICES=y           : Audio device support
+      CONFIG_AUDIO_I2SCHAR=y           : Build I2S character driver
+
+    The following describes how I have the test application at
+    apps/examples/i2schar configured:
+
+      CONFIG_EXAMPLES_I2SCHAR=y
+      CONFIG_EXAMPLES_I2SCHAR_DEVPATH="/dev/i2schar0"
+      CONFIG_EXAMPLES_I2SCHAR_TX=y
+      CONFIG_EXAMPLES_I2SCHAR_TXBUFFERS=4
+      CONFIG_EXAMPLES_I2SCHAR_TXSTACKSIZE=1536
+      CONFIG_EXAMPLES_I2SCHAR_RX=y
+      CONFIG_EXAMPLES_I2SCHAR_RXBUFFERS=4
+      CONFIG_EXAMPLES_I2SCHAR_RXSTACKSIZE=1536
+      CONFIG_EXAMPLES_I2SCHAR_BUFSIZE=256
+      CONFIG_EXAMPLES_I2SCHAR_DEVINIT=y
+
+    Board Selection
+      CONFIG_SAMA5D3X_EK_I2SCHAR_MINOR=0
+      CONFIG_SAMA5D3X_EK_SSC_PORT=0     : 0 or SSC0, 1 for SSC1
+
+    Library Routines
+      CONFIG_SCHED_WORKQUEUE=y          : Driver needs work queue support
 
 SAMA5D3x-EK Configuration Options
 =================================
@@ -1509,21 +1777,12 @@ Configurations
        asynchronous with the trace output and, hence, difficult to
        interpret.
 
+    12. See also the sections above for additional configuration options:
+        "AT24 Serial EEPROM", "CAN Usage", "SAMA5 ADC Support", "SAMA5 PWM
+        Support", "OV2640 Camera Interface", "I2S Audio Support"
+
     STATUS:
-      AT25
-      2013-9-6:  I have not confirmed this, but it appears that the AT25 does not
-        retain its formatting across power cycles.  I think that the contents of
-        the AT25 are destroyed (i.e., reformatted for different use) by Linux when
-        it runs out of NAND.
-
-      OHCI WITH EHCI
-      2013-9-19:  OHCI works correctly with EHCI.  EHCI will handle high-speed
-        device connections; full- and low-speed device connections will be
-        handed-off to the OHCI HCD.
-
-      UDPHS
-      2013-9-23: The exports AT25 (or RAM disk) works fine with Linux but does
-        not bring up Windows Explorer with Windows.  No idea why yet.
+       See the To-Do list below
 
   hello:
 
@@ -1556,13 +1815,7 @@ Configurations
        CONFIG_BOOT_RUNFROMISRAM=y              : Run from internal SRAM
 
     STATUS:
-      2013-7-19:  This configuration (as do the others) run at 396MHz.
-        The SAMA5D3 can run at 536MHz.  I still need to figure out the
-        PLL settings to get that speed.
-
-      2013-7-28:  This configuration was verified functional.
-
-      2013-7-31:  Delay loop calibrated.
+       See the To-Do list below
 
   norboot:
     This is a little program to help debug of code in NOR flash.  It
@@ -1590,11 +1843,7 @@ Configurations
        need to set CONFIG_SAMA5_WDT=y in the NuttX configuration file.
 
     STATUS:
-      2013-7-19:  This configuration (as do the others) run at 396MHz.
-        The SAMA5D3 can run at 536MHz.  I still need to figure out the
-        PLL settings to get that speed.
-
-      2013-7-31:  Delay loop calibrated.
+       See the To-Do list below
 
   nsh:
 
@@ -2115,7 +2364,7 @@ Configurations
        o The I2C dev command may have bad side effects on your I2C devices.
          Use only at your own risk.
 
-       As an eample, the I2C dev comman can be used to list all devices
+       As an example, the I2C dev comman can be used to list all devices
        responding on TWI0 (the default) like this:
 
          nsh> i2c dev 0x03 0x77
@@ -2401,57 +2650,12 @@ Configurations
           CONFIG_EXAMPLES_MAXSAMPLES=64       : Default settings are probably OK
           CONFIG_EXAMPLES_NSAMPLES=8
 
+    20. See also the sections above for additional configuration options:
+        "AT24 Serial EEPROM", "CAN Usage", "SAMA5 ADC Support", "SAMA5 PWM
+        Support", "OV2640 Camera Interface", "I2S Audio Support"
+
     STATUS:
-
-      PCK FREQUENCY
-      2013-7-19:  This configuration (as do the others) run at 396MHz.
-        The SAMA5D3 can run at 536MHz.  I still need to figure out the
-        PLL settings to get that speed.
-
-        If the CPU speed changes, then so must the NOR and SDRAM
-        initialization!
-
-      BOOT FROM NOT FLASH
-      2013-7-31:  I have been unable to execute this configuration from NOR
-        FLASH by closing the BMS jumper (J9).  As far as I can tell, this
-        jumper does nothing on my board???  I have been using the norboot
-        configuration to start the program in NOR FLASH (see just above).
-        See "Creating and Using NORBOOT" above.
-
-      2013-7-31:  The basic NSH configuration appears to be fully functional.
-
-      CALIBRATION
-      2013-7-31:  Using delay loop calibration from the hello configuration.
-        That configuration runs out of internal SRAM and, as a result, this
-        configuration should be recalibrated.
-
-      SDRAM
-      2013-8-3:  SDRAM configuration and RAM test usage have been verified
-        and are functional.  I note some issues; occassionally, SDRAM is
-        not functional on initial boot or is initially not functional but
-        improves with accesses.  Clearly, more work needs to be done.
-
-      AT25 SERIAL FLASH
-      2013-8-5:  The AT25 configuration has been verified to be functional.
-      2013-8-9:  The AT25 configuration has been verified with DMA
-        enabled.
-
-      2013-9-11: Basic HSCMI0/1 functionality (with DMA) has been verified.
-
-      OHCI
-      2013-8-16: The OCHI configuration is functional.
-        Testing is not yet extensive, however:
-        a) I have tested only control and bulk endpoints.  I still need
-           to test interrupt endpoints.
-
-      EHCI
-      2013-8-28: EHCI is functional.
-      2013-9-19:  OHCI works correctly with EHCI.  EHCI will handle high-speed
-        device connections; full- and low-speed device connections will be
-        handed-off to the OHCI HCD.
-
-      UDPHS
-      2013-9-5: The UDPHS driver is functional.
+       See the To-Do list below
 
       I2C
       2013-9-12:  I have been unusuccessful getting the external serial
@@ -2463,9 +2667,6 @@ Configurations
         enumerates the devices on the bus and successfully exchanges a few
         commands.  The real test of the come later when a real I2C device is
         integrated.
-
-      EMAC:
-      2013-9-17:  Driver created and (subsequently) integrated.
 
   nx:
 
@@ -2548,6 +2749,8 @@ Configurations
        $ make
 
     STATUS:
+    See the To-Do list below
+
     2013-10-18.  This example kind of works, but there are still far too
     many outstanding issues:
 
@@ -2627,21 +2830,60 @@ Configurations
        BMS jumper.
 
     STATUS:
-      2013-7-19:  This configuration (as do the others) run at 396MHz.
-        The SAMA5D3 can run at 536MHz.  I still need to figure out the
-        PLL settings to get that speed.
+       See the To-Do list below
 
-        If the CPU speed changes, then so must the NOR and SDRAM
-        initialization!
+To-Do List
+==========
 
-      2013-7-30:  I have been unable to execute this configuration from NOR
-        FLASH by closing the BMS jumper (J9).  As far as I can tell, this
-        jumper does nothing on my board???  I have been using the norboot
-        configuration to start the program in NOR FLASH (see just above).
-        See "Creating and Using NORBOOT" above.
+1) Currently the SAMA5Dx is running at 396MHz in these configurations.  This
+   is because the timing for the PLLs, NOR FLASH, and SDRAM came from the
+   Atmel NoOS sample code which runs at that rate.  The SAMA5Dx is capable
+   of running at 528MHz, however.  The setup for that configuration exists
+   in the Bareboard assembly language setup and should be incorporated.
 
-      2013-7-31:  The OS test configuration is functional.
+2) Most of these configurations execute from NOR FLASH. I have been unable
+   to execute these configurations from NOR FLASH by closing the BMS jumper
+   (J9).  As far as I can tell, this jumper does nothing on my board???  I
+   have been using the norboot configuration to start the program in NOR
+   FLASH (see just above).  See "Creating and Using NORBOOT" above.
 
-      2013-7-31:  Using delay loop calibration from the hello configuration.
-        That configuration runs out of internal SRAM and, as a result, this
-        configuration needs to be recalibrated.
+3) Currently, these configurations keep all .bss and .data in internal SRAM.
+   The SDRAM is available for heap, but not for static data.  This is
+   because the SDRAM does not get configured until after the system has
+   booted; until after .bss and .data have been initialized.  To change
+   this, the solution would be to port the Bareboard assembly language
+   setup into the NuttX assembly language startup and execute it BEFORE
+   initializing .bss and .data.
+
+4) Neither USB OHCI nor EHCI support Isochronous endpoints.  Interrupt
+   endpoint support in the EHCI driver is untested.
+
+5) HSCMI TX DMA support is currently commented out.
+
+6) I believe that there is an issue when the internal AT25 FLASH is
+   formatted by NuttX.  That format works fine with Linux, but does not
+   appear to work with Windows.  Reformatting on Windows can resolve this.
+   NOTE:  This is not a SAMA5Dx issue.
+
+7) CAN testing has not yet been performed due to issues with cabling.  I
+   just do not have a good test bed (or sufficient CAN knowledge) for
+   good CAN testing.
+
+8) The NxWM example does not work well.  This example was designed to work
+   with much smaller displays and does not look good or work well with the
+   SAMA5Dx-EKs 800x480 display.  See above for details.
+
+9) There are lots of LCDC hardware features that are not tested with NuttX.
+   The simple NuttX graphics system does not have support for all of the
+   layers and other features of the LCDC.
+
+10) I have a Camera, but there is still no ISI driver.  I am not sure what to
+    do with the camera.  NuttX needs something liek V4L to provide the
+    definition for what a camera driver is supposed to do.
+
+11) NAND.  There is no NAND support.  A NAND driver is a complex thing
+    because it must support not only basic NAND access but also bad block
+    detection, sparing and ECC.  Lots of work!
+
+12) GMAC has only been tested on a 10/100Base-T network.  I don't have a
+    1000Base-T network to support additional testing.

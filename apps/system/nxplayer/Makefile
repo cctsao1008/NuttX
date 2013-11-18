@@ -35,9 +35,6 @@
 #
 ############################################################################
 
-# TODO, this makefile should run make under the app dirs, instead of
-# sourcing the Make.defs!
-
 -include $(TOPDIR)/.config
 -include $(TOPDIR)/Make.defs
 include $(APPDIR)/Make.defs
@@ -55,7 +52,7 @@ CSRCS		= nxplayer.c
 
 APPNAME		= nxplayer
 PRIORITY	= SCHED_PRIORITY_DEFAULT
-STACKSIZE	= 3100
+STACKSIZE	= 2048
 
 ifeq ($(CONFIG_NXPLAYER_COMMAND_LINE),y)
 CSRCS   += nxplayer_main.c
@@ -122,7 +119,7 @@ depend: .depend
 clean:
 	$(call DELFILE, .built)
 	$(call CLEAN)
-	rm -rf ..$(DELIM)..$(DELIM)builtin$(DELIM)registry$(DELIM)$(APPNAME)_main.*
+	$(Q) rm -rf ..$(DELIM)..$(DELIM)builtin$(DELIM)registry$(DELIM)$(APPNAME)_main.*
 
 distclean: clean
 	$(call DELFILE, Make.dep)

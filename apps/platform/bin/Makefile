@@ -1,7 +1,7 @@
 ############################################################################
-# configs/ea3131/nsh/appconfig
+# libc/bin/Makefile
 #
-#   Copyright (C) 2011-2012 Gregory Nutt. All rights reserved.
+#   Copyright (C) 2013 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,18 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-############################################################################
+###########################################################################
 
-# Path to example in apps/examples containing the user_start entry point
+-include $(TOPDIR)/Make.defs
 
-CONFIGURED_APPS += examples/nsh
+all:
+.PHONY: clean distclean
 
-# The NSH library
+# Clean Targets:
 
-CONFIGURED_APPS += system/readline
-CONFIGURED_APPS += nshlib
+clean:
+	$(call CLEAN)
 
+# Deep clean -- removes all traces of the configuration
+
+distclean: clean

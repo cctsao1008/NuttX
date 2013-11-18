@@ -357,9 +357,9 @@ config ARCH_CHIP_STM32F207IG
 	select STM32_STM32F20XX
 
 config ARCH_CHIP_STM32F207ZE
-        bool "STM32F207ZE"
-        select ARCH_CORTEXM3
-        select STM32_STM32F20XX
+	bool "STM32F207ZE"
+	select ARCH_CORTEXM3
+	select STM32_STM32F20XX
 
 config ARCH_CHIP_STM32F302CB
 	bool "STM32F302CB"
@@ -508,6 +508,41 @@ config ARCH_CHIP_STM32F427I
 	select STM32_STM32F427
 	select ARCH_HAVE_FPU
 
+config ARCH_CHIP_STM32F429V
+	bool "STM32F429V"
+	select ARCH_CORTEXM4
+	select STM32_STM32F40XX
+	select STM32_STM32F429
+	select ARCH_HAVE_FPU
+
+config ARCH_CHIP_STM32F429Z
+	bool "STM32F429Z"
+	select ARCH_CORTEXM4
+	select STM32_STM32F40XX
+	select STM32_STM32F429
+	select ARCH_HAVE_FPU
+
+config ARCH_CHIP_STM32F429I
+	bool "STM32F429I"
+	select ARCH_CORTEXM4
+	select STM32_STM32F40XX
+	select STM32_STM32F429
+	select ARCH_HAVE_FPU
+
+config ARCH_CHIP_STM32F429B
+	bool "STM32F429B"
+	select ARCH_CORTEXM4
+	select STM32_STM32F40XX
+	select STM32_STM32F429
+	select ARCH_HAVE_FPU
+
+config ARCH_CHIP_STM32F429N
+	bool "STM32F429N"
+	select ARCH_CORTEXM4
+	select STM32_STM32F40XX
+	select STM32_STM32F429
+	select ARCH_HAVE_FPU
+
 endchoice
 
 config STM32_STM32L15XX
@@ -560,6 +595,10 @@ config STM32_STM32F40XX
 
 # This is really 427/437, but we treat the two the same.
 config STM32_STM32F427
+	bool
+
+# This is really 429/439, but we treat the two the same.
+config STM32_STM32F429
 	bool
 
 config STM32_DFU
@@ -703,6 +742,16 @@ config STM32_I2C3
 	depends on STM32_STM32F20XX || STM32_STM32F40XX
 	select STM32_I2C
 
+config STM32_LTDC
+	bool "LTDC"
+	default n
+	depends on STM32_STM32F429
+	---help---
+		The STM32 LTDC is an LCD-TFT Display Controller available on
+		the STM32F429 and STM32F439 devices.  It is a standard parallel
+		video interface (HSYNC, VSYNC, etc.) for controlling TFT
+		LCD displays.
+
 config STM32_OTGFS
 	bool "OTG FS"
 	default n
@@ -712,6 +761,19 @@ config STM32_OTGHS
 	bool "OTG HS"
 	default n
 	depends on STM32_STM32F20XX || STM32_STM32F40XX
+
+config STM32_OTGHS_FS_MODE
+	bool "Use OTG HS in FS mode"
+	default n
+	depends on STM32_OTGHS && !STM32_OTGFS
+	select STM32_OTGFS2
+	---help---
+		The STM32 USB HS module can operate in legacy FS mode using the
+		built-in FS PHY in the HS module.  This mode can only be used if
+		the OTG FS block is not being used since they use on the same
+		driver, and all the base address are different (the driver
+		uses #define defined addresses which are re-mapped when this
+		option is selected).
 
 config STM32_PWR
 	bool "PWR"
@@ -753,21 +815,21 @@ config STM32_SPI3
 config STM32_SPI4
 	bool "SPI4"
 	default n
-	depends on STM32_STM32F427
+	depends on STM32_STM32F427 || STM32_STM32F429
 	select SPI
 	select STM32_SPI
 
 config STM32_SPI5
 	bool "SPI5"
 	default n
-	depends on STM32_STM32F427
+	depends on STM32_STM32F427 || STM32_STM32F429
 	select SPI
 	select STM32_SPI
 
 config STM32_SPI6
 	bool "SPI6"
 	default n
-	depends on STM32_STM32F427
+	depends on STM32_STM32F427 || STM32_STM32F429
 	select SPI
 	select STM32_SPI
 
@@ -904,14 +966,14 @@ config STM32_USART6
 config STM32_UART7
 	bool "UART7"
 	default n
-	depends on STM32_STM32F427
+	depends on STM32_STM32F427 || STM32_STM32F429
 	select ARCH_HAVE_UART7
 	select STM32_USART
 
 config STM32_UART8
 	bool "UART8"
 	default n
-	depends on STM32_STM32F427
+	depends on STM32_STM32F427 || STM32_STM32F429
 	select ARCH_HAVE_UART8
 	select STM32_USART
 
@@ -951,6 +1013,9 @@ config STM32_I2C
 	bool
 
 config STM32_CAN
+	bool
+
+config STM32_OTGFS2
 	bool
 
 menu "Alternate Pin Mapping"
@@ -1133,7 +1198,7 @@ endmenu
 config STM32_FLASH_PREFETCH
 	bool "Enable FLASH Pre-fetch"
 	depends on STM32_STM32F20XX || STM32_STM32F40XX
-	default y if STM32_STM32F427
+	default y if STM32_STM32F427 || STM32_STM32F429
 	default n
 	---help---
 	Enable FLASH prefetch and F2 and F4 parts (FLASH pre-fetch is always enabled
@@ -1215,6 +1280,7 @@ config STM32_TIM1_PWM
 	bool "TIM1 PWM"
 	default n
 	depends on STM32_TIM1
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 1 for use by PWM
 
@@ -1236,6 +1302,7 @@ config STM32_TIM2_PWM
 	bool "TIM2 PWM"
 	default n
 	depends on STM32_TIM2
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 2 for use by PWM
 
@@ -1257,6 +1324,7 @@ config STM32_TIM3_PWM
 	bool "TIM3 PWM"
 	default n
 	depends on STM32_TIM3
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 3 for use by PWM
 
@@ -1278,6 +1346,7 @@ config STM32_TIM4_PWM
 	bool "TIM4 PWM"
 	default n
 	depends on STM32_TIM4
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 4 for use by PWM
 
@@ -1299,6 +1368,7 @@ config STM32_TIM5_PWM
 	bool "TIM5 PWM"
 	default n
 	depends on STM32_TIM5
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 5 for use by PWM
 
@@ -1320,6 +1390,7 @@ config STM32_TIM8_PWM
 	bool "TIM8 PWM"
 	default n
 	depends on STM32_TIM8
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 8 for use by PWM
 
@@ -1341,6 +1412,7 @@ config STM32_TIM9_PWM
 	bool "TIM9 PWM"
 	default n
 	depends on STM32_TIM9
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 9 for use by PWM
 
@@ -1362,6 +1434,7 @@ config STM32_TIM10_PWM
 	bool "TIM10 PWM"
 	default n
 	depends on STM32_TIM10
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 10 for use by PWM
 
@@ -1383,6 +1456,7 @@ config STM32_TIM11_PWM
 	bool "TIM11 PWM"
 	default n
 	depends on STM32_TIM11
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 11 for use by PWM
 
@@ -1404,6 +1478,7 @@ config STM32_TIM12_PWM
 	bool "TIM12 PWM"
 	default n
 	depends on STM32_TIM12
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 12 for use by PWM
 
@@ -1425,6 +1500,7 @@ config STM32_TIM13_PWM
 	bool "TIM13 PWM"
 	default n
 	depends on STM32_TIM13
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 13 for use by PWM
 
@@ -1446,6 +1522,7 @@ config STM32_TIM14_PWM
 	bool "TIM14 PWM"
 	default n
 	depends on STM32_TIM14
+	select ARCH_HAVE_PWM_PULSECOUNT
 	---help---
 		Reserve timer 14 for use by PWM
 
@@ -2949,18 +3026,131 @@ menu "CAN driver configuration"
 	depends on STM32_CAN1 || STM32_CAN2
 
 config CAN1_BAUD
-        int "CAN1 BAUD"
-        default 250000
-        depends on STM32_CAN1
-        ---help---
-                CAN1 BAUD rate.  Required if STM32_CAN1 is defined.
+	int "CAN1 BAUD"
+	default 250000
+	depends on STM32_CAN1
+	---help---
+		CAN1 BAUD rate.  Required if STM32_CAN1 is defined.
 
 config CAN2_BAUD
-        int "CAN2 BAUD"
-        default 250000
-        depends on STM32_CAN2
-        ---help---
-                CAN2 BAUD rate.  Required if STM32_CAN2 is defined.
+	int "CAN2 BAUD"
+	default 250000
+	depends on STM32_CAN2
+	---help---
+		CAN2 BAUD rate.  Required if STM32_CAN2 is defined.
+
+config CAN_TSEG1
+	int "TSEG1 quanta"
+	default 6
+	---help---
+		The number of CAN time quanta in segment 1. Default: 6
+
+config CAN_TSEG2
+	int "TSEG2 quanta"
+	default 7
+	---help---
+		The number of CAN time quanta in segment 2. Default: 7
+endmenu
+
+if STM32_LTDC
+
+menu "LTDC Configuration"
+
+config STM32_LTDC_BACKLIGHT
+	bool "Backlight support"
+	default y
+
+config STM32_LTDC_DEFBACKLIGHT
+	hex "Default backlight level"
+	default 0xf0
+
+config STM32_LTDC_BACKCOLOR
+	hex "Background color"
+	default 0x0
+	---help---
+		This is the background color that will be used as the LTDC
+		background layer color.  It is an RGB888 format value.
+
+config STM32_LTDC_FB_BASE
+	hex "Framebuffer memory start address"
+	---help---
+		If you are using the the LTDC, then you must provide the address
+		of the start of the framebuffer.  This address will typically
+		be in the SRAM or SDRAM memory region of the FSMC.
+
+config STM32_LTDC_FB_SIZE
+	int "Framebuffer memory size (bytes)"
+	default 0
+
+choice
+	prompt "Layer 1 color format"
+	default STM32_LTDC_L1_RGB565
+
+config STM32_LTDC_L1_L8
+	bool "8 bpp L8 (8-bit CLUT)"
+
+config STM32_LTDC_L1_AL44
+	bool "8 bpp AL44 (4-bit alpha + 4-bit CLUT)"
+
+config STM32_LTDC_L1_AL88
+	bool "16 bpp AL88 (8-bit alpha + 8-bit CLUT)"
+
+config STM32_LTDC_L1_RGB565
+	bool "16 bpp RGB 565"
+
+config STM32_LTDC_L1_ARGB4444
+	bool "16 bpp ARGB 4444"
+
+config STM32_LTDC_L1_ARGB1555
+	bool "16 bpp ARGB 1555"
+
+config STM32_LTDC_L1_RGB888
+	bool "24 bpp RGB 888"
+
+config STM32_LTDC_L1_ARGB8888
+	bool "32 bpp ARGB 8888"
+
+endchoice # Layer 1 color format
+
+config STM32_LTDC_L2
+	bool "Enable Layer 2 support"
+	default y
+
+if STM32_LTDC_L2
+
+choice
+	prompt "Layer 2 (top layer) color format"
+	default STM32_LTDC_L2_RGB565
+
+config STM32_LTDC_L2_L8
+	bool "8 bpp L8 (8-bit CLUT)"
+
+config STM32_LTDC_L2_AL44
+	bool "8 bpp AL44 (4-bit alpha + 4-bit CLUT)"
+
+config STM32_LTDC_L2_AL88
+	bool "16 bpp AL88 (8-bit alpha + 8-bit CLUT)"
+
+config STM32_LTDC_L2_RGB565
+	bool "16 bpp RGB 565"
+
+config STM32_LTDC_L2_ARGB4444
+	bool "16 bpp ARGB 4444"
+
+config STM32_LTDC_L2_ARGB1555
+	bool "16 bpp ARGB 1555"
+
+config STM32_LTDC_L2_RGB888
+	bool "24 bpp RGB 888"
+
+config STM32_LTDC_L2_ARGB8888
+	bool "32 bpp ARGB 8888"
+
+endchoice # Layer 2 color format
+
+endif # STM32_LTDC_L2
 
 endmenu
+
+endif # STM32_LTDC
 

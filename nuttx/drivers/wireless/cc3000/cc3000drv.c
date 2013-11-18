@@ -1,21 +1,39 @@
 /**************************************************************************
- *  spi. - SPI functions to connect an Arduidno to the TI CC3000
+ *  drivers/wireless/cc3000/cc3000drv.c - Driver wrapper functions to
+ *  conntect nuttx to the TI CC3000
  *
- *  This code uses the Arduino hardware SPI library (or a bit-banged
- *  SPI for the Teensy 3.0) to send & receive data between the library
- *  API calls and the CC3000 hardware. Every
- *
- *  Version 1.0.1b
- *
- *  Copyright (C) 2013 Chris Magagna - cmagagna@yahoo.com
+ *  Port to nuttx:
+ *      David Sidrane <david_s5@nscdg.com>
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
  *  are met:
  *
- *  Don't sue me if my code blows up your board and burns down your house
+ *    Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
  *
- ****************************************************************************/
+ *    Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the
+ *    distribution.
+ *
+ *    Neither the name of Texas Instruments Incorporated nor the names of
+ *    its contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ *  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ *  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ *****************************************************************************/
 
 /*****************************************************************************
  * Included Files
@@ -34,7 +52,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "spi.h"
+#include "cc3000drv.h"
 
 #include <nuttx/wireless/cc3000.h>
 #include <nuttx/wireless/cc3000/cc3000_common.h>
@@ -79,11 +97,10 @@ static struct
  *****************************************************************************/
 
 /*****************************************************************************
- * Name: SpiResumeSpi
+ * Name: cc3000_resume
  *
  * Description:
- *   Will re enable the SPI_IRQ'a ability to create interrupts. It is used to
- *   resume processing after the code passed to SpiOpen is Called
+ *   Will re enable the to deliver messages
  *
  * Input Parameters:
  *   None
@@ -93,7 +110,7 @@ static struct
  *
  *****************************************************************************/
 
-void SpiResumeSpi(void)
+void cc3000_resume(void)
 {
   DEBUGASSERT(spiconf.cc3000fd && spiconf.done);
   sem_post(spiconf.done);
@@ -101,7 +118,7 @@ void SpiResumeSpi(void)
 }
 
 /*****************************************************************************
- * Name: SpiWrite
+ * Name: cc3000_write
  *
  * Description:
  *   This function enter point for write flow
@@ -114,14 +131,14 @@ void SpiResumeSpi(void)
  *
  *****************************************************************************/
 
-long SpiWrite(uint8_t *pUserBuffer, uint16_t usLength)
+long cc3000_write(uint8_t *pUserBuffer, uint16_t usLength)
 {
   DEBUGASSERT(spiconf.cc3000fd);
   return write(spiconf.cc3000fd,pUserBuffer,usLength) == usLength ? 0 : -errno;
 }
 
 /*****************************************************************************
- * Name: SpiRead
+ * Name: cc3000_read
  *
  * Description:
  *   This function enter point for read flow. This function will block the
@@ -135,16 +152,17 @@ long SpiWrite(uint8_t *pUserBuffer, uint16_t usLength)
  *
  *****************************************************************************/
 
-long SpiRead(uint8_t *pUserBuffer, uint16_t usLength)
+long cc3000_read(uint8_t *pUserBuffer, uint16_t usLength)
 {
   DEBUGASSERT(spiconf.cc3000fd);
   return read(spiconf.cc3000fd,pUserBuffer,usLength);
 }
 
 /*****************************************************************************
- * Name: SpiRead
+ * Name: cc3000_wait
  *
  * Description:
+ *      Waits on a message from the driver.
  *
  * Input Parameters:
  *   None
@@ -153,7 +171,7 @@ long SpiRead(uint8_t *pUserBuffer, uint16_t usLength)
  *
  *****************************************************************************/
 
-uint8_t *SpiWait(void)
+uint8_t *cc3000_wait(void)
 {
   DEBUGASSERT(spiconf.cc3000fd);
 
@@ -210,20 +228,20 @@ static void *unsoliced_thread_func(void *parameter)
 }
 
 /*****************************************************************************
- * Name: SpiOpen
+ * Name: cc3000_open
  *
  * Description:
- *   Configure the SPI
+ *    Open the cc3000 driver
  *
  * Input Parameters:
- *   pfRxHandler the Rx handler for SPI
+ *   pfRxHandler the Rx handler for messages
  *
  * Returned Value:
  *   None
  *
  *****************************************************************************/
 
-void SpiOpen(gcSpiHandleRx pfRxHandler)
+void cc3000_open(gcSpiHandleRx pfRxHandler)
 {
   int status;
   int fd;
@@ -240,7 +258,7 @@ void SpiOpen(gcSpiHandleRx pfRxHandler)
       pthread_attr_t attr;
       struct sched_param param;
       pthread_attr_init(&attr);
-      attr.stacksize = 292;
+      attr.stacksize = CONFIG_CC3000_UNSOLICED_STACKSIZE;
       param.sched_priority = SCHED_PRIORITY_DEFAULT-10;
       pthread_attr_setschedparam(&attr, &param);
       status = pthread_create(&spiconf.unsoliced_thread, &attr,
@@ -252,10 +270,10 @@ void SpiOpen(gcSpiHandleRx pfRxHandler)
 }
 
 /*****************************************************************************
- * Name: SpiClose
+ * Name: cc3000_close
  *
  * Description:
- *   Configure the SPI
+ *   Close the cc3000 driver
  *
  * Input Parameters:
  *   None
@@ -265,7 +283,7 @@ void SpiOpen(gcSpiHandleRx pfRxHandler)
  *
  *****************************************************************************/
 
-void SpiClose(void)
+void cc3000_close(void)
 {
   if (spiconf.cc3000fd)
     {
@@ -278,4 +296,105 @@ void SpiClose(void)
       close(spiconf.cc3000fd);
       spiconf.cc3000fd = 0;
     }
+}
+
+/****************************************************************************
+ * Name: cc3000_wait_data
+ *
+ * Description:
+ *   Adds this socket for monitoring for the data operation
+ *
+ * Input Parameters:
+ *   sd      cc3000 socket handle or -1 tp remove it
+ *
+ * Returned Value:
+ *   Zero is returned on success.  Otherwise, a -1 value is
+ *   returned to indicate socket not found.
+ *
+ ****************************************************************************/
+
+int cc3000_wait_data(int sockfd)
+{
+  DEBUGASSERT(spiconf.cc3000fd);
+  int rv = sockfd;
+  ioctl(spiconf.cc3000fd, CC3000IOC_SELECTDATA, (unsigned long)&rv);
+  return rv;
+}
+
+/****************************************************************************
+ * Name: cc3000_accept_socket
+ *
+ * Description:
+ *   Adds this socket for monitoring for the accept operation
+ *
+ * Input Parameters:
+ *   sd      cc3000 socket handle or -1 tp remove it
+ *   minor   - The input device minor number
+ *
+ * Returned Value:
+ *   Zero is returned on success.  Otherwise, a -1 value is
+ *   returned to indicate socket not found.
+ *
+ ****************************************************************************/
+int to_cc3000_accept_socket(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+int cc3000_accept_socket(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+  //return to_cc3000_accept_socket(sockfd, addr,addrlen);
+  DEBUGASSERT(spiconf.cc3000fd);
+
+  cc3000_acceptcfg cfg;
+  cfg.sockfd = sockfd;
+  cfg.addr = addr;
+  cfg.addrlen = addrlen;
+  ioctl(spiconf.cc3000fd, CC3000IOC_SELECTACCEPT, (unsigned long)&cfg);
+  return cfg.sockfd;
+}
+
+/****************************************************************************
+ * Name: cc3000_add_socket
+ *
+ * Description:
+ *   Adds a socket to the list for monitoring for long operation
+ *
+ * Input Parameters:
+ *   sd      cc3000 socket handle
+ *   minor   - The input device minor number
+ *
+ * Returned Value:
+ *   Zero is returned on success.  Otherwise, a -1 value is
+ *   returned to indicate socket not found.
+ *
+ ****************************************************************************/
+
+int cc3000_add_socket(int sockfd)
+{
+  DEBUGASSERT(spiconf.cc3000fd);
+  int rv = sockfd;
+  ioctl(spiconf.cc3000fd, CC3000IOC_ADDSOCKET, (unsigned long)&rv);
+  return rv;
+}
+
+/****************************************************************************
+ * Name: cc3000_remove_socket
+ *
+ * Description:
+ *   Removes a socket from the list of monitoring for long operation
+ *
+ * Input Parameters:
+ *   sd      cc3000 socket handle
+ *   minor   - The input device minor number
+ *
+ * Returned Value:
+ *   Zero is returned on success.  Otherwise, a -1 value is
+ *   returned to indicate socket not found.
+ *
+ ****************************************************************************/
+
+int cc3000_remove_socket(int sockfd)
+{
+  DEBUGASSERT(spiconf.cc3000fd);
+  int rv = sockfd;
+  ioctl(spiconf.cc3000fd, CC3000IOC_REMOVESOCKET, (unsigned long)&rv);
+  return rv;
 }

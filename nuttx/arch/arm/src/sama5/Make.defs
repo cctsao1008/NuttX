@@ -93,8 +93,9 @@ CHIP_ASRCS  =
 
 # SAMA5-specific C source files
 
-CHIP_CSRCS  = sam_allocateheap.c sam_boot.c sam_clockconfig.c sam_memories.c
-CHIP_CSRCS += sam_pio.c sam_irq.c sam_lowputc.c sam_serial.c sam_timerisr.c
+CHIP_CSRCS  = sam_allocateheap.c sam_boot.c sam_clockconfig.c sam_irq.c
+CHIP_CSRCS += sam_lowputc.c sam_memories.c sam_pck.c sam_pio.c sam_serial.c
+CHIP_CSRCS += sam_timerisr.c
 
 # Configuration dependent C and assembly language files
 
@@ -127,6 +128,15 @@ CHIP_CSRCS += sam_spi.c
 else
 ifeq ($(CONFIG_SAMA5_SPI1),y)
 CHIP_CSRCS += sam_spi.c
+else
+endif
+endif
+
+ifeq ($(CONFIG_SAMA5_SSC0),y)
+CHIP_CSRCS += sam_ssc.c
+else
+ifeq ($(CONFIG_SAMA5_SSC1),y)
+CHIP_CSRCS += sam_ssc.c
 else
 endif
 endif
@@ -205,10 +215,30 @@ CHIP_CSRCS += sam_tsd.c
 endif
 endif
 
+ifeq ($(CONFIG_SAMA5_PWM),y)
+CHIP_CSRCS += sam_pwm.c
+endif
+
 ifeq ($(CONFIG_SAMA5_TC0),y)
 CHIP_CSRCS += sam_tc.c
 else
 ifeq ($(CONFIG_SAMA5_TC1),y)
 CHIP_CSRCS += sam_tc.c
+endif
+endif
+
+ifeq ($(CONFIG_SAMA5_EBICS0_NAND),y)
+CHIP_CSRCS += sam_nand.c
+else
+ifeq ($(CONFIG_SAMA5_EBICS1_NAND),y)
+CHIP_CSRCS += sam_nand.c
+else
+ifeq ($(CONFIG_SAMA5_EBICS2_NAND),y)
+CHIP_CSRCS += sam_nand.c
+else
+ifeq ($(CONFIG_SAMA5_EBICS3_NAND),y)
+CHIP_CSRCS += sam_nand.c
+endif
+endif
 endif
 endif

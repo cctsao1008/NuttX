@@ -119,6 +119,31 @@
 #  error Cannot realize CAN input frequency
 #endif
 
+/* Interrupts ***************************************************************/
+/* If debug is enabled, then print some diagnostic info if any of these
+ * events occur:
+ *
+ * CAN_INT_ERRA      YES    Bit 16: Error Active Mode
+ * CAN_INT_WARN      YES    Bit 17: Warning Limit
+ * CAN_INT_ERRP      NO     Bit 18: Error Passive Mode
+ * CAN_INT_BOFF      NO     Bit 19: Bus Off Mode
+ *
+ * CAN_INT_SLEEP     NO     Bit 20: CAN Controller in Low-power Mode
+ * CAN_INT_WAKEUP    NO     Bit 21: Wake-up Interrupt
+ * CAN_INT_TOVF      NO     Bit 22: Timer Overflow
+ * CAN_INT_TSTP      NO     Bit 23: Timestamp
+ *
+ * CAN_INT_CERR      YES    Bit 24: Mailbox CRC Error
+ * CAN_INT_SERR      YES    Bit 25: Mailbox Stuffing Error
+ * CAN_INT_AERR      NO     Bit 26: Acknowledgment Error (uusally means no CAN bus)
+ * CAN_INT_FERR      YES    Bit 27: Form Error
+ *
+ * CAN_INT_BERR      YES    Bit 28: Bit Error
+ */
+
+#define CAN_DEBUG_INTS (CAN_INT_ERRA | CAN_INT_WARN | CAN_INT_CERR | \
+                        CAN_INT_SERR | CAN_INT_FERR | CAN_INT_BERR)
+
 /* Debug ********************************************************************/
 /* Non-standard debug that may be enabled just for testing CAN */
 
@@ -884,7 +909,9 @@ static int can_setup(FAR struct can_dev_s *dev)
 
   /* Enable all error interrupts */
 
-  can_putreg(priv, SAM_CAN_IER_OFFSET, CAN_INT_ALLERRORS);
+#ifdef CONFIG_DEBUG
+  can_putreg(priv, SAM_CAN_IER_OFFSET, CAN_DEBUG_INTS);
+#endif
 
   can_dumpctrlregs(priv, "After receive setup");
   can_dumpmbregs(priv, NULL);
@@ -1087,7 +1114,7 @@ static int can_remoterequest(FAR struct can_dev_s *dev, uint16_t id)
 static int can_send(FAR struct can_dev_s *dev, FAR struct can_msg_s *msg)
 {
   FAR struct sam_can_s *priv;
-  FAR uint32_t *md;
+  FAR uint8_t *ptr;
   uint32_t regval;
   int mbndx;
 
@@ -1159,11 +1186,14 @@ static int can_send(FAR struct can_dev_s *dev, FAR struct can_msg_s *msg)
 #  warning REVISIT
 #endif
 
-  DEBUGASSERT(((uintptr_t)msg->cm_data & 3) == 0);
-  md = (FAR uint32_t *)msg->cm_data;
+  /* The message buffer is probably not properaly aligned for 32-bit accesses */
 
-  can_putreg(priv, SAM_CAN_MnDL_OFFSET(mbndx), md[0]);
-  can_putreg(priv, SAM_CAN_MnDH_OFFSET(mbndx), md[1]);
+  ptr    = msg->cm_data;
+  regval = CAN_MDL0(ptr[0]) | CAN_MDL1(ptr[1]) | CAN_MDL2(ptr[1]) | CAN_MDL3(ptr[1]);
+  can_putreg(priv, SAM_CAN_MnDL_OFFSET(mbndx), regval);
+
+  regval = CAN_MDH4(ptr[4]) | CAN_MDH5(ptr[5]) | CAN_MDH6(ptr[6]) | CAN_MDH7(ptr[7]);
+  can_putreg(priv, SAM_CAN_MnDH_OFFSET(mbndx), regval);
 
   /* Set the DLC value in the CAN_MCRx register.  Set the MTCR register
    * clearing MRDY, and indicating that the message is ready to be sent.
@@ -1501,7 +1531,7 @@ static void can_interrupt(FAR struct can_dev_s *dev)
    * - Sleep interrupt: This interrupt is generated after a Low-power Mode
    *   enable once all pending messages in transmission have been sent.
    * - Internal timer counter overflow interrupt: This interrupt is
-   *    generated when the internal timer rolls over.
+   *   generated when the internal timer rolls over.
    * - Timestamp interrupt: This interrupt is generated after the reception
    *   or the transmission of a start of frame or an end of frame. The value
    *   of the internal counter is copied in the CAN_TIMESTP register.

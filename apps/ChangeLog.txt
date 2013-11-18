@@ -706,3 +706,34 @@
 	  From Ken Pettit (2013-10-28).
 
 6.31 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+
+	* apps/platform:  A new home for board-specific application code
+	  (2013-10-30).
+	* apps/include/platform/configdata.h:  Define an interface that can be
+	  used to manage platform-specific storage of configuration data
+	  (2013-10-30).
+	* apps/examples/cc3000: Fine tuning of memory usage from David Sidrane
+	  (2013-10-30).
+	* apps/platform/mikroe-stm32f4: Now supports storage of configuration
+	  data.  From Ken Pettit (2013-10-30).
+	* apps/nshlib/nsh_dbgcmds.c and others:  Add skip= and count=
+	  options to the hexdump command.  From Ken Pettit (2013-11-1).
+	* apps/platrorm/mikroe-stm32f4:  Now uses /dev/config for configuration
+	  data storage.  From Ken Pettit (2013-11-1).
+	* apps/platform/Makefile:  Was not dealing with the bin sub-directory
+	  correctly (2013-11-2).
+	* apps/examples/configdata:  A unit test for the MTD configuration
+	  data drriver from Ken Pettit (2013-11-4).
+	* apps/platform/mikroe-stm32f4:  Updated to use new MTD configuration
+	  driver features.  From Ken Pettit (2013-11-1).
+	* apps/nshlib/nsh.h:  Allow USB trace wihtout a USB console. From
+	  David Sidrane (2013-11-06).
+	* apps/system/composite/composite_main.c:  The wrong handle was getting
+	  nullified.  From David Sidrane (2013-11-7).
+	* apps/system/nxplayer: Play thread stack size is now configurable.  All
+	  NxPlayer threads now have names assigned via pthread_setname_np().
+	  From Ken Pettit (2013-11-10).
+	* apps/examples/i2schar:  The beginning of an I2C test based on the I2C
+	  character driver (2013-11-10).
+	* apps/nshlib/nsh_mntcmds.c:  Mount command updates from Ken Pettit
+	  (2013-11-17).

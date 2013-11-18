@@ -50,7 +50,7 @@
 
 #ifdef CONFIG_MTD_SST25
 #  include <nuttx/spi/spi.h>
-#  include <nuttx/mtd.h>
+#  include <nuttx/mtd/mtd.h>
 #  include <sys/mount.h>
 #endif
 
@@ -189,8 +189,6 @@ int nsh_archinitialize(void)
     }
 
 #ifndef CONFIG_SPARK_FLASH_PART
-  char  partname[16];
-  char  mntpoint[16];
 
   /* Use the FTL layer to wrap the MTD driver as a block driver */
 
@@ -200,6 +198,10 @@ int nsh_archinitialize(void)
       fdbg("ERROR: Initialize the FTL layer\n");
       return ret;
     }
+
+#if CONFIG_SPARK_MOUNT_FLASH
+  char  partname[16];
+  char  mntpoint[16];
 
   /* mount -t vfat /dev/mtdblock0 /mnt/p0 */
 
@@ -217,6 +219,7 @@ int nsh_archinitialize(void)
       return ret;
     }
 
+#endif
 #else
     {
       int partno;
@@ -295,4 +298,13 @@ int nsh_archinitialize(void)
 #endif
 
   return OK;
+}
+
+int usbmsc_archinitialize(void)
+{
+#if defined(CONFIG_NSH_ARCHINIT)
+  return OK;
+#else
+ return nsh_archinitialize();
+#endif
 }

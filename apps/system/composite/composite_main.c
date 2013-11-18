@@ -434,7 +434,6 @@ static int open_serial(void)
   message("open_serial: Successfully opened the serial driver\n");
   return OK;
 }
-#endif
 
 /****************************************************************************
  * Name: echo_serial
@@ -474,6 +473,7 @@ static int echo_serial(void)
       message("echo_serial: ERROR: read size: %d write size: %d\n",
               bytesread, byteswritten);
     }
+
   return OK;
 }
 #endif
@@ -578,6 +578,7 @@ int board_mscclassobject(FAR struct usbdevclass_driver_s **classdev)
       message("board_mscclassobject: usbmsc_classobject failed: %d\n", -ret);
       usbmsc_uninitialize(g_composite.mschandle);
     }
+
   check_test_memory_usage("After usbmsc_classobject()");
   return ret;
 }
@@ -839,7 +840,7 @@ int disconn_main(int argc, char *argv[])
   /* Then disconnect the device and uninitialize the USB mass storage driver */
 
    composite_uninitialize(g_composite.cmphandle);
-   g_composite.mschandle = NULL;
+   g_composite.cmphandle = NULL;
    message("disconn_main: Disconnected\n");
    check_test_memory_usage("After composite_uninitialize()");
 

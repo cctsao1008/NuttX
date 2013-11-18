@@ -316,6 +316,10 @@ config ARCH_HAVE_STACKCHECK
 	bool
 	default n
 
+config ARCH_HAVE_HEAPCHECK
+	bool
+	default n
+
 if DEBUG
 config DEBUG_VERBOSE
 	bool "Enable Debug Verbose Output"
@@ -413,6 +417,13 @@ config DEBUG_STACK
 	---help---
 		Enable hooks to check stack usage.  Only supported by a few architectures.
 
+config DEBUG_HEAP
+	bool "Heap usage debug hooks"
+	default n
+	depends on ARCH_HAVE_HEAPCHECK
+	---help---
+		Enable hooks to check heap usage.  Only supported by a few architectures.
+
 comment "Driver Debug Options"
 
 config DEBUG_LCD
@@ -470,12 +481,30 @@ config DEBUG_SPI
 		Support for this debug option is architecture-specific and may not
 		be available for some MCUs.
 
+config DEBUG_I2S
+	bool "I2S Debug Output"
+	default n
+	depends on I2S
+	---help---
+		Enable I2S driver debug SYSLOG output (disabled by default).
+		Support for this debug option is architecture-specific and may not
+		be available for some MCUs.
+
 config DEBUG_CAN
 	bool "CAN Debug Output"
 	default n
 	depends on CAN
 	---help---
 		Enable CAN driver debug SYSLOG output (disabled by default).
+		Support for this debug option is architecture-specific and may not
+		be available for some MCUs.
+
+config DEBUG_PWM
+	bool "PWM Debug Output"
+	default n
+	depends on PWM
+	---help---
+		Enable PWM driver debug SYSLOG output (disabled by default).
 		Support for this debug option is architecture-specific and may not
 		be available for some MCUs.
 

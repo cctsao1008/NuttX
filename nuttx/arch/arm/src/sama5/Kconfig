@@ -57,12 +57,14 @@ config ARCH_CHIP_ATSAMA5D31
 	select SAMA5_HAVE_LCDC
 	select SAMA5_HAVE_UART0
 	select SAMA5_HAVE_UART1
+	select ARCH_NAND_HWECC
 
 config ARCH_CHIP_ATSAMA5D33
 	bool "Atmel ATSAMA5D33"
 	select ARCH_CHIP_SAMA5D3
 	select SAMA5_HAVE_GMAC
 	select SAMA5_HAVE_LCDC
+	select ARCH_NAND_HWECC
 
 config ARCH_CHIP_ATSAMA5D34
 	bool "Atmel ATSAMA5D34"
@@ -72,6 +74,7 @@ config ARCH_CHIP_ATSAMA5D34
 	select SAMA5_HAVE_LCDC
 	select SAMA5_HAVE_CAN0
 	select SAMA5_HAVE_CAN1
+	select ARCH_NAND_HWECC
 
 config ARCH_CHIP_ATSAMA5D35
 	bool "Atmel ATSAMA5D35"
@@ -84,6 +87,7 @@ config ARCH_CHIP_ATSAMA5D35
 	select SAMA5_HAVE_CAN0
 	select SAMA5_HAVE_CAN1
 	select SAMA5_HAVE_TC1
+	select ARCH_NAND_HWECC
 
 endchoice # Atmel AT91SAMA5 Chip Selection
 
@@ -196,6 +200,7 @@ config SAMA5_TC1
 config SAMA5_PWM
 	bool "Pulse Width Modulation Controller (PWM)"
 	default n
+	select PWM
 
 config SAMA5_ADC
 	bool "Touch Screen ADC Controller (ADC)"
@@ -248,10 +253,14 @@ config SAMA5_ISI
 config SAMA5_SSC0
 	bool "Synchronous Serial Controller 0 (SSC0)"
 	default n
+	select I2S
+	depends on SAMA5_DMAC0
 
 config SAMA5_SSC1
 	bool "Synchronous Serial Controller 1 (SSC1)"
 	default n
+	select I2S
+	depends on SAMA5_DMAC1
 
 config SAMA5_CAN0
 	bool "CAN controller 0 (CAN0)"
@@ -1372,6 +1381,321 @@ config SAMA5_TWI_REGDEBUG
 endmenu # TWI device driver options
 endif # SAMA5_TWI0 || SAMA5_TWI1 || SAMA5_TWI2
 
+if SAMA5_SSC0 || SAMA5_SSC1
+menu "SSC Configuration"
+
+config SAMA5_SSC_MAXINFLIGHT
+	int "SSC queue size"
+	default 16
+	---help---
+		This is the total number of transfers, both RX and TX, that can be
+		enqueue before the caller is required to wait.  This setting
+		determines the number certain queue data structures that will be
+		pre-allocated.
+
+if SAMA5_SSC0
+comment "SSC0 Configuration"
+
+config SAMA5_SSC0_DATALEN
+	int "Data width (bits)"
+	default 16
+	---help---
+		Data width in bits.  This is a default value and may be change
+		via the I2S interface
+
+config SAMA5_SSC0_RX
+	bool "Enable I2C receiver"
+	default n
+	---help---
+		Enable I2S receipt logic
+
+if SAMA5_SSC0_RX
+
+choice
+	prompt "Receiver clock source"
+	default SAMA5_SSC0_RX_MCKDIV
+
+config SAMA5_SSC0_RX_RKINPUT
+	bool "RK input"
+	---help---
+		The SSC receiver clock is an external clock provided on the RK input
+		pin.  Sample rate determined by the external clock frequency.
+
+config SAMA5_SSC0_RX_TXCLK
+	bool "Transmitter Clock"
+	---help---
+		The SSC receiver clock is transmitter clock.  RX sample rate is the same
+		as the TX sample rate.
+
+config SAMA5_SSC0_RX_MCKDIV
+	bool "MCK/2"
+	---help---
+		The SSC receiver clock is the MCK/2 divided by a up to 4095.  Desired
+		sample rate must be provided below.
+
+endchoice # Receiver clock source
+
+if !SAMA5_SSC0_RX_RKINPUT
+choice
+	prompt "Receiver output clock"
+	default SAMA5_SSC0_RX_RKOUTPUT_NONE
+
+config SAMA5_SSC0_RX_RKOUTPUT_NONE
+	bool "None"
+
+config SAMA5_SSC0_RX_RKOUTPUT_CONT
+	bool "Continuous"
+
+config SAMA5_SSC0_RX_RKOUTPUT_XFR
+	bool "Only during transfers"
+
+endchoice # Receiver output clock
+endif # !SAMA5_SSC0_RX_RKINPUT
+endif # SAMA5_SSC0_RX
+
+config SAMA5_SSC0_TX
+	bool "Enable I2C transmitter"
+	default n
+	---help---
+		Enable I2S transmission logic
+
+if SAMA5_SSC0_TX
+
+choice
+	prompt "Transmitter clock source"
+	default SAMA5_SSC0_TX_MCKDIV
+
+config SAMA5_SSC0_TX_TKINPUT
+	bool "TK input"
+	---help---
+		The SSC transmitter clock is an external clock provided on the TK input
+		pin.  Sample rate determined by the external clock frequency.
+
+config SAMA5_SSC0_TX_RXCLK
+	bool "Receiver Clock"
+	---help---
+		The SSC transmitter clock is receiver clock.  TX sample rate is the same
+		as the RX sample rate.
+
+config SAMA5_SSC0_TX_MCKDIV
+	bool "MCK/2"
+	---help---
+		The SSC transmitter clock is the MCK/2 divided by a up to 4095.  Desired
+		sample rate must be provided below.
+
+endchoice # Transmitter clock source
+
+if !SAMA5_SSC0_TX_TKINPUT
+choice
+	prompt "Transmitter output clock"
+	default SAMA5_SSC0_TX_TKOUTPUT_NONE
+
+config SAMA5_SSC0_TX_TKOUTPUT_NONE
+	bool "None"
+
+config SAMA5_SSC0_TX_TKOUTPUT_CONT
+	bool "Continuous"
+
+config SAMA5_SSC0_TX_TKOUTPUT_XFR
+	bool "Only during transfers"
+
+endchoice # Receiver output clock
+endif # !SAMA5_SSC0_TX_TKINPUT
+endif # SAMA5_SSC0_TX
+
+config SAMA5_SSC0_MCKDIV_SAMPLERATE
+	int "Sample rate"
+	default 48000
+	depends on SAMA5_SSC0_RX_MCKDIV || SAMA5_SSC0_TX_MCKDIV
+	---help---
+		If the either the receiver or transmitter clock is provided by MCK/2 divided
+		down, then the samplerate must be provided.  The bitrate will be the product
+		of the sample rate and the data width.  The SSC driver will determine the best
+		divider to obtain that bitrate (up to 4095).  If the bitrate can be realized
+		by dividing down the MCK/2, a compile time error will occur.
+
+config SAMA5_SSC0_LOOPBACK
+	bool "Loopback mode"
+	default n
+	depends on SAMA5_SSC0_TX && SAMA5_SSC0_RX
+	---help---
+		If both the receiver and transmitter are enabled, then the SSC can
+		be configured in loopback mode.  This setting selects SSC loopback
+		and will cause the LOOP bit to be set in the SSC_RFMR regsiter. In
+		this case, RD is connected to TD, RF is connected to TF and RK is
+		connected to TK.
+
+endif # SAMA5_SSC0
+
+if SAMA5_SSC1
+comment "SSC1 Configuration"
+
+config SAMA5_SSC1_DATALEN
+	int "Data width (bits)"
+	default 16
+	---help---
+		Data width in bits.  This is a default value and may be change
+		via the I2S interface
+
+config SAMA5_SSC1_RX
+	bool "Enable I2C receiver"
+	default n
+	---help---
+		Enable I2S receipt logic
+
+if SAMA5_SSC1_RX
+
+choice
+	prompt "Receiver clock source"
+	default SAMA5_SSC1_RX_MCKDIV
+
+config SAMA5_SSC1_RX_RKINPUT
+	bool "RK input"
+	---help---
+		The SSC receiver clock is an external clock provided on the RK input
+		pin.  Sample rate determined by the external clock frequency.
+
+config SAMA5_SSC1_RX_TXCLK
+	bool "Transmitter Clock"
+	---help---
+		The SSC receiver clock is transmitter clock.  RX sample rate is the same
+		as the TX sample rate.
+
+config SAMA5_SSC1_RX_MCKDIV
+	bool "MCK/2"
+	---help---
+		The SSC receiver clock is the MCK/2 divided by a up to 4095.  Desired
+		sample rate must be provided below.
+
+endchoice # Receiver clock source
+
+if !SAMA5_SSC1_RX_RKINPUT
+choice
+	prompt "Receiver output clock"
+	default SAMA5_SSC1_RX_RKOUTPUT_NONE
+
+config SAMA5_SSC1_RX_RKOUTPUT_NONE
+	bool "None"
+
+config SAMA5_SSC1_RX_RKOUTPUT_CONT
+	bool "Continuous"
+
+config SAMA5_SSC1_RX_RKOUTPUT_XFR
+	bool "Only during transfers"
+
+endchoice # Receiver output clock
+endif # !SAMA5_SSC1_RX_RKINPUT
+endif # SAMA5_SSC0_RX
+
+config SAMA5_SSC1_TX
+	bool "Enable I2C transmitter"
+	default n
+	---help---
+		Enable I2S transmission logic
+
+if SAMA5_SSC1_TX
+
+choice
+	prompt "Transmitter clock source"
+	default SAMA5_SSC1_TX_MCKDIV
+
+config SAMA5_SSC1_TX_TKINPUT
+	bool "TK input"
+	---help---
+		The SSC transmitter clock is an external clock provided on the TK input
+		pin.  Sample rate determined by the external clock frequency.
+
+config SAMA5_SSC1_TX_RXCLK
+	bool "Receiver Clock"
+	---help---
+		The SSC transmitter clock is receiver clock.  TX sample rate is the same
+		as the RX sample rate.
+
+config SAMA5_SSC1_TX_MCKDIV
+	bool "MCK/2"
+	---help---
+		The SSC transmitter clock is the MCK/2 divided by a up to 4095.  Desired
+		sample rate must be provided below.
+
+endchoice # Transmitter clock source
+
+if !SAMA5_SSC1_TX_TKINPUT
+choice
+	prompt "Transmitter output clock"
+	default SAMA5_SSC1_TX_TKOUTPUT_NONE
+
+config SAMA5_SSC1_TX_TKOUTPUT_NONE
+	bool "None"
+
+config SAMA5_SSC1_TX_TKOUTPUT_CONT
+	bool "Continuous"
+
+config SAMA5_SSC1_TX_TKOUTPUT_XFR
+	bool "Only during transfers"
+
+endchoice # Receiver output clock
+endif # !SAMA5_SSC1_TX_TKINPUT
+endif # SAMA5_SSC1_TX
+
+config SAMA5_SSC1_MCKDIV_SAMPLERATE
+	int "Sample rate"
+	default 48000
+	depends on SAMA5_SSC1_RX_MCKDIV || SAMA5_SSC1_TX_MCKDIV
+	---help---
+		If the either the receiver or transmitter clock is provided by MCK/2 divided
+		down, then the samplerate must be provided.  The bitrate will be the product
+		of the sample rate and the data width.  The SSC driver will determine the best
+		divider to obtain that bitrate (up to 4095).  If the bitrate can be realized
+		by dividing down the MCK/2, a compile time error will occur.
+
+config SAMA5_SSC1_LOOPBACK
+	bool "Loopback mode"
+	default n
+	depends on SAMA5_SSC1_TX && SAMA5_SSC1_RX
+	---help---
+		If both the receiver and transmitter are enabled, then the SSC can
+		be configured in loopback mode.  This setting selects SSC loopback
+		and will cause the LOOP bit to be set in the SSC_RFMR regsiter. In
+		this case, RD is connected to TD, RF is connected to TF and RK is
+		connected to TK.
+
+endif # SAMA5_SSC1
+
+config SAMA5_SSC_DMADEBUG
+	bool "SSC DMA transfer debug"
+	depends on DEBUG && DEBUG_DMA
+	default n
+	---help---
+		Enable special debug instrumentation analyze SSC DMA data transfers.
+		This logic is as non-invasive as possible:  It samples DMA
+		registers at key points in the data transfer and then dumps all of
+		the registers at the end of the transfer.
+
+config SAMA5_SSC_REGDEBUG
+	bool "SSC Register level debug"
+	depends on DEBUG
+	default n
+	---help---
+		Output detailed register-level SSC device debug information.
+		Very invasive! Requires also DEBUG.
+
+config SAMA5_SSC_QDEBUG
+	bool "SSC Queue debug"
+	depends on DEBUG_I2S
+	default n
+	---help---
+		Enable instrumentation to debug audio buffer queue logic.
+
+config SAMA5_SSC_DUMPBUFFERS
+	bool "Dump Buffers"
+	depends on DEBUG_I2S
+	default n
+	---help---
+		Enable instrumentation to dump TX and RX buffers.
+
+endmenu # SSC Configuration
+endif # SAMA5_SSC0 || SAMA5_SSC1
+
 if SAMA5_HSMCI0 || SAMA5_HSMCI1 || SAMA5_HSMCI2
 menu "HSMCI device driver options"
 
@@ -2299,7 +2623,7 @@ menu "Touchscreen configuration"
 config SAMA5_TSD
 	bool "Touchscreen support"
 	default n
-	depends on !SAMA5_ADC_HAVE_CHAN || EXPERIMENTAL
+#	depends on !SAMA5_ADC_HAVE_CHAN || EXPERIMENTAL
 	select INPUT
 	---help---
 		Configure the ADC to support a touchscreen
@@ -2367,6 +2691,239 @@ config SAMA5_TSD_NPOLLWAITERS
 endif # SAMA5_TSD
 endmenu # Touchscreen Configuration
 endif # SAMA5_ADC
+
+if SAMA5_PWM
+menu "PWM configuration"
+
+config SAMA5_PWM_CLKA
+	bool "Enable PWM CLKA"
+	default n
+	---help---
+		Enable the PWM CLKA source.
+
+config SAMA5_PWM_CLKA_FREQUENCY
+	int "CLKA frequency"
+	default 1000
+	depends on SAMA5_PWM_CLKA
+	---help---
+		If the CLKA source is enabled, then you must also provide the
+		frequency of the CLKA.  This frequency will be derived from from MCK
+		using a prescaler and divider.  Therefore, a wide range of
+		frequencies are possible.
+
+config SAMA5_PWM_CLKB
+	bool "Enable PWM CLKB"
+	default n
+	---help---
+		Enable the PWM CLKB source.
+
+config SAMA5_PWM_CLKB_FREQUENCY
+	int "CLKB frequency"
+	default 1000
+	depends on SAMA5_PWM_CLKB
+	---help---
+		If the CLKB source is enabled, then you must also provide the
+		frequency of the CLKB.  This frequency will be derived from from MCK
+		using a prescaler and divider.  Therefore, a wide range of
+		frequencies are possible.
+
+config SAMA5_PWM_CHAN0
+	bool "Enable PWM channel 0"
+	default n
+
+if SAMA5_PWM_CHAN0
+
+choice
+	prompt "PWM channel 0 clock source"
+	default SAMA5_PWM_CHAN0_MCK
+
+config SAMA5_PWM_CHAN0_MCK
+	bool "MCK (divided)"
+
+config SAMA5_PWM_CHAN0_CLKA
+	bool "CLKA"
+	depends on SAMA5_PWM_CLKA
+
+config SAMA5_PWM_CHAN0_CLKB
+	bool "CLKB"
+	depends on SAMA5_PWM_CLKB
+
+endchoice # PWM channel 0 clock source
+
+config SAMA5_PWM_CHAN0_MCKDIV
+	int "MCK divider"
+	default 1
+	depends on SAMA5_PWM_CHAN0_MCK
+	---help---
+		If source clock for the PWM channel is the MCK, then you must also
+		specify the MCK divider to use with the MCK.  The only valid options
+		are 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, and 1024.  Other
+		selections will cause compile time errors.
+
+config SAMA5_PWM_CHAN0_OUTPUTH
+	bool "Configure OUTPUT H pin"
+	default y
+
+config SAMA5_PWM_CHAN0_OUTPUTL
+	bool "Configure OUTPUT L pin"
+	default n
+
+config SAMA5_PWM_CHAN0_FAULTINPUT
+	bool "Configure Fault Input pin"
+	default n
+
+endif # SAMA5_PWM_CHAN0
+
+config SAMA5_PWM_CHAN1
+	bool "Enable PWM channel 1"
+	default n
+
+if SAMA5_PWM_CHAN1
+
+choice
+	prompt "PWM channel 1 clock source"
+	default SAMA5_PWM_CHAN1_MCK
+
+config SAMA5_PWM_CHAN1_MCK
+	bool "MCK (divided)"
+
+config SAMA5_PWM_CHAN1_CLKA
+	bool "CLKA"
+	depends on SAMA5_PWM_CLKA
+
+config SAMA5_PWM_CHAN1_CLKB
+	bool "CLKB"
+	depends on SAMA5_PWM_CLKB
+
+endchoice # PWM channel 1 clock source
+
+config SAMA5_PWM_CHAN1_MCKDIV
+	int "MCK divider"
+	default 1
+	depends on SAMA5_PWM_CHAN1_MCK
+	---help---
+		If source clock for the PWM channel is the MCK, then you must also
+		specify the MCK divider to use with the MCK.  The only valid options
+		are 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, and 1024.  Other
+		selections will cause compile time errors.
+
+config SAMA5_PWM_CHAN1_OUTPUTH
+	bool "Configure OUTPUT H pin"
+	default y
+
+config SAMA5_PWM_CHAN1_OUTPUTL
+	bool "Configure OUTPUT L pin"
+	default n
+
+config SAMA5_PWM_CHAN1_FAULTINPUT
+	bool "Configure Fault Input pin"
+	default n
+
+endif # SAMA5_PWM_CHAN1
+
+config SAMA5_PWM_CHAN2
+	bool "Enable PWM channel 2"
+	default n
+
+if SAMA5_PWM_CHAN2
+
+choice
+	prompt "PWM channel 2 clock source"
+	default SAMA5_PWM_CHAN2_MCK
+
+config SAMA5_PWM_CHAN2_MCK
+	bool "MCK (divided)"
+
+config SAMA5_PWM_CHAN2_CLKA
+	bool "CLKA"
+	depends on SAMA5_PWM_CLKA
+
+config SAMA5_PWM_CHAN2_CLKB
+	bool "CLKB"
+	depends on SAMA5_PWM_CLKB
+
+endchoice # PWM channel 2 clock source
+
+config SAMA5_PWM_CHAN2_MCKDIV
+	int "MCK divider"
+	default 1
+	depends on SAMA5_PWM_CHAN2_MCK
+	---help---
+		If source clock for the PWM channel is the MCK, then you must also
+		specify the MCK divider to use with the MCK.  The only valid options
+		are 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, and 1024.  Other
+		selections will cause compile time errors.
+
+config SAMA5_PWM_CHAN2_OUTPUTH
+	bool "Configure OUTPUT H pin"
+	default y
+
+config SAMA5_PWM_CHAN2_OUTPUTL
+	bool "Configure OUTPUT L pin"
+	default n
+
+config SAMA5_PWM_CHAN2_FAULTINPUT
+	bool "Configure Fault Input pin"
+	default n
+
+endif # SAMA5_PWM_CHAN2
+
+config SAMA5_PWM_CHAN3
+	bool "Enable PWM channel 3"
+	default n
+
+if SAMA5_PWM_CHAN3
+
+choice
+	prompt "PWM channel 3 clock source"
+	default SAMA5_PWM_CHAN3_MCK
+
+config SAMA5_PWM_CHAN3_MCK
+	bool "MCK (divided)"
+
+config SAMA5_PWM_CHAN3_CLKA
+	bool "CLKA"
+	depends on SAMA5_PWM_CLKA
+
+config SAMA5_PWM_CHAN3_CLKB
+	bool "CLKB"
+	depends on SAMA5_PWM_CLKB
+
+endchoice # PWM channel 3 clock source
+
+config SAMA5_PWM_CHAN3_MCKDIV
+	int "MCK divider"
+	default 1
+	depends on SAMA5_PWM_CHAN3_MCK
+	---help---
+		If source clock for the PWM channel is the MCK, then you must also
+		specify the MCK divider to use with the MCK.  The only valid options
+		are 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, and 1024.  Other
+		selections will cause compile time errors.
+
+config SAMA5_PWM_CHAN3_OUTPUTH
+	bool "Configure OUTPUT H pin"
+	default y
+
+config SAMA5_PWM_CHAN3_OUTPUTL
+	bool "Configure OUTPUT L pin"
+	default n
+
+config SAMA5_PWM_CHAN3_FAULTINPUT
+	bool "Configure Fault Input pin"
+	default n
+
+endif # SAMA5_PWM_CHAN3
+
+config SAMA5_PWM_REGDEBUG
+	bool "Enable register-level PWM debug"
+	default n
+	depends on DEBUG
+	---help---
+		Enable very low register-level debug output.
+
+endmenu # PWM configuration
+endif # SAMA5_PWM
 
 if SAMA5_WDT
 
@@ -2480,6 +3037,8 @@ config SAMA5_EBICS0_NOR
 
 config SAMA5_EBICS0_NAND
 	bool "NAND Flash"
+	select MTD
+	select MTD_NAND
 
 endchoice # CS0 Memory Type
 endif # SAMA5_EBICS0
@@ -2529,6 +3088,8 @@ config SAMA5_EBICS1_NOR
 
 config SAMA5_EBICS1_NAND
 	bool "NAND Flash"
+	select MTD
+	select MTD_NAND
 
 endchoice # CS1 Memory Type
 endif # SAMA5_EBICS1
@@ -2578,6 +3139,8 @@ config SAMA5_EBICS2_NOR
 
 config SAMA5_EBICS2_NAND
 	bool "NAND Flash"
+	select MTD
+	select MTD_NAND
 
 endchoice # CS2 Memory Type
 endif # SAMA5_EBICS2
@@ -2627,9 +3190,34 @@ config SAMA5_EBICS3_NOR
 
 config SAMA5_EBICS3_NAND
 	bool "NAND Flash"
+	select MTD
+	select MTD_NAND
 
 endchoice # CS3 Memory Type
 endif # SAMA5_EBICS3
+
+if SAMA5_EBICS0_NAND || SAMA5_EBICS1_NAND || SAMA5_EBICS2_NAND || SAMA5_EBICS3_NAND
+
+config SAMA5_NAND_READYBUSY
+	bool "NAND Ready/Busy"
+	default n
+	---help---
+		Board logic supports and interface to detect NAND Busy/Ready signal.
+		If defined, the board must provide:
+
+			bool board_nand_busy(int cs);
+
+config SAMA5_NAND_CE
+	bool "NAND Chip Enable"
+	default n
+	---help---
+		Board logic supports and interface to control the NAND Chip Enable signal.
+		If defined, the board must provide:
+
+			void board_nand_ce(int cs, bool enable);
+
+endif # SAMA5_EBICS0_NAND
+
 endmenu # External Memory Configuration
 
 choice
