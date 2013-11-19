@@ -503,7 +503,9 @@ struct stm32_dev_s g_sdiodev =
     .registercallback = stm32_registercallback,
 #ifdef CONFIG_SDIO_DMA
     .dmasupported     = stm32_dmasupported,
+#ifdef CONFIG_SDIO_PREFLIGHT
     .dmapreflight     = stm32_dmapreflight,
+#endif
     .dmarecvsetup     = stm32_dmarecvsetup,
     .dmasendsetup     = stm32_dmasendsetup,
 #endif
