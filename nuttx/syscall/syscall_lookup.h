@@ -1,7 +1,7 @@
 /****************************************************************************
  * syscall/syscall_lookup.h
  *
- *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2011, 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ SYSCALL_LOOKUP(sem_close,                 1, STUB_sem_close)
 SYSCALL_LOOKUP(sem_destroy,               2, STUB_sem_destroy)
 SYSCALL_LOOKUP(sem_open,                  6, STUB_sem_open)
 SYSCALL_LOOKUP(sem_post,                  1, STUB_sem_post)
+SYSCALL_LOOKUP(sem_timedwait,             2, STUB_sem_timedwait)
 SYSCALL_LOOKUP(sem_trywait,               1, STUB_sem_trywait)
 SYSCALL_LOOKUP(sem_unlink,                1, STUB_sem_unlink)
 SYSCALL_LOOKUP(sem_wait,                  1, STUB_sem_wait)
@@ -118,8 +119,7 @@ SYSCALL_LOOKUP(up_assert,                 2, STUB_up_assert)
   SYSCALL_LOOKUP(sigsuspend,              1, STUB_sigsuspend)
   SYSCALL_LOOKUP(sigtimedwait,            3, STUB_sigtimedwait)
   SYSCALL_LOOKUP(sigwaitinfo,             2, STUB_sigwaitinfo)
-  SYSCALL_LOOKUP(sleep,                   1, STUB_sleep)
-  SYSCALL_LOOKUP(usleep,                  1, STUB_usleep)
+  SYSCALL_LOOKUP(nanosleep,               2, STUB_nanosleep)
 #endif
 
 /* The following are only defined if the system clock is enabled in the
@@ -148,7 +148,7 @@ SYSCALL_LOOKUP(up_assert,                 2, STUB_up_assert)
  * enabled.
  */
 
-#if CONFIG_NFILE_DESCRIPTORS > 0 || CONFIG_NSOCKET_DESCRIPTORS > 0 
+#if CONFIG_NFILE_DESCRIPTORS > 0 || CONFIG_NSOCKET_DESCRIPTORS > 0
   SYSCALL_LOOKUP(close,                   1, STUB_close)
   SYSCALL_LOOKUP(ioctl,                   3, STUB_ioctl)
   SYSCALL_LOOKUP(read,                    3, STUB_read)

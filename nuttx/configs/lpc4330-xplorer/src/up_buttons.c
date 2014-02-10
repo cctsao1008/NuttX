@@ -1,5 +1,5 @@
 /****************************************************************************
- * configs/lpc4330-xplorer/src/up_buttons.c
+ * configs/lpc4330-xplorer/src/board_buttons.c
  *
  *   Copyright (C) 2012 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -93,17 +93,17 @@ static uint8_t g_buttonirq[BOARD_NUM_BUTTONS] =
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_buttoninit
+ * Name: board_button_initialize
  *
  * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_buttons() may be called to collect the current state of all
- *   buttons or up_irqbutton() may be called to register button interrupt
+ *   board_button_initialize() must be called to initialize button resources.  After
+ *   that, board_buttons() may be called to collect the current state of all
+ *   buttons or board_button_irq() may be called to register button interrupt
  *   handlers.
  *
  ****************************************************************************/
 
-void up_buttoninit(void)
+void board_button_initialize(void)
 {
   int i;
 
@@ -116,14 +116,14 @@ void up_buttoninit(void)
 }
 
 /****************************************************************************
- * Name: up_buttons
+ * Name: board_buttons
  *
  * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_buttons() may be called to collect the current state of all
+ *   board_button_initialize() must be called to initialize button resources.  After
+ *   that, board_buttons() may be called to collect the current state of all
  *   buttons.
  *
- *   up_buttons() may be called at any time to harvest the state of every
+ *   board_buttons() may be called at any time to harvest the state of every
  *   button.  The state of the buttons is returned as a bitset with one
  *   bit corresponding to each button:  If the bit is set, then the button
  *   is pressed.  See the BOARD_BUTTON_*_BIT and BOARD_JOYSTICK_*_BIT
@@ -131,7 +131,7 @@ void up_buttoninit(void)
  *
  ****************************************************************************/
 
-uint8_t up_buttons(void)
+uint8_t board_buttons(void)
 {
   uint8_t ret = 0;
   int i;
@@ -159,25 +159,25 @@ uint8_t up_buttons(void)
  * Button support.
  *
  * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_irqbutton() may be called to register button interrupt handlers.
+ *   board_button_initialize() must be called to initialize button resources.  After
+ *   that, board_button_irq() may be called to register button interrupt handlers.
  *
- *   up_irqbutton() may be called to register an interrupt handler that will
+ *   board_button_irq() may be called to register an interrupt handler that will
  *   be called when a button is depressed or released.  The ID value is a
  *   button enumeration value that uniquely identifies a button resource. See the
  *   BOARD_BUTTON_* and BOARD_JOYSTICK_* definitions in board.h for the meaning
  *   of enumeration values.  The previous interrupt handler address is returned
  *   (so that it may restored, if so desired).
  *
- *   Note that up_irqbutton() also enables button interrupts.  Button
+ *   Note that board_button_irq() also enables button interrupts.  Button
  *   interrupts will remain enabled after the interrupt handler is attached.
- *   Interrupts may be disabled (and detached) by calling up_irqbutton with
+ *   Interrupts may be disabled (and detached) by calling board_button_irq with
  *   irqhandler equal to NULL.
  *
  ****************************************************************************/
 
 #if defined(CONFIG_ARCH_IRQBUTTONS) && defined(CONFIG_GPIO_IRQ)
-xcpt_t up_irqbutton(int id, xcpt_t irqhandler)
+xcpt_t board_button_irq(int id, xcpt_t irqhandler)
 {
   xcpt_t oldhandler = NULL;
   irqstate_t flags;

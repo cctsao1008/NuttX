@@ -26,9 +26,16 @@ config NXWIDGETS_FLICKERFREE
 		lower-performance flicker-reductions measures where-ever thay may
 		be available.
 
+config NXWIDGETS_EXTERNINIT
+	bool "External display Initialization"
+	default n
+	---help---
+		Define to support external display initialization.
+
 config NXWIDGETS_DEVNO
 	int "LCD Device Number"
 	default 0
+	depends on NXWIDGETS_EXTERNINIT || NX_LCDDRIVER
 	---help---
 		LCD device number (in case there are more than one LCDs connected).
 		Default: 0
@@ -36,8 +43,25 @@ config NXWIDGETS_DEVNO
 config NXWIDGETS_VPLANE
 	int "Plane Number"
 	default 0
+	depends on !NX_LCDDRIVER && !NXWIDGETS_EXTERNINIT
 	---help---
 		Only a single video plane is supported. Default: 0
+
+if NX_MULTIUSER
+
+config NXWIDGET_SERVERINIT
+	bool "Start server"
+	default y
+	depends on !NUTTX_KERNEL
+	---help---
+		If this option is selected, then the NxWidgets::CNxServer class will
+		bring up the NX server when it is initialized.  If this option is
+		not selected then the NxWidgets::CNxServer constructor
+		initialization logic will assume that the NX server has been started
+		by other, external logic and will simply attempt to connect to the
+		server.
+
+if NXWIDGET_SERVERINIT
 
 config NXWIDGETS_SERVERPRIO
 	int "NX Server priority"
@@ -56,6 +80,8 @@ config NXWIDGETS_SERVERSTACK
 	default 2048
 	---help---
 		NX server thread stack size (in multi-user mode).  Default 2048
+
+endif # NXWIDGET_SERVERINIT
 
 config NXWIDGETS_CLIENTPRIO
 	int "NX Client Priority"
@@ -78,10 +104,7 @@ config NXWIDGETS_LISTENERSTACK
 	---help---
 		NX listener thread stack size (in multi-user mode).  Default 2048
 
-config NXWIDGETS_EXTERNINIT
-	bool "Extern LCD Initialization"
-	---help---
-		Define to support external display initialization.
+endif # NX_MULTIUSER
 
 config NXWIDGET_EVENTWAIT
 	bool "Event Waiting"
@@ -617,7 +640,14 @@ config NXWM_STARTWINDOW_STACKSIZE
 
 endmenu # Start Window Configuration
 
-menu "NxConsole Window Configuration"
+menuconfig NXWM_NXCONSOLE
+	bool "NxConsole Window"
+	default y
+	---help---
+		Enable support for the NxConsole window which provides a text window
+		in which you can interact with NSH.
+
+if NXWM_NXCONSOLE
 
 config NXWM_NXCONSOLE_PRIO
 	int "NxConsole Task Priority"
@@ -693,8 +723,7 @@ config NXWM_NXCONSOLE_ICON
 		The glyph to use as the NxConsole icon.  Default: NxWM::g_cmdBitmap
 
 endif # NXWM_NXCONSOLE_ICON
-
-endmenu # NxConsole Window Configuration
+endif # NXWM_NXCONSOLE
 
 menu "NxWM Touchscreen Configuration"
 
@@ -708,6 +737,22 @@ config NXWM_TOUCHSCREEN
 if NXWM_TOUCHSCREEN
 
 comment "Touchscreen device settings"
+
+config NXWM_TOUCHSCREEN_DEVINIT
+	bool "Touchscreen Device Initialization"
+	default y
+	depends on !NUTTX_KERNEL
+	---help---
+		It this option is selected, then the NxWM:CTouchscreen listener
+		thread will call a function arch_tcinitialize(NXWM_TOUCHSCREEN_DEVNO)
+		in order to instantiate the touchscreen driver at path
+		NXWM_TOUCHSCREEN_DEVPATH.  If NXWM_TOUCHSCREEN_DEVINIT is not
+		selected, then the NxWM:CTouchscreen listener thread will assume
+		that the driver has already been initialized at
+		NXWM_TOUCHSCREEN_DEVPATH.
+
+		NOTE that in the kernel build, all touchscreen initialize must be
+		performed in kernel logic prior to the execution of NxWM.
 
 config NXWM_TOUCHSCREEN_DEVNO
 	int "Touchscreen Device Number"
@@ -1026,7 +1071,7 @@ endif # NXWM_HEXCALCULATOR_FONTID
 endmenu # NxWM Hex Calculator display settings
 
 config NXWM_MEDIAPLAYER
-	bool "Enable NxWM Media Player"
+	bool "NxWM Media Player"
 	default n
 	---help---
 		Enable support for the MP3 Media Player.  This features requires

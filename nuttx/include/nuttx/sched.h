@@ -184,7 +184,7 @@ typedef enum tstate_e tstate_t;
 
 /* The following is the form of a thread start-up function */
 
-typedef void (*start_t)(void);
+typedef CODE void (*start_t)(void);
 
 /* This is the entry point into the main thread of the task or into a created
  * pthread within the task.
@@ -221,7 +221,7 @@ typedef struct msgq_s msgq_t;
 
 /* struct child_status_s *********************************************************/
 /* This structure is used to maintin information about child tasks.
- * pthreads work differently, they have join information.  This is 
+ * pthreads work differently, they have join information.  This is
  * only for child tasks.
  */
 

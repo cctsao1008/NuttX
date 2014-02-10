@@ -1,7 +1,7 @@
 /****************************************************************************
  * net/uip/uip_tcpconn.c
  *
- *   Copyright (C) 2007-2011, 2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2011, 2013-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Large parts of this file were leveraged from uIP logic:
@@ -227,7 +227,9 @@ struct uip_conn *uip_tcpalloc(void)
        * that is in the UIP_TIME_WAIT or UIP_FIN_WAIT_1 state.
        */
 
-      struct uip_conn *tmp = g_active_tcp_connections.head;
+      FAR struct uip_conn *tmp =
+        (FAR struct uip_conn *)g_active_tcp_connections.head;
+
       while (tmp)
         {
           nllvdbg("conn: %p state: %02x\n", tmp, tmp->tcpstateflags);
@@ -252,7 +254,7 @@ struct uip_conn *uip_tcpalloc(void)
 
           /* Look at the next active connection */
 
-          tmp = tmp->node.flink;
+          tmp = (FAR struct uip_conn *)tmp->node.flink;
         }
 
       /* Did we find a connection that we can re-use? */
@@ -303,9 +305,11 @@ void uip_tcpfree(struct uip_conn *conn)
 {
   FAR struct uip_callback_s *cb;
   FAR struct uip_callback_s *next;
-
-#if CONFIG_NET_NTCP_READAHEAD_BUFFERS > 0
-  struct uip_readahead_s *readahead;
+#ifdef CONFIG_NET_TCP_READAHEAD
+  FAR struct uip_readahead_s *readahead;
+#endif
+#ifdef CONFIG_NET_TCP_WRITE_BUFFERS
+  FAR struct uip_wrbuffer_s *wrbuffer;
 #endif
   uip_lock_t flags;
 
@@ -338,18 +342,32 @@ void uip_tcpfree(struct uip_conn *conn)
       dq_rem(&conn->node, &g_active_tcp_connections);
     }
 
+#ifdef CONFIG_NET_TCP_READAHEAD
   /* Release any read-ahead buffers attached to the connection */
 
-#if CONFIG_NET_NTCP_READAHEAD_BUFFERS > 0
   while ((readahead = (struct uip_readahead_s *)sq_remfirst(&conn->readahead)) != NULL)
     {
-      uip_tcpreadaheadrelease(readahead);
+      uip_tcpreadahead_release(readahead);
     }
 #endif
 
-  /* Remove any backlog attached to this connection */
+#ifdef CONFIG_NET_TCP_WRITE_BUFFERS
+  /* Release any write buffers attached to the connection */
+
+  while ((wrbuffer = (struct uip_wrbuffer_s *)sq_remfirst(&conn->write_q)) != NULL)
+    {
+      uip_tcpwrbuffer_release(wrbuffer);
+    }
+
+  while ((wrbuffer = (struct uip_wrbuffer_s *)sq_remfirst(&conn->unacked_q)) != NULL)
+    {
+      uip_tcpwrbuffer_release(wrbuffer);
+    }
+#endif
 
 #ifdef CONFIG_NET_TCPBACKLOG
+  /* Remove any backlog attached to this connection */
+
   if (conn->backlog)
     {
       uip_backlogdestroy(conn);
@@ -502,15 +520,27 @@ struct uip_conn *uip_tcpaccept(struct uip_tcpip_hdr *buf)
 
       uip_tcpinitsequence(conn->sndseq);
       conn->unacked       = 1;
+#ifdef CONFIG_NET_TCP_WRITE_BUFFERS
+      conn->expired       = 0;
+      conn->isn           = 0;
+      conn->sent          = 0;
+#endif
 
       /* rcvseq should be the seqno from the incoming packet + 1. */
 
       memcpy(conn->rcvseq, buf->seqno, 4);
 
+#ifdef CONFIG_NET_TCP_READAHEAD
       /* Initialize the list of TCP read-ahead buffers */
 
-#if CONFIG_NET_NTCP_READAHEAD_BUFFERS > 0
       sq_init(&conn->readahead);
+#endif
+
+#ifdef CONFIG_NET_TCP_WRITE_BUFFERS
+      /* Initialize the write buffer lists */
+
+      sq_init(&conn->write_q);
+      sq_init(&conn->unacked_q);
 #endif
 
       /* And, finally, put the connection structure into the active list.
@@ -641,6 +671,11 @@ int uip_tcpconnect(struct uip_conn *conn, const struct sockaddr_in *addr)
   conn->sa         = 0;
   conn->sv         = 16;   /* Initial value of the RTT variance. */
   conn->lport      = htons((uint16_t)port);
+#ifdef CONFIG_NET_TCP_WRITE_BUFFERS
+  conn->expired    = 0;
+  conn->isn        = 0;
+  conn->sent       = 0;
+#endif
 
   /* The sockaddr port is 16 bits and already in network order */
 
@@ -650,10 +685,17 @@ int uip_tcpconnect(struct uip_conn *conn, const struct sockaddr_in *addr)
 
   uip_ipaddr_copy(conn->ripaddr, addr->sin_addr.s_addr);
 
+#ifdef CONFIG_NET_TCP_READAHEAD
   /* Initialize the list of TCP read-ahead buffers */
 
-#if CONFIG_NET_NTCP_READAHEAD_BUFFERS > 0
   sq_init(&conn->readahead);
+#endif
+
+#ifdef CONFIG_NET_TCP_WRITE_BUFFERS
+  /* Initialize the TCP write buffer lists */
+
+  sq_init(&conn->write_q);
+  sq_init(&conn->unacked_q);
 #endif
 
   /* And, finally, put the connection structure into the active

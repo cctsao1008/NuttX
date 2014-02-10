@@ -1,4 +1,4 @@
-NuttX TODO List (Last updated November 7, 2013)
+NuttX TODO List (Last updated January 14, 2014)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This file summarizes known NuttX bugs, limitations, inconsistencies with
@@ -12,13 +12,13 @@ nuttx/
   (1)  Memory Managment (mm/)
   (3)  Signals (sched/, arch/)
   (2)  pthreads (sched/)
-  (8)  Kernel Build
+ (11)  Kernel Build
   (4)  C++ Support
   (6)  Binary loaders (binfmt/)
- (16)  Network (net/, drivers/net)
-  (4)  USB (drivers/usbdev, drivers/usbhost)
+ (17)  Network (net/, drivers/net)
+  (5)  USB (drivers/usbdev, drivers/usbhost)
  (11)  Libraries (libc/, )
- (11)  File system/Generic drivers (fs/, drivers/)
+ (12)  File system/Generic drivers (fs/, drivers/)
   (5)  Graphics subystem (graphics/)
   (1)  Pascal add-on (pcode/)
   (1)  Documentation (Documentation/)
@@ -34,6 +34,7 @@ nuttx/
   (0)  ARM/LPC43x (arch/arm/src/lpc43xx/)
   (3)  ARM/STR71x (arch/arm/src/str71x/)
   (3)  ARM/LM3S6918 (arch/arm/src/lm/)
+  (x)  ARM/SAMA5D3 ((arch/arm/src/sama5/)
   (5)  ARM/STM32 (arch/arm/src/stm32/)
   (3)  AVR (arch/avr)
   (0)  Intel x86 (arch/x86)
@@ -119,7 +120,7 @@ o Task/Scheduler (sched/)
   Description: get_environ_ptr() (sched/sched_getenvironptr.c) is not implemented.
                The representation of the environment strings selected for
                NutX is not compatible with the operation.  Some significant
-               re-design would be required to implement this funcion and that
+               re-design would be required to implement this function and that
                effort is thought to be not worth the result.
   Status:      Open.  No change is planned.
   Priority:    Low -- There is no plan to implement this.
@@ -354,33 +355,65 @@ o pthreads (sched/)
 o Kernel Build
   ^^^^^^^^^^^^
 
-  Title:       KERNEL BUILD MODE ISSUES - GRAPHICS/NSH PARTITIONING.
-  Description: In the kernel build mode (where NuttX is built as a monlithic
+  Title:       GRAPHICS PARTITIONING.
+  Description: In the kernel build mode (where NuttX is built as a monolithic
                kernel and user code must trap into the protected kernel via
                syscalls), the single user mode cannot be supported.  In this
                built configuration, only the multiple user mode can be supported
-               with the NX server residing inside of the kernel space.  In
-               this case, most of the user end functions in graphics/nxmu
-               must be moved to libc/nx and those functions must be built into
-               libuser.a to be linked with the user-space code.
-               A similar issue exists in NSH that uses some internal OS
-               interfaces that would not be available in a kernel build
-               (such as foreach_task, foreach_mountpoint, etc.).
+               with the NX server residing inside of the kernel space.
+  Status:      Closed.  This is not a bug, this is just the things are.
+  Priority:    N/A.
+
+  Title:       NSH PARTITIONING.
+  Description: There are issues with several NSH commands in the NuttX kernel
+               build mode (where NuttX is built as a monolithic kernel and
+               user code must trap into the protected kernel via syscalls).
+               The current NSH implementation has several commands that call
+               directly into kernel internel functions for whicht there is
+               no syscall available.  The commands cause link failures in
+               the kernel build mode and must currently be disabled.
+               Here are known problems that must be fixed:
+
+               COMMAND  KERNEL INTERFACE(s)
+               -------- ----------------------------------------------
+               loset    losetup(), loteardown()
+               mkfatfs  mkfatfs
+               mkrd     ramdisk_register()
+               dd       bchlib_setup(), bchlib_read(), bchlib_write(),
+                        bchlib_teardown()
+               ps       sched_foreach()
+               ifup     netdev_foreach()
+               ifdown   netdev_foreach()
+               ifconfig netdev_foreach(), uip_stat()
+               ping     uip_ping()
+
   Status:      Open
-  Priority:    Low -- the kernel build configuration is not fully fielded
+  Priority:    Medium/High -- the kernel build configuration is not fully fielded
                yet.
 
-  Title:       NSH ps AND mount COMMANDS DISABLED
-  Description: NSH's ps and mount command (with not arguments) cannot currently
-               be supported in the kernel build.  That is because these commands
-               depend on kernel internal, non-standard interfaces that are not
-               accessible in user-space.  These are both critical NSH commands
-               and need to be supported.
-
-               In addition, the NSH 'free' command only shows memory usage in
-               the user headp, not useage in the kernel heap.
+  Title:       NSH free COMMAND LIMITATION
+  Description: The NSH 'free' command only shows memory usage in the user
+               heap only, not usage in the kernel heap.  I am thinking that
+               kernel heap memory usage should be available in /proc/memory.
   Status:      Open
-  Priority:    High.  I really like these commands!
+  Priority:    Medium/High
+
+  Title:       TELNETD PARTITIONING.
+  Description: Telnetd is implemented as a driver that resides in the apps/
+               directory.  In the kernel build, mode, the driver logic must
+               be moved into the kernel part of the build (nuttx/, although
+               the application level interfaces must stay in apps/).
+  Status:      Open
+  Priority:    Medium
+
+  Title:       NxCONSOLE PARTITIONING.
+  Description: NxConsole is implemented (correctly) as a driver that resides
+               in the nuttx/ directory.  However, the user interfaces must be
+               moved into a NuttX library or into apps/.  Currently
+               applications calls to the NxConsole user interfaces are
+               undefined.
+  Status:      Open
+  Priority:    Medium
 
   Title:       LOAD-ABLE MODULE SUPPORT UNVERIFIED
   Description: It has not been verified if NXFLAT and ELF modules work correctly
@@ -393,7 +426,7 @@ o Kernel Build
   Description: When a C++ ELF module is loaded, its C++ constructors are called
                via sched/task_starthook.c logic.  This logic runs in kernel mode.
                The is a security hole because the user code runs with kernel-
-               priviledges when the constuctor executes.
+               privileges when the constructor executes.
 
                Destructors likely have the opposite problem.  The probably try to
                execute some kernel logic in user mode?  Obviously this needs to
@@ -440,7 +473,10 @@ o Kernel Build
                 sched/sched_removereadytorun.c. That would eliminate 59% of the syscalls."
   Status:      Open
   Priority:    Low-Medium.  Right now, I do not know if these syscalls are a
-               real performance issue or not.
+               real performance issue or not.  The above statistics were collected
+               from a an atypical application (the OS test), and does an excessive
+               amount of console output.  There is probably no issue with more typical
+               embedded applications.
 
   Title:       ARMv6/7-M SYSCALL PERFORMANCE IMPROVEMENT
   Description: Currently the code issues an SVCall to go from user- to kernel-mode
@@ -454,7 +490,7 @@ o Kernel Build
   Status:      Open
   Priority:    Low (unless performance becomes an issue).
 
-  Title:       MEMORY MANAGER SECURITY ISSUE
+  Title:       SECURITY ISSUES
   Description: In the current designed, the kernel code calls into the user-space
                allocators to allocate user-space memory.  It is a security risk to
                call into user-space in kernel-mode because that could be exploited
@@ -463,6 +499,10 @@ o Kernel Build
                allocators would then need to trap in order to return (this is
                already done to return from signal handlers; that logic could be
                renamed more generally and just used for a generic return trap).
+
+               Another place where the system calls into the user code in kernel
+               mode is work_usrstart() to start the user work queue.  That is
+               another security hole that should be plugged.
   Status:      Open
   Priority:    Low (unless security becomes an issue).
 
@@ -495,7 +535,7 @@ o C++ Support
                will define the operators with argument of type unsigned long;
                Setting CONFIG_CXX_NEWLONG=n will define the operators with argument
                of type unsigned int.  But this is pretty ugly!  A better solution
-               would be to get ahold of the compilers definition of size_t.
+               would be to get a hold of the compilers definition of size_t.
   Priority:    Low.
 
   Title:       STATIC CONSTRUCTORS
@@ -650,7 +690,7 @@ o Binary loaders (binfmt/)
   Title:       GOT-RELATIVE FUNCTION POINTERS
   Description: If the function pointer to a statically defined function is
                taken, then GCC generates a relocation that cannot be handled
-               by NXFLAT.  There is a solution described in Documentataion/NuttXNxFlat.html,
+               by NXFLAT.  There is a solution described in Documentation/NuttXNxFlat.html,
                by that would require a compiler change (which we want to avoid).
                The simple workaround is to make such functions global in scope.
   Status:      Open
@@ -738,7 +778,7 @@ o Network (net/, drivers/net)
   Title:       MULTIPLE NETWORK INTERFACE SUPPORT
   Description: uIP polling issues / Multiple network interface support:
 
-               (1) Current logic will not support multiple ethernet drivers.
+               (1) Current logic will not support multiple Ethernet drivers.
                   Each driver should poll on TCP connections connect on the
                   network supported by the driver; UDP polling should respond
                   with TX data only if the UDP packet is intended for the
@@ -789,14 +829,24 @@ o Network (net/, drivers/net)
                RX interrupts when throttled and re-anable on each poll time.
                recvfrom would, of course, have to un-throttle.
   Status:      Open.  This is just a thought experiment.  No changes are planned.
-  Priority:    Medium
+  Priority:    Low.  This is not a bug but an enhancement idea.
+
+  Title:       COMMON TCP BUFFERING
+  Description: TCP read-ahead logic and TCP write buffering logic use a
+               separate set of packet buffers.  It seems like more efficient
+               use of the buffering would be had if a common pool of packet
+               buffers were used for both read-ahead and write buffering.
+               This would probably depend on having READ-AHEAD THROTTLING to
+               prevent run-awary read-ahead logic from consuming all buffers.
+  Status:      Open.  This is just a thought experiment.  No changes are planned.
+  Priority:    Low.  This is not a bug but an enhancement idea.
 
   Title:       STANDARDIZE ETHERNET DRIVER STATISTICS
   Description: Need to standardize collection of statistics from network
                drivers.  apps/nshlib ifconfig command should present
                statistics.
   Status:      Open
-  Priority:    Low
+  Priority:    Low.  This is not a bug but an enhancement idea.
 
   Title:       CONCURRENT TCP SEND OPERATIONS
   Description: At present, there cannot be two concurrent active TCP send
@@ -831,7 +881,7 @@ o Network (net/, drivers/net)
   Description: poll()/select() only works for availability of buffered TCP
                read data (when read-ahead is enabled).  The way writing is
                handled in uIP, all sockets must wait when send and cannot
-               be notifiied when they can send without waiting.
+               be notified when they can send without waiting.
   Status:      Open, probably will not be fixed.
   Priority:    Medium... this does effect porting of applications that expect
                different behavior from poll()/select()
@@ -856,7 +906,7 @@ o Network (net/, drivers/net)
                There are most likely errors that need to be fixed at least in the
                receipt of multicast packets.
 
-               In addition, an ethernet driver that needs to work with the IGMP logic
+               In addition, an Ethernet driver that needs to work with the IGMP logic
                will have to include additional support for multicast MAC address tables.
   Status:      Open
   Priority:    Low unless you need it.
@@ -968,12 +1018,32 @@ o USB (drivers/usbdev, drivers/usbhost)
   Status:      Open
   Priority:    High for class drivers that need EP0 data.  For example, the
                CDC/ACM serial driver might need the line coding data (that
-               data is not used currenly, but it might be).
+               data is not used currently, but it might be).
 
   Title:       USB HUB SUPPORT
   Description: Add support for USB hubs
   Status:      Open
   Priority:    Low/Unknown.  This is a feature enhancement.
+
+  Title:       USB HID MOUSE LOGIC INCOMPLETE
+  Description: There is a working USB HID mouse driver at drivers/usbhost/usbhost_hidmouse.c.
+               Although the driver works, it is not useful.  Currently it
+               emulates a touchscreen and uses the touchscreen interface.
+               The problems are:
+
+                 - With no hardware cursor, a mouse is not usable because
+                   you cannot tell where the mouse is positioned.
+                 - Since it uses the touchscreen interface, there is no way
+                   to report left or center button activity or to report
+                   the wheel position.
+                 - And, for the same reason, positional data is not reported
+                   when the left button is not pressed (i.e., like touching
+                   the screen).  Data would have to be reported when no
+                   buttons are pressed in order to driver a hardware cursor.
+
+               There is a test configuration at configs/olimex-lpc1766stk/hidmouse.
+  Status:      Open
+  Priority:    Low, unless you need a usable HID mouse now.
 
 o Libraries (libc/)
   ^^^^^^^^^^^^^^^^^
@@ -1154,18 +1224,18 @@ o File system / Generic drivers (fs/, drivers/)
 
   Title:       CONFIG_RAMLOG_CONSOLE DOES NOT WORK
   Description: When I enable CONFIG_RAMLOG_CONSOLE, the system does not come up
-               propertly (using configuration stm3240g-eval/nsh2).  The problem
-               may be an assertion that is occuring before we have a console.
+               properly (using configuration stm3240g-eval/nsh2).  The problem
+               may be an assertion that is occurring before we have a console.
   Status:      Open
   Priority:    Medium
 
-  Title :      USE VTF TO MANAGE NAMED MESSAGE QUEUES AND NAMED SEMAPHORES
+  Title :      USE VFS TO MANAGE NAMED MESSAGE QUEUES AND NAMED SEMAPHORES
   Description: Currently redundant namespace management logic is use for named
-               message queues and semaphores.  Namesphore management should
+               message queues and semaphores.  Named semaphore management should
                be consolidated in the VFS.  Perhaps in /ipc/mqueue and /ipc/sem.
   Status:      Open
   Priority:    Low.  Nothing is broken.  This is an enhancement that would
-               improve the OS design and possible reduce some FLASH usage
+               improve the OS design and possibly reduce some FLASH usage
 
   Title:       UNIFIED DESCRIPTOR REPRESENTATION
   Descripton:  There are two separate ranges of descriptors for file and
@@ -1179,6 +1249,28 @@ o File system / Generic drivers (fs/, drivers/)
                socket structures.  There really should be one array that
                is a union of file and socket descriptors.  Then socket and
                file decriptors could lie in the same range.
+  Status:      Open
+  Priority:    Low
+
+  Title:       DUPLICATE FAT FILE NAMES
+  Description: "The NSH and POSIX API interpretations about sensitivity or
+               insensitivity to upper/lowercase file names seem to be not
+               consistent in our usage - which can result in creating two
+               directories with the same name..."
+
+               Example using NSH:
+
+                 nsh> echo "Test1" >/tmp/AtEsT.tXt
+                 nsh> echo "Test2" >/tmp/aTeSt.TxT
+                 nsh> ls /tmp
+                 /tmp:
+                  AtEsT.tXt
+                  aTeSt.TxT
+                 nsh> cat /tmp/aTeSt.TxT
+                 Test2 
+                 nsh> cat /tmp/AtEsT.tXt
+                 Test1 
+
   Status:      Open
   Priority:    Low
 
@@ -1218,7 +1310,7 @@ o Graphics subystem (graphics/)
                   queue.
                - The logic that receives the messages performs the auto-raise.
                  But it can do stupid things after the first auto-raise as
-                 it opperates on the stale data in the message queue.
+                 it operates on the stale data in the message queue.
                I am thinking that auto-raise ought to be removed from NuttX
                and moved out into a graphics layer (like NxWM) that knows
                more about the appropriate context to do the autoraise.
@@ -1286,7 +1378,7 @@ o Build system
 
   Title:       WINDOWS DEPENDENCY GENERATION
   Description: Dependency generation is currently disabled when a Windows native
-               toolchain is used in a POSIX-like enviornment (like Cygwin).  The
+               toolchain is used in a POSIX-like environment (like Cygwin).  The
                issue is that the Windows tool generates dependencies use Windows
                path formatting and this fails with the dependency file (Make.dep)
                is include).  Perhaps the only issue is that all of the Windows
@@ -1315,7 +1407,7 @@ o Build system
                  +if [ "$_" = "$0" ] ; then
   Status:      Open
   Priority:    Low.  Use of setenv.sh is optional and most platforms do not have
-               this problem.  Scripts will be fixed one-at-a-time as is appropropriate.
+               this problem.  Scripts will be fixed one-at-a-time as is appropriate.
 
   Title:       MAKE EXPORT LIMITATIONS
   Description: The top-level Makefile 'export' target that will bundle up all of the
@@ -1341,11 +1433,11 @@ o Build system
                here: http://tech.groups.yahoo.com/group/nuttx/message/2900.
                The build was successfully completed using:  MinGW-GCC, MSYS,
                additional Windows libraries, and additional MSYS libraries
-               (MSYS is a variant of Cygwin so, presumeably, Cygwin could
+               (MSYS is a variant of Cygwin so, presumably, Cygwin could
                have been used as well).  However, on final testing, it was
                found that there are problems with text and numeric entry:
                http://tech.groups.yahoo.com/group/nuttx/message/2953.  This
-               was considered a show stopper and the changs were not checked
+               was considered a show stopper and the changes were not checked
                in.
 
                Options:  (1) Use kconfigs-conf (not kconfig-mconf).  confis the text-only
@@ -1383,7 +1475,7 @@ o Linux/Cywgin simulation (arch/sim)
   Description: Since the simulation is not pre-emptible, you can't use round-robin
                scheduling (no time slicing).  Currently, the timer interrupts are
                "faked" during IDLE loop processing and, as a result, there is no
-               task pre-emption because there are no asynchrous events.  This could
+               task pre-emption because there are no asynchronous events.  This could
                probably be fixed if the "timer interrupt" were driver by Linux
                signals. NOTE:  You would also have to implement irqsave() and
                irqrestore() to block and (conditionally) unblock the signal.
@@ -1428,7 +1520,7 @@ o ARM (arch/arm/)
   Priority:    Low.
 
   Title:       IMPROVED ARM INTERRUPT HANDLING
-  Description: The ARM and Cortex-M3 interrupt handlers restores all regisers
+  Description: The ARM and Cortex-M3 interrupt handlers restores all registers
                upon return. This could be improved as well:  If there is no
                context switch, then the static registers need not be restored
                because they will not be modified by the called C code.
@@ -1456,7 +1548,7 @@ o ARM (arch/arm/)
                  ldr pc, [sp], #4
 
                Under conditions of excessively high interrupt conditions, many
-               nested interrupts can oocur just after the 'msr cpsr' instruction.
+               nested interrupts can occur just after the 'msr cpsr' instruction.
                At that time, there are 4 bytes on the stack and, with each
                interrupt, the stack pointer may increment and possibly overflow.
 
@@ -1473,13 +1565,13 @@ o ARM (arch/arm/)
                UPDATE:  Other ARM architectures have a similer issue.
 
   Status:      Open
-  Priority:    Low.  The conditions of continous interrupts is really the problem.
-               If your design needs continous interrupts like this, please try
+  Priority:    Low.  The conditions of continuous interrupts is really the problem.
+               If your design needs continuous interrupts like this, please try
                the above change and, please, submit a patch with the working fix.
 
   Title:       STACK ALIGNMENT IN INTERRUPT HANDLERS
   Description: The EABI standard requires that the stack always have a 32-byte
-               alignment.  There is no guaratee at present that the stack will be
+               alignment.  There is no guarantee at present that the stack will be
                so aligned in an interrupt handler.  Therefore, I would expect some
                issues if, for example, floating point or perhaps long long operations
                were performed in an interrupt handler.
@@ -1491,7 +1583,7 @@ o ARM (arch/arm/)
                arround each call into C code from assembly:
 
                  mov  r4, sp     /* Save the SP in a preserved register */
-                 bic  sp, sp, #7 /* Force 8-byte alignement */
+                 bic  sp, sp, #7 /* Force 8-byte alignment */
                  bl   cfunction  /* Call the C function */
                  mov  sp, r4     /* Restore the possibly unaligned stack pointer */
 
@@ -1535,7 +1627,7 @@ o ARM/DM320 (arch/arm/src/dm320/)
 
   Title:       VIDEO ENCODER DRIVER
   Description: In order to use the framebuffer "driver" additional video encoder
-               logic is required to setupt composite video output or to interface
+               logic is required to setup composite video output or to interface
                with an LCD.
   Status:      Open
   Priority:    Medium (high if you need to use the framebuffer driver)
@@ -1544,7 +1636,7 @@ o ARM/i.MX (arch/arm/src/imx/)
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   Title:       PORT IS INCOMPLETE
-  Description: The basic port of the i.MX1 architecuture was never finished.  The port
+  Description: The basic port of the i.MX1 architecture was never finished.  The port
                is incomplete (as of this writing, is still lacks a timer, interrupt
                decoding, USB, network) and untested.
   Status:      Open
@@ -1620,7 +1712,7 @@ o ARM/LPC214x (arch/arm/src/lpc214x/)
   Description: At present the SPI driver is polled -AND- there is a rather large, arbitrary,
                delay in one of the block access routines.  The purpose of the delay is to
                avoid a race conditions.  This begs for a re-design -OR- at a minimum, some
-               optimiation of the delay time.
+               optimization of the delay time.
   Status:      Open
   Priority:    Medium
 
@@ -1629,7 +1721,7 @@ o ARM/LPC214x (arch/arm/src/lpc214x/)
                the mcu123 board.  The card fails to accept CMD0.  Doesn't seem like a software
                issue, but if anyone else sees the problem, I'd like to know.
                Related:  Fixes were recently made for the SDIO-based MMC/SD driver to
-               support 2Gb cards -- the blocksize was forced to 512 in all cases.  The SPI-
+               support 2Gb cards -- the block size was forced to 512 in all cases.  The SPI-
                based driver may also have this problem (but I don't think this would have
                anything to do with CMD0).
   Status:      Open
@@ -1721,6 +1813,11 @@ o ARM/LM3S6918 (arch/arm/src/lm/)
                likely cause is probably a stack overflow, not a hard sofware bug.
   Priority:    Probably Low
 
+o ARM/SAMA5D3 ((arch/arm/src/sama5/)
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  Issues related to the SAMA5D3 port are in configs/sama5d3x-ek/README.txt.
+
 o ARM/STM32 (arch/arm/src/stm32/)
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1781,7 +1878,7 @@ o ARM/STM32 (arch/arm/src/stm32/)
                write DMAs from FSMC memory (i.e., from FSMC memory to SDIO).
                Read transfers work fine (SDIO to FSMC memory).  The failure is
                a data underrun error with zero bytes of data transferred.  The
-               workaround for now is to use DMA buffers allocted from internal
+               workaround for now is to use DMA buffers allocated from internal
                SRAM.
   Status:      Open
   Priority:    Low
@@ -1874,7 +1971,7 @@ o 8051 / MCS51 (arch/8051/)
   Priority:    Low -- only because there as so many other issues with 8051
 
   Title:       8051 BUILD BROKEN
-  Description: The last time I tried to build the pjrc-8051 configurtion using
+  Description: The last time I tried to build the pjrc-8051 configuration using
                the SDCC 3.2.1 toolchain (for Windows).  I got compilation
                errors in sched/os_bringup.c.  It complained about type
                mis-matches.  What I gather from Googling, this is a problem
@@ -1913,11 +2010,11 @@ o MIPS/PIC32(arch/mips)
 
                UPDATE:  This bug was recorded using the PIC32 Ethernet
                Starter kit with a RAM disk (that board has no SD card slot).
-               Howevever, using the USB mass storage device with the
+               However, using the USB mass storage device with the
                Mikroelektronika using a real SD card, there is no such
                problem -- the mass storage device seems quite stable.
 
-               UPDATE:  Hmmm.. retesting with the Mikroelectronka board
+               UPDATE:  Hmmm.. retesting with the Mikroelektronika board
                shows problems again.  I think that there are some subtle
                timing bugs whose effects can very from innocuous to severe.
   Status:      Open
@@ -2087,7 +2184,7 @@ o z80/z8/ez80/z180 (arch/z80)
                rule removes .asm files.  This works because there are no .asm
                files except in sub-directories that are provided from 'make clean' --
                except for XTRS:  It has a .asm file in its src/ directory that
-               gets removed everytime clean is performd.
+               gets removed every time clean is performd.
   Status:      Open
   Priority:    High if you happen to be working with XTRS.
 
@@ -2111,7 +2208,7 @@ o z80/z8/ez80/z180 (arch/z80)
   Priority:    Med
 
   Title:       UNFINISHED Z180 LOGIC NEEDED BY THE P112 BOARD
-  Description: 1) Need to revist the start-up logic.  Looking at the P112 Bios
+  Description: 1) Need to revisit the start-up logic.  Looking at the P112 Bios
                   (Bios.mcd), I see that quite of bit of register setup is done
                   there.
                2) Finish ESCC driver logic.
@@ -2127,16 +2224,6 @@ o z16 (arch/z16)
   Status:      Open
   Priority:    Low, thought to be cosmetic.  I think this is a consequence of
                replacing vs. inserting the library.
-
-  Title:       SERIAL DRIVER HANGS
-  Description: When the interrupt-driven serial driver is used, the system
-               hangs.  This is because of TX ready (TRDE) interrupts that
-               get lost while interrupts are disabled.  The existing
-               serial driver appears to be limited to hardware with a
-               latching, level-sensitive TX ready interrupt.
-  Status:      Open
-  Priority:    Medium. A polled, write-only serial driver is used in the
-               interim for system testing.
 
   Title:       SYSTEM DELAYS
   Description: The system delays do not appear to be correct with the
@@ -2175,7 +2262,7 @@ o z16 (arch/z16)
                __uwcase is passed a pointer to a structure containing jump
                information.  The cause of the failure appears to be that
                the referenced switch data is bad.
-               This is submited as ZiLOG support incident 81459.
+               This is submitted as ZiLOG support incident 81459.
 
                Summary of ZiLOG analysis: "This is a ZNEO run time library problem.
                One workaround is to replace the line 58 in uwcase.asm
@@ -2226,10 +2313,29 @@ o z16 (arch/z16)
   Title:       NATIVE BUILD PROBLEMS
   Description: When last tested (ca.12/12), there were some missing .obj files in
                arch/z16/src. A little additional TLC will be needed to get a
-               reliable Windows native build.  As of this writing, the Cygwin
-               based build has not been re-verified.
+               reliable Windows native build.
   Status:      Open
-  Priority:    Low -- I don't think anyone uses the Z16 port.
+  Priority:    Low -- I don't think anyone uses the Z16 port with the native build.
+
+  Title:       COMPILER BUG
+  Description: There is a bug in the ZDS II 5.0.1 compiler.  It generates incorrect
+               code when calling through a function pointer if (1) the function
+               pointer is a field in a structure, and (2) the function pointer has
+               a variable number of arguments.
+
+               The exact name of the bug is this:  Normally, when a function is
+               called, parameters are passed in registers.  When calling a
+               function with a variable number of arguments, parameters must
+               instead be passed on the stack.  In this failure case3, parameters
+               are erroneously passed in registers while the receive function
+               expects the parameters on the stack.  This usually results in a
+               crash.
+
+               Unfortunately, NSH does have this exact kind of function call and
+               because of this compiler bug, NSH cannot be used with the ZNEO
+  Status:      The bug has been reported to ZiLOG and they have reproduced the
+               problem.  There is, however, no schedule for correction of the bug.
+  Priority:    High if you are using ZNEO
 
 o mc68hc1x (arch/hc)
   ^^^^^^^^^^^^^^^^^^

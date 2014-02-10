@@ -1,5 +1,5 @@
 README
-=====
+======
 
   This README file describes the port of NuttX to the SAMA5D3x-EK
   development boards. These boards feature the Atmel SAMA5D3
@@ -73,13 +73,23 @@ Contents
   - Creating and Using NORBOOT
   - Buttons and LEDs
   - Serial Consoles
-  - Serial FLASH
+  - Networking
+  - AT25 Serial FLASH
   - HSMCI Card Slots
   - USB Ports
+  - USB High-Speed Device
+  - USB High-Speed Host
+  - SDRAM Support
+  - NAND Support
   - AT24 Serial EEPROM
+  - I2C Tool
   - CAN Usage
   - SAMA5 ADC Support
   - SAMA5 PWM Support
+  - RTC
+  - Watchdog Timer
+  - TRNG and /dev/random
+  - Touchscreen Testing
   - OV2640 Camera Interface
   - I2S Audio Support
   - SAMA5D3x-EK Configuration Options
@@ -89,7 +99,7 @@ Contents
 Development Environment
 =======================
 
-  Several possibile development enviorments may be use:
+  Several possible development environments may be use:
 
   - Linux or OSX native
   - Cygwin unders Windows
@@ -150,7 +160,7 @@ GNU Toolchain Options
      An alias in your .bashrc file might make that less painful.
 
   3. Dependencies are not made when using Windows versions of the GCC.  This is
-     because the dependencies are generated using Windows pathes which do not
+     because the dependencies are generated using Windows paths which do not
      work with the Cygwin make.
 
        MKDEP                = $(TOPDIR)/tools/mknulldeps.sh
@@ -243,9 +253,9 @@ NuttX OABI "buildroot" Toolchain
 ================================
 
   The older, OABI buildroot toolchain is also available.  To use the OABI
-  toolchain, use the build instructtions above, but (1) modify the
+  toolchain, use the build instructions above, but (1) modify the
   cortexm3-eabi-defconfig-4.6.3 configuration to use OABI (using 'make
-  menuconfig'), or (2) use an exising OABI configuration such as
+  menuconfig'), or (2) use an existing OABI configuration such as
   cortexm3-defconfig-4.3.3
 
 NXFLAT Toolchain
@@ -311,9 +321,9 @@ Writing to FLASH using SAM-BA
 
   Assumed starting configuration:
 
-    1. You have installed the J-Lnk CDC USB driver (Windows only, there is
+    1. You have installed the J-Link CDC USB driver (Windows only, there is
         no need to install a driver on any regular Linux distribution),
-    2. You have the USB connected to DBGU poort (J14)
+    2. You have the USB connected to DBGU port (J14)
     3. Terminal configuration:  115200 8N1
 
   Using SAM-BA to write to FLASH:
@@ -427,8 +437,18 @@ Creating and Using NORBOOT
       sequence has been most convenient for me since it allows me to
       step into the program in NOR.
 
+   7. An option is to use the SAM-BA tool to write the NORBOOT image into
+      Serial FLASH.  Then, the system will boot from Serial FLASH by
+      copying the NORBOOT image in SRAM which will run and then start the
+      image in NOR FLASH automatically.  This is a very convenient usage!
+
+      NOTES: (1) There is jumper on the CM module that must be closed to
+      enable use of the AT25 Serial Flash.  (2) If using SAM-BA, make sure
+      that you load the NOR boot program into the boot area via the pull-
+      down menu.
+
     STATUS:
-      2013-7-30:  I have been unable to execute this configuration from NOR
+      2013-7-30:  I have been unable to execute these configurations from NOR
         FLASH by closing the BMS jumper (J9).  As far as I can tell, this
         jumper does nothing on my board???  So I have been using the norboot
         configuration exclusively to start the program-under-test in NOR FLASH.
@@ -487,7 +507,7 @@ Buttons and LEDs
     LED_IDLE             MCU is is sleep mode         Not used
 
   Thus if the blue LED is statically on, NuttX has successfully booted and
-  is, apparently, running normmally.  If the red is flashing at
+  is, apparently, running normally.  If the red is flashing at
   approximately 2Hz, then a fatal error has been detected and the system
   has halted.
 
@@ -532,8 +552,190 @@ Serial Consoles
     - Jumper JP16 not fitted: CDC is enabled
     - Jumper JP16 fitted : CDC is disabled"
 
-Serial FLASH
-============
+Networking
+==========
+
+  Networking support via the can be added to NSH by selecting the following
+  configuration options.  The SAMA5D3x supports two different Ethernet MAC
+  peripherals:  (1) The 10/100Base-T EMAC peripheral and (2) the
+  10/100/1000Base-T GMAC peripheral.  Only the SAMA5D31 and SAMAD35 support
+  the EMAC peripheral; Only the SAMA5D33, SAMA5D34, and SAMA5D35 support
+  the GMAC perpheral!  NOTE that the SAMA5D35 supports both!
+
+  Selecting the EMAC peripheral
+  -----------------------------
+
+  System Type
+    CONFIG_ARCH_CHIP_ATSAMA5D31=y       : SAMA5D31 or SAMAD35 support EMAC
+    CONFIG_ARCH_CHIP_ATSAMA5D35=y       : (others do not)
+
+  System Type -> SAMA5 Peripheral Support
+    CONFIG_SAMA5_EMAC=y                 : Enable the EMAC peripheral
+
+  System Type -> EMAC device driver options
+    CONFIG_SAMA5_EMAC_NRXBUFFERS=16     : Set aside some RS and TX buffers
+    CONFIG_SAMA5_EMAC_NTXBUFFERS=4
+    CONFIG_SAMA5_EMAC_PHYADDR=1         : KSZ8051 PHY is at address 1
+    CONFIG_SAMA5_EMAC_AUTONEG=y         : Use autonegotiation
+    CONFIG_SAMA5_EMAC_RMII=y            : Either MII or RMII interface should work
+    CONFIG_SAMA5_EMAC_PHYSR=30          : Address of PHY status register on KSZ8051
+    CONFIG_SAMA5_EMAC_PHYSR_ALTCONFIG=y : Needed for KSZ8051
+    CONFIG_SAMA5_EMAC_PHYSR_ALTMODE=0x7 : "    " " " "     "
+    CONFIG_SAMA5_EMAC_PHYSR_10HD=0x1    : "    " " " "     "
+    CONFIG_SAMA5_EMAC_PHYSR_100HD=0x2   : "    " " " "     "
+    CONFIG_SAMA5_EMAC_PHYSR_10FD=0x5    : "    " " " "     "
+    CONFIG_SAMA5_EMAC_PHYSR_100FD=0x6   : "    " " " "     "
+
+  PHY selection.  Later in the configuration steps, you will need to select
+  the KSZ8051 PHY for EMAC (See below)
+
+  Selecting the GMAC peripheral
+  -----------------------------
+
+  System Type
+    CONFIG_ARCH_CHIP_ATSAMA5D33=y       : SAMA5D31, SAMA5D33 and SAMAD35
+    CONFIG_ARCH_CHIP_ATSAMA5D34=y       : support GMAC (others do not)
+    CONFIG_ARCH_CHIP_ATSAMA5D35=y       :
+
+  System Type -> SAMA5 Peripheral Support
+    CONFIG_SAMA5_GMAC=y                 : Enable the GMAC peripheral
+
+  System Type -> GMAC device driver options
+    CONFIG_SAMA5_GMAC_NRXBUFFERS=16     : Set aside some RS and TX buffers
+    CONFIG_SAMA5_GMAC_NTXBUFFERS=4
+    CONFIG_SAMA5_GMAC_PHYADDR=1         : KSZ8051 PHY is at address 1
+    CONFIG_SAMA5_GMAC_AUTONEG=y         : Use autonegotiation
+
+  If both EMAC and GMAC are selected, you will also need:
+
+    CONFIG_SAMA5_GMAC_ISETH0=y          : GMAC is "eth0"; EMAC is "eth1"
+
+  PHY selection.  Later in the configuration steps, you will need to select
+  the  KSZ9021/31 PHY for GMAC (See below)
+
+  Common configuration settings
+  -----------------------------
+
+  Networking Support
+    CONFIG_NET=y                        : Enable Neworking
+    CONFIG_NET_SOCKOPTS=y               : Enable socket operations
+    CONFIG_NET_BUFSIZE=562              : Maximum packet size (MTD) 1518 is more standard
+    CONFIG_NET_RECEIVE_WINDOW=562       : Should be the same as CONFIG_NET_BUFSIZE
+    CONFIG_NET_TCP=y                    : Enable TCP/IP networking
+    CONFIG_NET_TCPBACKLOG=y             : Support TCP/IP backlog
+    CONFIG_NET_TCP_READAHEAD_BUFSIZE=562  Read-ahead buffer size
+    CONFIG_NET_UDP=y                    : Enable UDP networking
+    CONFIG_NET_ICMP=y                   : Enable ICMP networking
+    CONFIG_NET_ICMP_PING=y              : Needed for NSH ping command
+                                        : Defaults should be okay for other options
+  Device drivers -> Network Device/PHY Support
+    CONFIG_NETDEVICES=y                 : Enabled PHY selection
+    CONFIG_ETH0_PHY_KSZ8051=y           : Select the KSZ8051 PHY (for EMAC), OR
+    CONFIG_ETH0_PHY_KSZ90x1=y           : Select teh KSZ9021/31 PHY (for GMAC)
+
+  Application Configuration -> Network Utilities
+    CONFIG_NETUTILS_RESOLV=y            : Enable host address resolution
+    CONFIG_NETUTILS_TELNETD=y           : Enable the Telnet daemon
+    CONFIG_NETUTILS_TFTPC=y             : Enable TFTP data file transfers for get and put commands
+    CONFIG_NETUTILS_UIPLIB=y            : Network library support is needed
+    CONFIG_NETUTILS_WEBCLIENT=y         : Needed for wget support
+                                        : Defaults should be okay for other options
+  Application Configuration -> NSH Library
+    CONFIG_NSH_TELNET=y                 : Enable NSH session via Telnet
+    CONFIG_NSH_IPADDR=0x0a000002        : Select an IP address
+    CONFIG_NSH_DRIPADDR=0x0a000001      : IP address of gateway/host PC
+    CONFIG_NSH_NETMASK=0xffffff00       : Netmask
+    CONFIG_NSH_NOMAC=y                  : Need to make up a bogus MAC address
+                                        : Defaults should be okay for other options
+
+  Using the network with NSH
+  --------------------------
+
+  So what can you do with this networking support?  First you see that
+  NSH has several new network related commands:
+
+    ifconfig, ifdown, ifup:  Commands to help manage your network
+    get and put:             TFTP file transfers
+    wget:                    HTML file transfers
+    ping:                    Check for access to peers on the network
+    Telnet console:          You can access the NSH remotely via telnet.
+
+  You can also enable other add on features like full FTP or a Web
+  Server or XML RPC and others.  There are also other features that
+  you can enable like DHCP client (or server) or network name
+  resolution.
+
+  By default, the IP address of the SAMA5D3x-EK will be 10.0.0.2 and
+  it will assume that your host is the gateway and has the IP address
+  10.0.0.1.
+
+    nsh> ifconfig
+    eth0    HWaddr 00:e0:de:ad:be:ef at UP
+            IPaddr:10.0.0.2 DRaddr:10.0.0.1 Mask:255.255.255.0
+
+  You can use ping to test for connectivity to the host (Careful,
+  Window firewalls usually block ping-related ICMP traffic).  On the
+  target side, you can:
+
+    nsh> ping 10.0.0.1
+    PING 10.0.0.1 56 bytes of data
+    56 bytes from 10.0.0.1: icmp_seq=1 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=2 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=3 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=4 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=5 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=6 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=7 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=8 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=9 time=0 ms
+    56 bytes from 10.0.0.1: icmp_seq=10 time=0 ms
+    10 packets transmitted, 10 received, 0% packet loss, time 10100 ms
+
+  NOTE: In this configuration is is normal to have packet loss > 0%
+  the first time you ping due to the default handling of the ARP
+  table.
+
+  On the host side, you should also be able to ping the SAMA5D3-EK:
+
+    $ ping 10.0.0.2
+
+  You can also log into the NSH from the host PC like this:
+
+    $ telnet 10.0.0.2
+    Trying 10.0.0.2...
+    Connected to 10.0.0.2.
+    Escape character is '^]'.
+    sh_telnetmain: Session [3] Started
+
+    NuttShell (NSH) NuttX-6.31
+    nsh> help
+    help usage:  help [-v] [<cmd>]
+
+      [           echo        ifconfig    mkdir       mw          sleep
+      ?           exec        ifdown      mkfatfs     ping        test
+      cat         exit        ifup        mkfifo      ps          umount
+      cp          free        kill        mkrd        put         usleep
+      cmp         get         losetup     mh          rm          wget
+      dd          help        ls          mount       rmdir       xd
+      df          hexdump     mb          mv          sh
+
+    Builtin Apps:
+    nsh>
+
+  NOTE:  If you enable this feature, you experience a delay on booting.
+  That is because the start-up logic waits for the network connection
+  to be established before starting NuttX.  In a real application, you
+  would probably want to do the network bringup on a separate thread
+  so that access to the NSH prompt is not delayed.
+
+  This delay will be especially long if the board is not connected to
+  a network.
+
+AT25 Serial FLASH
+=================
+
+  Connections
+  -----------
 
   Both the Ronetix and Embest versions of the SAMAD3x CPU modules include an
   Atmel AT25DF321A, 32-megabit, 2.7-volt SPI serial flash.  The SPI
@@ -551,15 +753,75 @@ Serial FLASH
   PD13; on the Ronetix schematic, JP11 seems only to bypass a resistor (may
   not be populated?).  I think closing JP1 is correct in either case.
 
+  Configuration
+  -------------
+
+  The Embest or Ronetix CPU module includes an Atmel AT25DF321A, 32-megabit,
+  2.7-volt SPI serial flash.  Support for that serial FLASH can be enabled
+  in these configurations.  These are the relevant  configuration settings:
+
+    System Type -> SAMA5 Peripheral Support
+      CONFIG_SAMA5_SPI0=y                   : Enable SPI0
+      CONFIG_SAMA5_DMAC0=y                  : Enable DMA controller 0
+
+    System Type -> SPI device driver options
+      CONFIG_SAMA5_SPI_DMA=y                : Use DMA for SPI transfers
+      CONFIG_SAMA5_SPI_DMATHRESHOLD=4       : Don't DMA for small transfers
+
+    Device Drivers -> SPI Driver Support
+      CONFIG_SPI=y                          : Enable SPI support
+      CONFIG_SPI_EXCHANGE=y                 : Support the exchange method
+
+    Device Drivers -> Memory Technology Device (MTD) Support
+      CONFIG_MTD=y                          : Enable MTD support
+      CONFIG_MTD_AT25=y                     : Enable the AT25 driver
+      CONFIG_AT25_SPIMODE=0                 : Use SPI mode 0
+      CONFIG_AT25_SPIFREQUENCY=10000000     : Use SPI frequency 10MHz
+
+  The AT25 is capable of higher SPI rates than this.  I have not experimented
+  a lot, but at 20MHz, the behavior is not the same with all CM modules.  This
+  lower rate gives more predictable performance.
+
+    Application Configuration -> NSH Library
+      CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
+
+    Board Selection
+      CONFIG_SAMA5_AT25_AUTOMOUNT=y         : Mounts AT25 for NSH
+      CONFIG_SAMA5_AT25_FTL=y               : Create block driver for FAT
+
+  NOTE that you must close JP1 on the Embest/Ronetix board in order to
+  enable the AT25 FLASH chip select.
+
+  You can then format the AT25 FLASH for a FAT file system and mount the
+  file system at /mnt/at25 using these NSH commands:
+
+    nsh> mkfatfs /dev/mtdblock0
+    nsh> mount -t vfat /dev/mtdblock0 /mnt/at25
+
+  Then you an use the FLASH as a normal FAT file system:
+
+    nsh> echo "This is a test" >/mnt/at25/atest.txt
+    nsh> ls -l /mnt/at25
+    /mnt/at25:
+     -rw-rw-rw-      16 atest.txt
+    nsh> cat /mnt/at25/atest.txt
+    This is a test
+
+  NOTE:  It appears that if Linux runs out of NAND, it will destroy the
+  contents of the AT25.
+
 HSMCI Card Slots
 ================
 
+  Physical Slots
+  --------------
+
   The SAMA5D3x-EK provides a two SD memory card slots:  (1) a full size SD
-  card slot (J7 labeled MCI0), and (2) a microSD memory card slot (J6
-  labeled MCI1).
+  card slot (J7 labelled MCI0), and (2) a microSD memory card slot (J6
+  labelled MCI1).
 
   The full size SD card slot connects via HSMCI0.  The card detect discrete
-  is available on PB17 (pulled high).  The write protect descrete is tied to
+  is available on PB17 (pulled high).  The write protect discrete is tied to
   ground (via PP6) and not available to software.  The slot supports 8-bit
   wide transfer mode, but the NuttX driver currently uses only the 4-bit
   wide transfer mode
@@ -587,6 +849,84 @@ HSMCI Card Slots
     PB24  MCI1_CK
     PB19  MCI1_CDA
 
+  Configuration Settings
+  ----------------------
+
+  Enabling HSMCI support. The SAMA5D3x-EK provides a two SD memory card
+  slots:  (1) a full size SD card slot (J7 labelled MCI0), and (2) a
+  microSD memory card slot (J6 labelled MCI1).  The full size SD card slot
+  connects via HSMCI0; the microSD connects vi HSMCI1.  Support for both SD
+  slots can be enabled with the following settings:
+
+    System Type->ATSAMA5 Peripheral Support
+      CONFIG_SAMA5_HSMCI0=y                 : Enable HSMCI0 support
+      CONFIG_SAMA5_HSMCI1=y                 : Enable HSMCI1 support
+      CONFIG_SAMA5_DMAC0=y                  : DMAC0 is needed by HSMCI0
+      CONFIG_SAMA5_DMAC1=y                  : DMAC1 is needed by HSMCI1
+
+    System Type
+      CONFIG_SAMA5_PIO_IRQ=y                : PIO interrupts needed
+      CONFIG_SAMA5_PIOD_IRQ=y               : Card detect pins are on PIOD
+
+    Device Drivers -> MMC/SD Driver Support
+      CONFIG_MMCSD=y                        : Enable MMC/SD support
+      CONFIG_MMSCD_NSLOTS=1                 : One slot per driver instance
+      CONFIG_MMCSD_HAVECARDDETECT=y         : Supports card-detect PIOs
+      CONFIG_MMCSD_MMCSUPPORT=n             : Interferes with some SD cards
+      CONFIG_MMCSD_SPI=n                    : No SPI-based MMC/SD support
+      CONFIG_MMCSD_SDIO=y                   : SDIO-based MMC/SD support
+      CONFIG_SDIO_DMA=y                     : Use SDIO DMA
+      CONFIG_SDIO_BLOCKSETUP=y              : Needs to know block sizes
+
+    Library Routines
+      CONFIG_SCHED_WORKQUEUE=y              : Driver needs work queue support
+
+    Application Configuration -> NSH Library
+      CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
+
+    Using the SD card
+    -----------------
+
+    1) After booting, the HSCMI devices will appear as /dev/mmcsd0
+       and /dev/mmcsd1.
+
+    2) If you try mounting an SD card with nothing in the slot, the
+       mount will fail:
+
+         nsh> mount -t vfat /dev/mmcsd1 /mnt/sd1
+         nsh: mount: mount failed: 19
+
+       NSH can be configured to provide errors as strings instead of
+       numbers.  But in this case, only the error number is reported.  The
+       error numbers can be found in nuttx/include/errno.h:
+
+         #define ENODEV              19
+         #define ENODEV_STR          "No such device"
+
+       So the mount command is saying that there is no device or, more
+       correctly, that there is no card in the SD card slot.
+
+    3) Inserted the SD card.  Then the mount should succeed.
+
+        nsh> mount -t vfat /dev/mmcsd1 /mnt/sd1
+        nsh> ls /mnt/sd1
+        /mnt/sd1:
+         atest.txt
+        nsh> cat /mnt/sd1/atest.txt
+        This is a test
+
+    4) Before removing the card, you must umount the file system.  This is
+       equivalent to "ejecting" or "safely removing" the card on Windows:  It
+       flushes any cached data to the card and makes the SD card unavailable
+       to the applications.
+
+         nsh> umount -t /mnt/sd1
+
+       It is now safe to remove the card.  NuttX provides into callbacks
+       that can be used by an application to automatically unmount the
+       volume when it is removed.  But those callbacks are not used in
+       these configurations.
+
 USB Ports
 =========
 
@@ -602,7 +942,7 @@ USB Ports
       lower port
 
   All three USB host ports are equipped with 500 mA high-side power switch
-  for self-powered and buspowered applications. The USB device port feature
+  for self-powered and bus powered applications. The USB device port feature
   VBUS inserts detection function.
 
   Port A
@@ -640,8 +980,751 @@ USB Ports
     ---- ----------- -------------------------------------------------------
     PD28 OVCUR_USB   Combined overrcurrent indication from port A and B
 
+USB High-Speed Device
+=====================
+
+  Basic USB High-Speed Device Configuration
+  -----------------------------------------
+
+  Support the USB high-speed device (UDPHS) driver can be enabled with these
+  NuttX configuration settings.
+
+    Device Drivers -> USB Device Driver Support
+      CONFIG_USBDEV=y                       : Enable USB device support
+      CONFIG_USBDEV_DUALSPEED=y             : Device support High and Full Speed
+      CONFIG_USBDEV_DMA=y                   : Device uses DMA
+
+    System Type -> ATSAMA5 Peripheral Support
+      CONFIG_SAMA5_UDPHS=y                  : Enable UDPHS High Speed USB device
+
+    Application Configuration -> NSH Library
+      CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
+
+  Mass Storage Class
+  ------------------
+
+  The Mass Storage Class (MSC) class driver is selected for use with
+  UDPHS:
+
+    Device Drivers -> USB Device Driver Support
+      CONFIG_USBMSC=y                       : Enable the USB MSC class driver
+      CONFIG_USBMSC_EPBULKOUT=1             : Use EP1 for the BULK OUT endpoint
+      CONFIG_USBMSC_EPBULKIN=2              : Use EP2 for the BULK IN endpoint
+
+  The following setting enables an add-on that can can be used to control
+  the USB MSC device.  It will add two new NSH commands:
+
+    a. msconn will connect the USB serial device and export the AT25
+       to the host, and
+    b. msdis which will disconnect the USB serial device.
+
+    Application Configuration -> System Add-Ons:
+      CONFIG_SYSTEM_USBMSC=y                : Enable the USBMSC add-on
+      CONFIG_SYSTEM_USBMSC_NLUNS=1          : One LUN
+      CONFIG_SYSTEM_USBMSC_DEVMINOR1=0      : Minor device zero
+      CONFIG_SYSTEM_USBMSC_DEVPATH1="/dev/mtdblock0"
+                                            : Use a single, LUN:  The AT25
+                                            : block driver.
+
+    NOTES:
+
+    a. To prevent file system corruption, make sure that the AT25 is un-
+       mounted *before* exporting the mass storage device to the host:
+
+         nsh> umount /mnt/at25
+         nsh> mscon
+
+       The AT25 can be re-mounted after the mass storage class is disconnected:
+
+        nsh> msdis
+        nsh> mount -t vfat /dev/mtdblock0 /mnt/at25
+
+    b. If you change the value CONFIG_SYSTEM_USBMSC_DEVPATH1, then you
+       can export other file systems:
+
+        "/dev/mmcsd1" will export the HSMCI1 microSD
+        "/dev/mmcsd0" will export the HSMCI0 full-size SD slot
+        "/dev/ram0" could even be used to export a RAM disk.  But you would
+          first have to use mkrd to create the RAM disk and mkfatfs to put
+          a FAT file system on it.
+
+  CDC/ACM Serial Device Class
+  ---------------------------
+
+  This will select the CDC/ACM serial device.  Defaults for the other
+  options should be okay.
+
+    Device Drivers -> USB Device Driver Support
+      CONFIG_CDCACM=y                       : Enable the CDC/ACM device
+      CONFIG_CDCACM_BULKIN_REQLEN=768       : Default too small for high-speed
+
+  The following setting enables an example that can can be used to control
+  the CDC/ACM device.  It will add two new NSH commands:
+
+    a. sercon will connect the USB serial device (creating /dev/ttyACM0), and
+    b. serdis which will disconnect the USB serial device (destroying
+        /dev/ttyACM0).
+
+    Application Configuration -> Examples:
+      CONFIG_SYSTEM_CDCACM=y              : Enable an CDC/ACM example
+
+  Debugging USB Device
+  --------------------
+
+  There is normal console debug output available that can be enabled with
+  CONFIG_DEBUG + CONFIG_DEBUG_USB.  However, USB device operation is very
+  time critical and enabling this debug output WILL interfere with the
+  operation of the UDPHS.  USB device tracing is a less invasive way to get
+  debug information:  If tracing is enabled, the USB device will save
+  encoded trace output in in-memory buffer; if the USB monitor is also
+  enabled, that trace buffer will be periodically emptied and dumped to the
+  system logging device (the serial console in this configuration):
+
+    Device Drivers -> "USB Device Driver Support:
+      CONFIG_USBDEV_TRACE=y                   : Enable USB trace feature
+      CONFIG_USBDEV_TRACE_NRECORDS=256        : Buffer 256 records in memory
+      CONFIG_USBDEV_TRACE_STRINGS=y           : (optional)
+
+    Application Configuration -> NSH LIbrary:
+      CONFIG_NSH_USBDEV_TRACE=n               : No builtin tracing from NSH
+      CONFIG_NSH_ARCHINIT=y                   : Automatically start the USB monitor
+
+    Application Configuration -> System NSH Add-Ons:
+      CONFIG_SYSTEM_USBMONITOR=y              : Enable the USB monitor daemon
+      CONFIG_SYSTEM_USBMONITOR_STACKSIZE=2048 : USB monitor daemon stack size
+      CONFIG_SYSTEM_USBMONITOR_PRIORITY=50    : USB monitor daemon priority
+      CONFIG_SYSTEM_USBMONITOR_INTERVAL=1     : Dump trace data every second
+      CONFIG_SYSTEM_USBMONITOR_TRACEINIT=y    : Enable TRACE output
+      CONFIG_SYSTEM_USBMONITOR_TRACECLASS=y
+      CONFIG_SYSTEM_USBMONITOR_TRACETRANSFERS=y
+      CONFIG_SYSTEM_USBMONITOR_TRACECONTROLLER=y
+      CONFIG_SYSTEM_USBMONITOR_TRACEINTERRUPTS=y
+
+  NOTE: If USB debug output is also enabled, both outputs will appear on the
+  serial console.  However, the debug output will be asynchronous with the
+  trace output and, hence, difficult to interpret.
+
+USB High-Speed Host
+===================
+
+  OHCI Only
+  ---------
+
+  Support the USB low/full-speed OHCI host driver can be enabled by changing
+  the NuttX configuration file as follows:
+
+    System Type -> ATSAMA5 Peripheral Support
+      CONFIG_SAMA5_UHPHS=y                 : USB Host High Speed
+
+    System Type -> USB High Speed Host driver options
+      CONFIG_SAMA5_OHCI=y                  : Low/full-speed OHCI support
+                                           : Defaults for values probably OK
+    Device Drivers
+      CONFIG_USBHOST=y                     : Enable USB host support
+
+    Device Drivers -> USB Host Driver Support
+      CONFIG_USBHOST_ISOC_DISABLE=y        : Isochronous endpoints not used
+      CONFIG_USBHOST_MSC=y                 : Enable the mass storage class driver
+      CONFIG_USBHOST_HIDKBD=y              : Enable the HID keyboard class driver
+
+    Library Routines
+      CONFIG_SCHED_WORKQUEUE=y             : Worker thread support is required
+
+    Application Configuration -> NSH Library
+      CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
+
+  NOTE:  When OHCI is selected, the SAMA5 will operate at 384MHz instead of
+  396MHz.  This is so that the PLL generates a frequency which is a multiple
+  of the 48MHz needed for OHCI.  The delay loop calibration values that are
+  used will be off slightly because of this.
+
+  EHCI
+  ----
+
+  Support the USB high-speed EHCI host driver can be enabled by changing the
+  NuttX configuration file as follows.  If EHCI is enabled by itself, then
+  only high-speed devices can be supported.  If OHCI is also enabled, then
+  all low-, full-, and high speed devices will work.
+
+    System Type -> ATSAMA5 Peripheral Support
+      CONFIG_SAMA5_UHPHS=y                 : USB Host High Speed
+
+    System Type -> USB High Speed Host driver options
+      CONFIG_SAMA5_EHCI=y                  : High-speed EHCI support
+      CONFIG_SAMA5_OHCI=y                  : Low/full-speed OHCI support
+                                               : Defaults for values probably OK for both
+    Device Drivers
+      CONFIG_USBHOST=y                     : Enable USB host support
+      CONFIG_USBHOST_INT_DISABLE=y         : Interrupt endpoints not needed
+      CONFIG_USBHOST_ISOC_DISABLE=y        : Isochronous endpoints not needed
+
+    Device Drivers -> USB Host Driver Support
+      CONFIG_USBHOST_ISOC_DISABLE=y        : Isochronous endpoints not used
+      CONFIG_USBHOST_MSC=y                 : Enable the mass storage class driver
+      CONFIG_USBHOST_HIDKBD=y              : Enable the HID keyboard class driver
+
+    Library Routines
+      CONFIG_SCHED_WORKQUEUE=y             : Worker thread support is required
+
+    Application Configuration -> NSH Library
+      CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
+
+  Mass Storage Device Usage
+  -------------------------
+
+  Example Usage:
+
+    NuttShell (NSH) NuttX-6.29
+    nsh> ls /dev
+     /dev:
+     console
+     mtdblock0
+     null
+     ttyS0
+
+  Here a USB FLASH stick is inserted.  Nothing visible happens in the
+  shell.  But a new device will appear:
+
+    nsh> ls /dev
+    /dev:
+     console
+     mtdblock0
+     null
+     sda
+     ttyS0
+    nsh> mount -t vfat /dev/sda /mnt/sda
+    nsh> ls -l /mnt/sda
+    /mnt/sda:
+     -rw-rw-rw-    8788 viminfo
+     drw-rw-rw-       0 .Trash-1000/
+     -rw-rw-rw-    3378 zmodem.patch
+     -rw-rw-rw-    1503 sz-1.log
+     -rw-rw-rw-     613 .bashrc
+
+  HID Keyboard Usage
+  ------------------
+
+  If a (supported) USB keyboard is connected, a /dev/kbda device will appear:
+
+    nsh> ls /dev
+    /dev:
+     console
+     kbda
+     mtdblock0
+     null
+     ttyS0
+
+  /dev/kbda is a read-only serial device.  Reading from /dev/kbda will get
+  keyboard input as ASCII data (other encodings are possible):
+
+    nsh> cat /dev/kbda
+
+  Debugging USB Host
+  ------------------
+
+  There is normal console debug output available that can be enabled with
+  CONFIG_DEBUG + CONFIG_DEBUG_USB.  However, USB host operation is very time
+  critical and enabling this debug output might interfere with the operation
+  of the UDPHS.  USB host tracing is a less invasive way to get debug
+  information:  If tracing is enabled, the USB host will save encoded trace
+  output in in-memory buffer; if the USB monitor is also enabled, that trace
+  buffer will be periodically emptied and dumped to the system logging device
+  (the serial console in this configuration):
+
+    Device Drivers -> "USB Host Driver Support:
+      CONFIG_USBHOST_TRACE=y                   : Enable USB host trace feature
+      CONFIG_USBHOST_TRACE_NRECORDS=256        : Buffer 256 records in memory
+      CONFIG_USBHOST_TRACE_VERBOSE=y           : Buffer everything
+
+    Application Configuration -> NSH LIbrary:
+      CONFIG_NSH_USBDEV_TRACE=n               : No builtin tracing from NSH
+      CONFIG_NSH_ARCHINIT=y                   : Automatically start the USB monitor
+
+    Application Configuration -> System NSH Add-Ons:
+      CONFIG_SYSTEM_USBMONITOR=y              : Enable the USB monitor daemon
+      CONFIG_SYSTEM_USBMONITOR_STACKSIZE=2048 : USB monitor daemon stack size
+      CONFIG_SYSTEM_USBMONITOR_PRIORITY=50    : USB monitor daemon priority
+      CONFIG_SYSTEM_USBMONITOR_INTERVAL=1     : Dump trace data every second
+
+  NOTE: If USB debug output is also enabled, both outpus will appear on the
+  serial console.  However, the debug output will be asynchronous with the
+  trace output and, hence, difficult to interpret.
+
+NOR FLASH Support
+=================
+
+  Most of these configurations execute out of CS0 NOR flash and can only be
+  loaded via SAM-BA.  These are the relevant configuration options the
+  define the NOR FLASH configuration:
+
+    CONFIG_SAMA5_BOOT_CS0FLASH=y            : Boot from FLASH on CS0
+    CONFIG_BOOT_RUNFROMFLASH=y              : Run in place on FLASH (vs copying to RAM)
+
+    CONFIG_SAMA5_EBICS0=y                   : Enable CS0 external memory
+    CONFIG_SAMA5_EBICS0_SIZE=134217728      : Memory size is 128KB
+    CONFIG_SAMA5_EBICS0_NOR=y               : Memory type is NOR FLASH
+
+    CONFIG_FLASH_START=0x10000000           : Physical FLASH start address
+    CONFIG_FLASH_VSTART=0x10000000          : Virtual FLASH start address
+    CONFIG_FLASH_SIZE=134217728             : FLASH size (again)
+
+    CONFIG_RAM_START=0x00300400             : Data stored after page table
+    CONFIG_RAM_VSTART=0x00300400
+    CONFIG_RAM_SIZE=114688                  : Available size of 128KB - 16KB for page table
+
+  NOTE:  In order to boot in this configuration, you need to close the BMS
+  jumper.
+
+  STATUS:  I have been unable to execute these configurations from NOR FLASH
+  by closing the BMS jumper (J9).  As far as I can tell, this jumper does
+  nothing on my board???  So I have been using the norboot configuration
+  exclusively to start the program-under-test in NOR FLASH (see the section
+  entitled "Creating and Using NORBOOT" above.)
+
+SDRAM Support
+=============
+
+  SRAM Heap Configuration
+  -----------------------
+
+  In these configurations, .data and .bss are retained in ISRAM.  SDRAM can
+  be initialized and included in the heap.  Relevant configuration settings:
+
+    System Type->ATSAMA5 Peripheral Support
+      CONFIG_SAMA5_MPDDRC=y                 : Enable the DDR controller
+
+    System Type->External Memory Configuration
+      CONFIG_SAMA5_DDRCS=y                  : Tell the system that DRAM is at the DDR CS
+      CONFIG_SAMA5_DDRCS_SIZE=268435456     : 2Gb DRAM -> 256GB
+      CONFIG_SAMA5_DDRCS_LPDDR2=y           : Its DDR2
+      CONFIG_SAMA5_MT47H128M16RT=y          : This is the type of DDR2
+
+    System Type->Heap Configuration
+      CONFIG_SAMA5_DDRCS_HEAP=y             : Add the SDRAM to the heap
+      CONFIG_SAMA5_DDRCS_HEAP_OFFSET=0
+      CONFIG_SAMA5_DDRCS_HEAP_SIZE=268435456
+
+    Memory Management
+      CONFIG_MM_REGIONS=2                   : Two heap memory regions:  ISRAM and SDRAM
+
+  RAM Test
+  --------
+
+  Another thing you could do is to enable the RAM test built-in application.
+  You can enable the NuttX RAM test that may be used to verify the external
+  SDRAM.  To do this, keep the SDRAM out of the heap so that it can be tested
+  without crashing programs using the memory:
+
+    System Type->Heap Configuration
+      CONFIG_SAMA5_DDRCS_HEAP=n             : Don't add the SDRAM to the heap
+
+    Memory Management
+      CONFIG_MM_REGIONS=1                   : One memory regions:  ISRAM
+
+  Then enable the RAM test built-in application:
+
+    Application Configuration->System NSH Add-Ons->Ram Test
+      CONFIG_SYSTEM_RAMTEST=y
+
+  In this configuration, the SDRAM is not added to heap and so is not
+  accessable to the applications.  So the RAM test can be freely executed
+  against the SRAM memory beginning at address 0x2000:0000 (DDR CS):
+
+    nsh> ramtest -h
+    Usage: <noname> [-w|h|b] <hex-address> <decimal-size>
+
+    Where:
+      <hex-address> starting address of the test.
+      <decimal-size> number of memory locations (in bytes).
+      -w Sets the width of a memory location to 32-bits.
+      -h Sets the width of a memory location to 16-bits (default).
+      -b Sets the width of a memory location to 8-bits.
+
+    To test the entire external 256MB SRAM:
+
+    nsh> ramtest -w 20000000 268435456
+    RAMTest: Marching ones: 20000000 268435456
+    RAMTest: Marching zeroes: 20000000 268435456
+    RAMTest: Pattern test: 20000000 268435456 55555555 aaaaaaaa
+    RAMTest: Pattern test: 20000000 268435456 66666666 99999999
+    RAMTest: Pattern test: 20000000 268435456 33333333 cccccccc
+    RAMTest: Address-in-address test: 20000000 268435456
+
+  SDRAM Data Configuration
+  ------------------------
+ 
+  In these configurations, .data and .bss are retained in ISRAM by default.
+  .data and .bss can also be retained in SDRAM using these slightly
+  different configuration settings.  In this configuration, ISRAM is
+  used only for the Cortex-A5 page table for the IDLE thread stack.
+
+    System Type->ATSAMA5 Peripheral Support
+      CONFIG_SAMA5_MPDDRC=y                 : Enable the DDR controller
+
+    System Type->External Memory Configuration
+      CONFIG_SAMA5_DDRCS=y                  : Tell the system that DRAM is at the DDR CS
+      CONFIG_SAMA5_DDRCS_SIZE=268435456     : 2Gb DRAM -> 256GB
+      CONFIG_SAMA5_DDRCS_LPDDR2=y           : Its DDR2
+      CONFIG_SAMA5_MT47H128M16RT=y          : This is the type of DDR2
+
+    System Type->Heap Configuration
+      CONFIG_SAMA5_ISRAM_HEAP=n              : These do not apply in this case
+      CONFIG_SAMA5_DCRS_HEAP=n
+
+    System Type->Boot Memory Configuration
+      CONFIG_RAM_START=0x20000000           : Physical address of SDRAM
+      CONFIG_RAM_VSTART=0x20000000          : Virtual address of SDRAM
+      CONFIG_RAM_SIZE=268435456             : Size of SDRAM
+      CONFIG_BOOT_SDRAM_DATA=y              : Data is in SDRAM
+
+      Care must be used applied these RAM locations; the graphics
+      configurations use SDRAM in an incompatible way to set aside
+      LCD framebuffers.
+
+    Memory Management
+      CONFIG_MM_REGIONS=1                   : One heap memory region:  ISDRAM
+
+NAND Support
+============
+
+  NAND support is only partial in that there is no file system that works
+  with it properly.  Lower-level NAND support has been developed and
+  verified, but there is no way to use it in the current NuttX architecture
+  other than through the raw MTD interface.
+
+  NAND should still be considered a work in progress.  You will not want to
+  use NAND unless you are interested in investing a little effort,
+  particularly in infrastructure. See the "STATUS SUMMARY" section below.
+
+  NAND Support
+  ------------
+
+  NAND Support can be added to the NSH configuration by modifying the
+  NuttX configuration file as follows:
+
+    Build Setup
+      CONFIG_EXPERIMENTAL=y             : NXFFS implementation is incomplete and
+                                        : not yet fully functional.
+
+    System Type -> SAMA5 Peripheral support
+      CONFIG_SAMA5_HSMC=y               : Make sure that the SMC is enabled
+
+    Drivers -> Memory Technology Device (MTD) Support
+      CONFIG_MTD=y                      : Enable MTD support
+      CONFIG_MTD_NAND=y                 : Enable NAND support
+      CONFIG_MTD_NAND_BLOCKCHECK=n      : Interferes with NXFFS bad block checking
+      CONFIG_MTD_NAND_SWECC=y           : Use S/W ECC calculation
+
+      Defaults for all other NAND settings should be okay
+
+    System Type -> External Memory Configuration
+      CONFIG_SAMA5_EBICS3=y             : Enable External CS3 memory
+      CONFIG_SAMA5_EBICS3_NAND=y        : Select NAND memory type
+      CONFIG_SAMA5_EBICS3_SIZE=8388608  : Use this size
+      CONFIG_SAMA5_EBICS3_SWECC=y       : Use S/W ECC calculation
+
+      Defaults for ROM page table addresses should be okay
+
+    Application Configuration -> NSH Library
+      CONFIG_NSH_ARCHINIT=y             : Use architecture-specific initialization
+
+    NOTES:
+
+    1. WARNING:  This will wipe out everything that you may have on the NAND
+       FLASH!  I have found that using the JTAG with no valid image on NAND
+       or Serial FLASH is a problem:  In that case, the code always ends up
+       in the SAM-BA bootloader.
+
+       My understanding is that you can enable JTAG in this case by simply
+       entering any data on the DBG serial port.  I have not tried this.
+       Instead, I just changed to boot from Serial Flash:
+
+    2. Booting from Serial Flash. The work around for this case is to put
+       the NORBOOT image into Serial FLASH.  Then, the system will boot from
+       Serial FLASH by copying the NORBOOT image in SRAM which will run and
+       then start the image in NOR FLASH.  See the discussion of the NORBOOT
+       configuration in the "Creating and Using NORBOOT" section above.
+
+       NOTE that there is jumper on the CM module that must be closed to enable
+       use of the AT25 Serial Flash.  Also, if you are using using SAM-BA,
+       make sure that you load the NOR boot program into the boot area via
+       the pull-down menu.
+
+    3. Unfortunately, there are no appropriate NAND file system in NuttX as
+       of this writing.  The following sections discussion issues/problems
+       with using NXFFS and FAT.
+
+    PMECC
+    -----
+
+    Hardware ECC calculation using the SAMA5D3's PMECC can be enable as
+    follows:
+
+    Drivers -> Memory Technology Device (MTD) Support
+      CONFIG_MTD_NAND_SWECC=y           : Don't use S/W ECC calculation
+      CONFIG_MTD_NAND_HWECC=y           : Use H/W ECC instead
+
+    System Type -> External Memory Configuration
+      CONFIG_SAMA5_EBICS3_SWECC=n       : Don't use S/W ECC calculation
+      CONFIG_SAMA5_HAVE_PMECC=n         : Use H/W ECC instead
+
+    Other PMECC-related default settings should be okay.
+
+    STATUS:  As of the writing, NAND transfers using PMECC appear to
+    work correctly.  However, the PMECC based systems do not work as
+    as well with FAT or NXFFS.  My belief that that the FAT/NXFFS layers
+    are inappropriate for NAND and, as a result, happen not to work with
+    the PMECC ECC calculation.  See also the "STATUS SUMMARY" section below.
+
+    DMA Support
+    -----------
+
+    DMA support can be enabled as follows:
+
+    System Type -> SAMA5 Peripheral support
+      CONFIG_SAMA5_DMAC0=y              : Use DMAC0 for memory-to-memory DMA
+
+    System Type -> External Memory Configuration
+      CONFIG_SAMA5_NAND_DMA=y           : Use DMAC0 for NAND data transfers
+
+    STATUS:  DMA appears to be functional, but probably has not been
+    exercised enough to claim that with any certainty.  See also the "STATUS
+    SUMMARY" section below.
+
+    NXFFS
+    -----
+
+    The NuttX FLASH File System (NXFFS) works well with NOR-like FLASH
+    but does not work well with NAND (See comments below under STATUS)
+
+    File Systems:
+      CONFIG_FS_NXFFS=y                 : Enable the NXFFS file system
+
+      Defaults for all other NXFFS settings should be okay.
+
+      NOTE:  NXFFS will require some significant buffering because of
+      the large size of the NAND flash blocks.  You will also need
+      to enable SDRAM as described above.
+
+    Board Selection
+      CONFIG_SAMA5_NAND_AUTOMOUNT=y     : Enable FS support on NAND
+      CONFIG_SAMA5_NAND_NXFFS=y         : Use the NXFFS file system
+
+      Other file systems are not recommended because only NXFFS can handle
+      bad blocks and only NXFFS performs wear-levelling.
+
+    FAT
+    ---
+
+    Another option is FAT.  FAT, however, is not appropriate for use with
+    NAND: FAT will not handle bad blocks, does not perform any wear
+    levelling, and may not conform to writing ordering requirements of NAND.
+    Also, there appear to be issues with FAT when PMECC is enabled (see
+    "STATUS SUMMARY" below).
+
+    File Systems:
+      CONFIG_FS_FAT=y                   : Enable the FAT FS
+      CONFIG_FAT_LCNAMES=y              : With lower case name support
+      CONFIG_FAT_LFN=y                  : And (patented) FAT long file name support
+      CONFIG_FS_NXFFS=n                 : Don't need NXFFS
+
+      Defaults for all other NXFFS settings should be okay.
+
+    Board Selection
+      CONFIG_SAMA5_NAND_AUTOMOUNT=y     : Enable FS support on NAND
+      CONFIG_SAMA5_NAND_FTL=y           : Use an flash translation layer
+
+      NOTE:  FTL will require some significant buffering because of
+      the large size of the NAND flash blocks.  You will also need
+      to enable SDRAM as described above.
+
+    SMART FS
+    --------
+
+    Another option is Smart FS.  Smart FS is another small file system
+    designed to work with FLASH.  Properties:  It does support some wear-
+    leveling like NXFFS, but like FAT, cannot handle bad blocks and like
+    NXFFS, it will try to re-write erased bits.
+
+    Using NAND with NXFFS
+    ---------------------
+
+    With the options CONFIG_SAMA5_NAND_AUTOMOUNT=y and
+    CONFIG_SAMA5_NAND_NXFFS=y, the NAND FLASH will be mounted in the NSH
+    start-up logic before the NSH prompt appears.  There is no feedback as
+    to whether or not the mount was successful.  You can, however, see the
+    mounted file systems using the nsh 'mount' command:
+
+      nsh> mount
+      /mnt/nand type nxffs
+
+    Then NAND can be used like any other file system:
+
+      nsh> echo "This is a test" >/mnt/nand/atest.txt
+      nsh> ls -l /mnt/nand
+      /mnt/nand:
+       ---x--x--x      16 atest.txt
+      nsh> cat /mnt/nand/atest.txt
+      This is a test
+
+    The NAND volume can be un-mounted with this comment:
+
+      nsh> umount /mnt/nand
+      nsh> mount
+
+    And re-mounted with this command:
+
+      nsh> mount -t nxffs /mnt/mystuff
+      nsh> mount
+        /mnt/mystuff type nxffs
+
+    NOTES:
+      1. NXFFS can be very slow.  The first time that you start the system,
+         be prepared for a wait; NXFFS will need to format the NAND volume.
+         I have lots of debug on so I don't yet know what the optimized wait
+         will be.  But with debug ON, software ECC, and no DMA the wait is
+         in many tens of minutes (and substantially  longer if many debug
+         options are enabled.
+
+         [I don't yet have data for the more optimal cases. It will be
+          significantly less, but still not fast.]
+
+      2. On subsequent boots, after the NXFFS file system has been created
+         the delay will be less.  When the new file system is empty, it will
+         be very fast.  But the NAND-related boot time can become substantial
+         when there has been a lot of usage of the NAND.  This is because
+         NXFFS needs to scan the NAND device and build the in-memory dataset
+         needed to access NAND and there is more that must be scanned after
+         the device has been used.  You may want to create a separate thread at
+         boot time to bring up NXFFS so that you don't delay the boot-to-prompt
+         time excessively in these longer delay cases.
+
+      3. There is another NXFFS related performance issue:  When the FLASH
+         is fully used, NXFFS will restructure the entire FLASH, the delay
+         to restructure the entire FLASH will probably be even larger.  This
+         solution in this case is to implement an NXFSS clean-up daemon that
+         does the job a little-at-a-time so that there is no massive clean-up
+         when the FLASH becomes full.
+
+      4. Bad NXFFS behavior with NAND:  If you restart NuttX, the files that
+         you wrote to NAND will be gone.  Why?  Because the multiple writes
+         have corrupted the NAND ECC bits.  See STATUS below.  NXFFS would
+         require a major overhaul to be usable with NAND.
+
+    Using NAND with FAT
+    -------------------
+
+    If configured for FAT, the system will create block driver at
+    /dev/mtdblock0:
+
+      NuttShell (NSH)
+      nsh> ls /dev
+      /dev:
+       console
+       mtdblock0
+       null
+       ttyS0
+
+    You will not that the system comes up immediately because there is not
+    need to scan the volume in this case..
+
+    The NSH 'mkfatfs' command can be used to format a FAT file system on
+    NAND.
+
+      nsh> mkfatfs /dev/mtdblock0
+
+    This step, on the other hand, requires quite a bit of time.
+
+    And the FAT file system can be mounted like:
+
+      nsh> mount -t vfat /dev/mtdblock0 /mnt/nand
+      nsh> ls /mnt/nand
+      /mnt/nand:
+
+      nsh> echo "This is a test" > /mnt/nand/atest.txt
+
+        NOTE:  This will take a long time because it will require reading,
+        modifying, and re-writing the 128KB erase page!
+
+      nsh> ls -l /mnt/nand
+      /mnt/nand:
+       -rw-rw-rw-      16 atest.txt
+
+      nsh> cat /mnt/fat/atest.txt
+      This is a test
+
+    NOTES:
+
+    1. Unlike NXFFS, FAT can work with NAND (at least with PMECC disabled).
+       But there are some significant issues.
+
+    2. First, each NAND write access will cause a 256KB data transfer:  It
+       will read the entire 128KB erase block, modify it and write it back
+       to memory.  There is some caching logic so that this cached erase
+       block can be re-used if possible and writes will be deferred as long
+       as possible.
+
+    3. If you hit a bad block, then FAT is finished.  There is no mechanism
+       in place in FAT not to mark and skip over bad blocks.
+
+    What is Needed
+    --------------
+
+    What is needed to work with FAT properly would be another MTD layer
+    between the FTL layer and the NAND FLASH layer.  That layer would
+    perform bad block detection and sparing so that FAT works transparently
+    on top of the NAND.
+
+    Another, less general, option would be support bad blocks within FAT.
+
+  STATUS SUMMARY
+  --------------
+
+  1. PMECC appears to be working in that I can write a NAND block with its
+     ECC and read the block back and verify that that is are no bit
+     failures.  However, when attempting to work with FAT, it does not
+     work correctly:  The MBR is written and read back correctly, but gets
+     corrupted later for unknown reasons.
+
+  2. DMA works (at least with software ECC), but I have seen occasional
+     failures.  I recommend enabling DMA with caution.
+
+     In NuttX, DMA will also cost two context switches (and, hence, four
+     register state transfers).  With smaller NAND page sizes (say 2KiB and
+     below), I would expect little or no performance improvement with DMA
+     for this reason.
+
+  3. NXFFS does not work with NAND. NAND differs from other other FLASH
+     types several ways.  For one thing, NAND requires error correction
+     (ECC) bytes that must be set in order to work around bit failures.
+     This affects NXFFS in two ways:
+
+     a. First, write failures are not fatal. Rather, they should be tried by
+        bad blocks and simply ignored.  This is because unrecoverable bit
+        failures will cause read failures when reading from NAND.  Setting
+        the CONFIG_EXPERIMENTAL+CONFIG_NXFFS_NANDs option will enable this
+        behavior.
+
+     b. Secondly, NXFFS will write a block many times.  It tries to keep
+        bits in the erased state and assumes that it can overwrite those bits
+        to change them from the erased to the non-erased state.  This works
+        will with NOR-like FLASH.  NAND behaves this way too.  But the
+        problem with NAND is that the ECC bits cannot be re-written in this
+        way.  So once a block has been written, it cannot be modified.  This
+        behavior has NOT been fixed in NXFFS.  Currently, NXFFS will attempt
+        to re-write the ECC bits causing the ECC to become corrupted because
+        the ECC bits cannot be overwritten without erasing the entire block.
+
+     This may prohibit NXFFS from ever being used with NAND.
+
+  4. As mentioned above, FAT does work but (1) has some performance issues on
+     writes and (2) cannot handle bad blocks.
+
 AT24 Serial EEPROM
 ==================
+
+  AT24 Connections
+  ----------------
 
   A AT24C512 Serial EEPPROM was used for tested I2C.  There are other I2C/TWI
   devices on-board, but the serial EEPROM is the simplest test.
@@ -657,6 +1740,132 @@ AT24 Serial EEPROM
 
   By default, PA30 and PA31 are SWJ-DP pins, it can be used as a pin for TWI
   peripheral in the end application.
+
+  Configuration Settings
+  ----------------------
+
+  The following configuration settings were used:
+
+    System Type -> SAMA5 Peripheral Support
+      CONFIG_SAMA5_TWI0=y                   : Enable TWI0
+
+    System Type -> TWI device driver options
+      SAMA5_TWI0_FREQUENCY=100000           : Select a TWI frequency
+
+    Device Drivers -> I2C Driver Support
+      CONFIG_I2C=y                          : Enable I2C support
+      CONFIG_I2C_TRANSFER=y                 : Driver supports the transfer() method
+      CONFIG_I2C_WRITEREAD=y                : Driver supports the writeread() method
+
+    Device Drivers -> Memory Technology Device (MTD) Support
+      CONFIG_MTD=y                          : Enable MTD support
+      CONFIG_MTD_AT24XX=y                   : Enable the AT24 driver
+      CONFIG_AT24XX_SIZE=512                : Specifies the AT 24C512 part
+      CONFIG_AT24XX_ADDR=0x53               : AT24 I2C address
+
+    Application Configuration -> NSH Library
+      CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
+
+    File systems
+      CONFIG_NXFFS=y                        : Enables the NXFFS file system
+      CONFIG_NXFFS_PREALLOCATED=y           : Required
+                                            : Other defaults are probably OK
+
+    Board Selection
+      CONFIG_SAMA5_AT24_AUTOMOUNT=y         : Mounts AT24 for NSH
+      CONFIG_SAMA5_AT24_NXFFS=y             : Mount the AT24 using NXFFS
+
+  You can then format the AT24 EEPROM for a FAT file system and mount the
+  file system at /mnt/at24 using these NSH commands:
+
+    nsh> mkfatfs /dev/mtdblock0
+    nsh> mount -t vfat /dev/mtdblock0 /mnt/at24
+
+  Then you an use the FLASH as a normal FAT file system:
+
+    nsh> echo "This is a test" >/mnt/at24/atest.txt
+    nsh> ls -l /mnt/at24
+    /mnt/at24:
+     -rw-rw-rw-      16 atest.txt
+    nsh> cat /mnt/at24/atest.txt
+    This is a test
+
+I2C Tool
+========
+
+  I2C Tool. NuttX supports an I2C tool at apps/system/i2c that can be used
+  to peek and poke I2C devices.  That tool cal be enabled by setting the
+  following:
+
+    System Type -> SAMA5 Peripheral Support
+      CONFIG_SAMA5_TWI0=y                   : Enable TWI0
+      CONFIG_SAMA5_TWI1=y                   : Enable TWI1
+      CONFIG_SAMA5_TWI2=y                   : Enable TWI2
+
+    System Type -> TWI device driver options
+      SAMA5_TWI0_FREQUENCY=100000           : Select a TWI0 frequency
+      SAMA5_TWI1_FREQUENCY=100000           : Select a TWI1 frequency
+      SAMA5_TWI2_FREQUENCY=100000           : Select a TWI2 frequency
+
+    Device Drivers -> I2C Driver Support
+      CONFIG_I2C=y                          : Enable I2C support
+      CONFIG_I2C_TRANSFER=y                 : Driver supports the transfer() method
+      CONFIG_I2C_WRITEREAD=y                : Driver supports the writeread() method
+
+    Application Configuration -> NSH Library
+      CONFIG_SYSTEM_I2CTOOL=y               : Enable the I2C tool
+      CONFIG_I2CTOOL_MINBUS=0               : TWI0 has the minimum bus number 0
+      CONFIG_I2CTOOL_MAXBUS=2               : TWI2 has the maximum bus number 2
+      CONFIG_I2CTOOL_DEFFREQ=100000         : Pick a consistent frequency
+
+    The I2C tool has extensive help that can be accessed as follows:
+
+    nsh> i2c help
+    Usage: i2c <cmd> [arguments]
+    Where <cmd> is one of:
+
+      Show help     : ?
+      List busses   : bus
+      List devices  : dev [OPTIONS] <first> <last>
+      Read register : get [OPTIONS] [<repititions>]
+      Show help     : help
+      Write register: set [OPTIONS] <value> [<repititions>]
+      Verify access : verf [OPTIONS] [<value>] [<repititions>]
+
+    Where common "sticky" OPTIONS include:
+      [-a addr] is the I2C device address (hex).  Default: 03 Current: 03
+      [-b bus] is the I2C bus number (decimal).  Default: 0 Current: 0
+      [-r regaddr] is the I2C device register address (hex).  Default: 00 Current: 00
+      [-w width] is the data width (8 or 16 decimal).  Default: 8 Current: 8
+      [-s|n], send/don't send start between command and data.  Default: -n Current: -n
+      [-i|j], Auto increment|don't increment regaddr on repititions.  Default: NO Current: NO
+      [-f freq] I2C frequency.  Default: 100000 Current: 100000
+
+    NOTES:
+    o Arguments are "sticky".  For example, once the I2C address is
+      specified, that address will be re-used until it is changed.
+
+    WARNING:
+    o The I2C dev command may have bad side effects on your I2C devices.
+      Use only at your own risk.
+
+    As an example, the I2C dev comman can be used to list all devices
+    responding on TWI0 (the default) like this:
+
+      nsh> i2c dev 0x03 0x77
+          0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+      00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+      10: -- -- -- -- -- -- -- -- -- -- 1a -- -- -- -- --
+      20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+      30: -- -- -- -- -- -- -- -- -- 39 -- -- -- 3d -- --
+      40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+      50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+      60: 60 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+      70: -- -- -- -- -- -- -- --
+      nsh>
+
+     Address 0x1a is the WM8904.  Address 0x39 is the SIL9022A. I am not sure
+     what is at address 0x3d and 0x60
 
 CAN Usage
 =========
@@ -942,48 +2151,159 @@ SAMA5 PWM Support
       [-t duration] is the duration of the pulse train in seconds.  Default: 5 Current: 5
       [-h] shows this message and exits
 
+RTC
+===
+
+  The Real Time Clock/Calendar RTC) may be enabled with these settings:
+
+    System Type:
+      CONFIG_SAMA5_RTC=y                   : Enable the RTC driver
+
+    Drivers (these values will be selected automatically):
+      CONFIG_RTC=y                         : Use the RTC for system time
+      CONFIG_RTC_DATETIME=y                : RTC supports data/time
+
+  The RTC supports an alarm that may be enable with the following settings.
+  However, there is nothing in the system that currently makes use of this
+  alarm.
+
+    Drivers:
+      CONFIG_RTC_ALARM=y                   : Enable the RTC alarm
+
+    Library Routines
+      CONFIG_SCHED_WORKQUEUE=y              : Alarm needs work queue support
+
+Watchdog Timer
+==============
+
+  NSH can be configured to exercise the watchdog timer test
+  (apps/examples/watchdog).  This can be selected with the following
+  settings in the NuttX configuration file:
+
+    System Type:
+      CONFIG_SAMA5_WDT=y                  : Enable the WDT peripheral
+                                          : Defaults in "RTC Configuration" should be OK
+
+    Drivers (this will automatically be selected):
+      CONFIG_WATCHDOG=y                   : Enables watchdog timer driver support
+
+    Application Configuration -> Examples
+      CONFIG_EXAMPLES_WATCHDOG=y          : Enable apps/examples/watchdog
+
+  The WDT timer is driven off the slow, 32768Hz clock divided by 128. As a
+  result, the watchdog a maximum timeout value of 16 seconds.  The SAMA5 WDT
+  may also only be programmed one time; the processor must be reset before
+  the WDT can be reprogrammed.
+
+  The SAMA5 always boots with the watchdog timer enabled at its maximum
+  timeout (16 seconds).  In the normal case where no watchdog timer driver
+  has been configured, the watchdog timer is disabled as part of the start
+  up logic.  But, since we are permitted only one opportunity to program
+  the WDT, we cannot disable the watchdog time if CONFIG_SAMA5_WDT=y.  So,
+  be forewarned:  You have only 16 seconds to run your watchdog timer test!
+
+  NOTE:  If you are using the norboot program to run from FLASH as I did,
+  beware that the default version also disables the watchdog.  You will
+  need a special version of norboot with CONFIG_SAMA5_WDT=y.
+
+TRNG and /dev/random
+====================
+
+  NSH can be configured to enable the SAMA5 TRNG peripheral so that it
+  provides /dev/random.  The following configuration will enable the TRNG,
+  /dev/random, and the simple test of /dev/random at apps/examples/ranadom:
+
+    System Type:
+      CONFIG_SAMA5_TRNG=y                 : Enable the TRNG peripheral
+
+    Drivers (automatically selected):
+      CONFIG_DEV_RANDOM=y                 : Enable /dev/random
+
+    Applications -> Examples
+      CONFIG_EXAMPLES_RANDOM=y            : Enable apps/examples/random
+      CONFIG_EXAMPLES_MAXSAMPLES=64       : Default settings are probably OK
+      CONFIG_EXAMPLES_NSAMPLES=8
+
+Touchscreen Testing
+===================
+
+  You can enable the touchscreen by modifying the configuration in the
+  following ways:
+
+    System Type:
+      CONFIG_SAMA5_ADC=y                  : ADC support is required
+      CONFIG_SAMA5_TSD=y                  : Enabled touchcreen device support
+      SAMA5_TSD_4WIRE=y                   : 4-Wire interface with pressure
+
+  You might want to tinker with the SWAPXY and THRESHX and THRESHY settings
+  to get the result that you want.
+
+    Drivers:
+      CONFIG_INPUT=y                      : (automatically selected)
+
+    Board Selection:
+       CONFIG_SAMA5_TSD_DEVMINOR=0        : Register as /dev/input0
+
+    Library Support:
+      CONFIG_SCHED_WORKQUEUE=y            : Work queue support required
+
+  These options may also be applied to enable a built-in touchscreen test
+  application:
+
+    Application Configuration:
+      CONFIG_EXAMPLES_TOUCHSCREEN=y       : Enable the touchscreen built-int test
+      CONFIG_EXAMPLES_TOUCHSCREEN_MINOR=0 : To match the board selection
+      CONFIG_EXAMPLES_TOUCHSCREEN_DEVPATH="/dev/input0"
+
+  Defaults should be okay for all related settings.
+
 OV2640 Camera Interface
 =======================
 
     SAMA5D3x PIN             SAMA5D3x-EK    OV2640
     PIO  PER SIGNAL        ISI Socket J11
-    ---- --- ------------- --- ------------ ------------
-                            1  VDDISI
-                            2  GND
-                            3  VDDISI
-                            4  GND
-    PE28  ?  ?              5  ZB_SLPTR
-    PE29  ?  ?              6  ZB_RST
-    PC27  B  TWI1_CK        7  TWCK1
-    PC26  B  TWI1_D         8  TWD1
-                                9  GND
-    PD31  B  PCK1 (ISI_MCK) 10 ISI_MCK
-                            11 GND
-    PA30  C  ISI_VSYNC      12 ISI_VSYNC
-                            13 GND
-    PA31  C  ISI_HSYNC      14 ISI_HSYNC
-                            15 GND
-    PC30  C  ISI_PCK        16 ISI_PCK
-                            17 GND
-    PA16  C  ISI_D0         18 ISI_D0
-    PA17  C  ISI_D1         19 ISI_D1
-    PA18  C  ISI_D2         20 ISI_D2
-    PA19  C  ISI_D3         21 ISI_D3
-    PA20  C  ISI_D4         22 ISI_D4
-    PA21  C  ISI_D5         23 ISI_D5
-    PA22  C  ISI_D6         24 ISI_D6
-    PA23  C  ISI_D7         25 ISI_D7
-    PC29  C  ISI_D8         26 ISI_D8
-    PC28  C  ISI_D9         27 ISI_D9
-    PC27  C  ISI_D10        28 ISI_D10
-    PC26  C  ISI_D11        29 ISI_D11
-                            30 GND
+    ---- --- ------------- --- ------------ ----------------------------------------
+    ---                     1  VDDISI       ---
+    ---                     2  GND          ---
+    ---                     3  VDDISI       ---
+    ---                     4  GND          ---
+    PE28  ?  ?              5  ZB_SLPTR     ???
+    PE29  ?  ?              6  ZB_RST       C6 RESETB Reset mode (?)
+    PC27  B  TWI1_CK        7  TWCK1        C2 SIO_C SCCB serial interface clock input
+    PC26  B  TWI1_D         8  TWD1         C1 SIO_D SCCB serial interface data I/O
+    ---                     9  GND          ---
+    PD31  B  PCK1 (ISI_MCK) 10 ISI_MCK      C4 XVCLK System clock input (?)
+    ---                     11 GND          ---
+    PA30  C  ISI_VSYNC      12 ISI_VSYNC    D2 VSYNC Vertical synchronization
+    ---                     13 GND          ---
+    PA31  C  ISI_HSYNC      14 ISI_HSYNC    C3 HREF Horizontal reference output (?)
+    ---                     15 GND          ---
+    PC30  C  ISI_PCK        16 ISI_PCK      E3 PCLK Pixel clock output
+    ---                     17 GND          ---
+    PA16  C  ISI_D0         18 ISI_D0       E2 Y0 Video port output bit[0]
+    PA17  C  ISI_D1         19 ISI_D1       E1 Y1 Video port output bit[1]
+    PA18  C  ISI_D2         20 ISI_D2       F3 Y2 Video port output bit[2]
+    PA19  C  ISI_D3         21 ISI_D3       G3 Y3 Video port output bit[3]
+    PA20  C  ISI_D4         22 ISI_D4       F4 Y4 Video port output bit[4]
+    PA21  C  ISI_D5         23 ISI_D5       G4 Y5 Video port output bit[5]
+    PA22  C  ISI_D6         24 ISI_D6       E5 Y6 Video port output bit[6]
+    PA23  C  ISI_D7         25 ISI_D7       G5 Y7 Video port output bit[7]
+    PC29  C  ISI_D8         26 ISI_D8       F5 Y8 Video port output bit[8]
+    PC28  C  ISI_D9         27 ISI_D9       G6 Y9 Video port output bit[9]
+    PC27  C  ISI_D10        28 ISI_D10      ---
+    PC26  C  ISI_D11        29 ISI_D11      ---
+    ---                     30 GND          ---
+
+    ???                     ??              A2 EXPST_B Snapshot exposure start trigger
+    ???                     ??              A6 STROBE  Flash control output
+    ???                     ??              B2 FREX    Snapshot trigger
+    ???                     ??              B6 PWDN    Power-down mode enable
 
 I2S Audio Support
 =================
 
   The SAMA5D3x-EK has two devices on-board that can be used for verification
-  of I2S functionaly:  HDMI and a WM8904 audio CODEC.  As of this writing,
+  of I2S functionality:  HDMI and a WM8904 audio CODEC.  As of this writing,
   the I2S driver is present, but there are not drivers for either the HDMI
   or the WM8904.
 
@@ -1147,7 +2467,7 @@ SAMA5D3x-EK Configuration Options
 
   CONFIG_ARCH_CALIBRATION - Enables some build in instrumentation that
   cause a 100 second delay during boot-up.  This 100 second delay
-  serves no purpose other than it allows you to calibratre
+  serves no purpose other than it allows you to calibrate
   CONFIG_ARCH_LOOPSPERMSEC.  You simply use a stop watch to measure
   the 100 second delay then adjust CONFIG_ARCH_LOOPSPERMSEC until
   the delay actually is 100 seconds.
@@ -1291,19 +2611,13 @@ Configurations
   2. Unless stated otherwise, all configurations generate console
      output on UART0 (J3).
 
-  3. Unless otherwise stated, the configurations are setup for
-     Linux (or any other POSIX environment like Cygwin under Windows):
-
-     Build Setup:
-       CONFIG_HOST_LINUX=y   : Linux or other POSIX environment
-
-  4. All of these configurations use the Code Sourcery for Windows toolchain
+  3. All of these configurations use the Code Sourcery for Windows toolchain
      (unless stated otherwise in the description of the configuration).  That
      toolchain selection can easily be reconfigured using 'make menuconfig'.
      Here are the relevant current settings:
 
      Build Setup:
-       CONFIG_HOST_WINDOS=y                : Microsoft Windows
+       CONFIG_HOST_WINDOWS=y               : Microsoft Windows
        CONFIG_WINDOWS_CYGWIN=y             : Using Cygwin or other POSIX environment
 
      System Type -> Toolchain:
@@ -1322,7 +2636,15 @@ Configurations
      See also the "NOTE about Windows native toolchains" in the section call
      "GNU Toolchain Options" above.
 
-  Configuration sub-directories
+     !!!WARNING!!! The first time that you type 'make', the system will
+     configure itself based on the settings in the .config file.  One of
+     these settings can cause a lot of confusion if you configure the build
+     in the wrong state:  If you are running on Linux, make *certain* that
+     you have CONFIG_HOST_LINUX=y *before* the first make or you will
+     create a very corrupt configuration that may not be easy to recover
+     from.
+
+  Configuration Sub-directories
   -----------------------------
   Summary:  Some of the descriptions below are long and wordy. Here is the
   concise summary of the available SAMA5D3x-EK configurations:
@@ -1357,6 +2679,7 @@ Configurations
       It executes an exhaustive OS test to verify a correct port of NuttX
       to the SAMA5D3-EK.  Since it now passes that test, the configuration
       has little further use other than for reference.
+   ov2640:  A test of the SAMA5 ISI using an OV2640 camera.
 
   There may be issues with some of these configurations.  See the details
   before of the status of individual configurations.
@@ -1391,395 +2714,53 @@ Configurations
        CONFIG_WINDOWS_CYGWIN=y                 : POSIX environment under windows
        CONFIG_ARMV7A_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery for Windows
 
+       If you are running on Linux, make *certain* that you have
+       CONFIG_HOST_LINUX=y *before* the first make or you will create a
+       corrupt configuration that may not be easy to recover from. See
+       the warning in the section "Information Common to All Configurations"
+       for further information.
+
     3. This configuration executes out of CS0 NOR flash and can only
-       be loaded via SAM-BA.  These are the relevant configuration options
-       the define the NOR FLASH configuration:
+       be loaded via SAM-BA.  The are the relevant configuration options
+       are provided above in the section entitled "NOR FLASH Support".
 
-       CONFIG_SAMA5_BOOT_CS0FLASH=y            : Boot from FLASH on CS0
-       CONFIG_BOOT_RUNFROMFLASH=y              : Run in place on FLASH (vs copying to RAM)
-
-       CONFIG_SAMA5_EBICS0=y                   : Enable CS0 external memory
-       CONFIG_SAMA5_EBICS0_SIZE=134217728      : Memory size is 128KB
-       CONFIG_SAMA5_EBICS0_NOR=y               : Memory type is NOR FLASH
-
-       CONFIG_FLASH_START=0x10000000           : Physical FLASH start address
-       CONFIG_FLASH_VSTART=0x10000000          : Virtual FLASH start address
-       CONFIG_FLASH_SIZE=134217728             : FLASH size (again)
-
-       CONFIG_RAM_START=0x00300400             : Data stored after page table
-       CONFIG_RAM_VSTART=0x00300400
-       CONFIG_RAM_SIZE=114688                  : Available size of 128KB - 16KB for page table
-
-       NOTE:  In order to boot in this configuration, you need to close the
-       BMS jumper.
+    4. Data resides in ISRAM, but can be moved to SDRAM as described above
+       under "SDRAM Data Configuration."
 
     The following features are pre-enabled in the demo configuration, but not
     in the nsh configuration:
 
-    4. SDRAM is supported.  .data and .bss is still retained in ISRAM, but
-       SDRAM is intialized and the SDRAM memory is included in the heap.
-       Relevant configuration settings:
+    5. SDRAM is supported.  .data and .bss is still retained in ISRAM, but
+       SDRAM is initializeed and the SDRAM memory is included in the heap.
+       Relevant configuration settings are provided in the paragraph entitled
+       "SDRAM Support" above.
 
-       System Type->ATSAMA5 Peripheral Support
-         CONFIG_SAMA5_MPDDRC=y                 : Enable the DDR controller
+    6. The Real Time Clock/Calendar RTC) is enabled.  See the section entitled
+       "RTC" above.
 
-       System Type->External Memory Configuration
-         CONFIG_SAMA5_DDRCS=y                  : Tell the system that DRAM is at the DDR CS
-         CONFIG_SAMA5_DDRCS_SIZE=268435456     : 2Gb DRAM -> 256GB
-         CONFIG_SAMA5_DDRCS_LPDDR2=y           : Its DDR2
-         CONFIG_SAMA5_MT47H128M16RT=y          : This is the type of DDR2
-
-       System Type->Heap Configuration
-         CONFIG_SAMA5_DDRCS_HEAP=y             : Add the SDRAM to the heap
-         CONFIG_SAMA5_DDRCS_HEAP_OFFSET=0
-         CONFIG_SAMA5_DDRCS_HEAP_SIZE=268435456
-
-       Memory Management
-         CONFIG_MM_REGIONS=2                   : Two heap memory regions:  ISRAM and SDRAM
-
-    5. The Real Time Clock/Calendar RTC) is enabled.  These are the relevant
-       settings:
-
-        System Type:
-          CONFIG_SAMA5_RTC=y                   : Enable the RTC driver
-
-        Drivers (these values will be selected automatically):
-          CONFIG_RTC=y                         : Use the RTC for system time
-          CONFIG_RTC_DATETIME=y                : RTC supports data/time
-
-    6. The Embest or Ronetix CPU module includes an Atmel AT25DF321A,
+    7. The Embest or Ronetix CPU module includes an Atmel AT25DF321A,
        32-megabit, 2.7-volt SPI serial flash.  Support for that serial
-       FLASH can is enabled in this configuration.  These are the relevant
-       configuration settings:
+       FLASH can is enabled in this configuration.  See the paragraph
+       entitle "AT25 Serial FLASH" for detailed configuration settings.
 
-       System Type -> SAMA5 Peripheral Support
-         CONFIG_SAMA5_SPI0=y                   : Enable SPI0
-         CONFIG_SAMA5_DMAC0=y                  : Enable DMA controller 0
-
-       System Type -> SPI device driver options
-         CONFIG_SAMA5_SPI_DMA=y                : Use DMA for SPI transfers
-         CONFIG_SAMA5_SPI_DMATHRESHOLD=4       : Don't DMA for small transfers
-
-       Device Drivers -> SPI Driver Support
-         CONFIG_SPI=y                          : Enable SPI support
-         CONFIG_SPI_EXCHANGE=y                 : Support the exchange method
-
-       Device Drivers -> Memory Technology Device (MTD) Support
-         CONFIG_MTD=y                          : Enable MTD support
-         CONFIG_MTD_AT25=y                     : Enable the AT25 driver
-         CONFIG_AT25_SPIMODE=0                 : Use SPI mode 0
-         CONFIG_AT25_SPIFREQUENCY=10000000     : Use SPI frequency 10MHz
-
-       The AT25 is capable of higher SPI rates than this.  I have not
-       experimented a lot, but at 20MHz, the behavior is not the same with
-       all CM modules.  This lower rate gives more predictable performance.
-
-       Application Configuration -> NSH Library
-         CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-       Board Selection
-         CONFIG_SAMA5_AT25_AUTOMOUNT=y         : Mounts AT25 for NSH
-         CONFIG_SAMA5_AT25_FTL=y               : Create block driver for FAT
-
-       NOTE that you must close JP1 on the Embest/Ronetix board in
-       order to enable the AT25 FLASH chip select.
-
-       You can then format the AT25 FLASH for a FAT file system and mount
-       the file system at /mnt/at25 using these NSH commands:
-
-         nsh> mkfatfs /dev/mtdblock0
-         nsh> mount -t vfat /dev/mtdblock0 /mnt/at25
-
-       Then you an use the FLASH as a normal FAT file system:
-
-         nsh> echo "This is a test" >/mnt/at25/atest.txt
-         nsh> ls -l /mnt/at25
-         /mnt/at25:
-          -rw-rw-rw-      16 atest.txt
-         nsh> cat /mnt/at25/atest.txt
-         This is a test
-
-       NOTE:  It appears that if Linux runs out of NAND, it will destroy the
-       contents of the AT25.
-
-    7. Support for HSMCI car slots. The SAMA5D3x-EK provides a two SD memory
-       card slots:  (1) a full size SD card slot (J7 labeled MCI0), and (2)
-       a microSD memory card slot (J6 labeled MCI1).  The full size SD card
+    8. Support for HSMCI car slots. The SAMA5D3x-EK provides a two SD memory
+       card slots:  (1) a full size SD card slot (J7 labelled MCI0), and (2)
+       a microSD memory card slot (J6 labelled MCI1).  The full size SD card
        slot connects via HSMCI0; the microSD connects vi HSMCI1.  Relevant
-       configuration settings include:
-
-       System Type->ATSAMA5 Peripheral Support
-         CONFIG_SAMA5_HSMCI0=y                 : Enable HSMCI0 support
-         CONFIG_SAMA5_HSMCI1=y                 : Enable HSMCI1 support
-         CONFIG_SAMA5_DMAC0=y                  : DMAC0 is needed by HSMCI0
-         CONFIG_SAMA5_DMAC1=y                  : DMAC1 is needed by HSMCI1
-
-       System Type
-         CONFIG_SAMA5_PIO_IRQ=y                : PIO interrupts needed
-         CONFIG_SAMA5_PIOD_IRQ=y               : Card detect pins are on PIOD
-
-       Device Drivers -> MMC/SD Driver Support
-         CONFIG_MMCSD=y                        : Enable MMC/SD support
-         CONFIG_MMSCD_NSLOTS=1                 : One slot per driver instance
-         CONFIG_MMCSD_HAVECARDDETECT=y         : Supports card-detect PIOs
-         CONFIG_MMCSD_MMCSUPPORT=n             : Interferes with some SD cards
-         CONFIG_MMCSD_SPI=n                    : No SPI-based MMC/SD support
-         CONFIG_MMCSD_SDIO=y                   : SDIO-based MMC/SD support
-         CONFIG_SDIO_DMA=y                     : Use SDIO DMA
-         CONFIG_SDIO_BLOCKSETUP=y              : Needs to know block sizes
-
-       Library Routines
-         CONFIG_SCHED_WORKQUEUE=y              : Driver needs work queue support
-
-       Application Configuration -> NSH Library
-         CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-       Using the SD card:
-
-       1) After booting, the HSCMI devices will appear as /dev/mmcsd0
-          and /dev/mmcsd1.
-
-       2) If you try mounting an SD card with nothing in the slot, the
-          mount will fail:
-
-            nsh> mount -t vfat /dev/mmcsd1 /mnt/sd1
-            nsh: mount: mount failed: 19
-
-          NSH can be configured to provide errors as strings instead of
-          numbers.  But in this case, only the error number is reported.
-          The  error numbers can be found in nuttx/include/errno.h:
-
-            #define ENODEV              19
-            #define ENODEV_STR          "No such device"
-
-          So the mount command is saying that there is no device or, more
-          correctly, that there is no card in the SD card slot.
-
-       3) Inserted the SD card.  Then the mount should succeed.
-
-           nsh> mount -t vfat /dev/mmcsd1 /mnt/sd1
-           nsh> ls /mnt/sd1
-           /mnt/sd1:
-            atest.txt
-           nsh> cat /mnt/sd1/atest.txt
-           This is a test
-
-       4) Before removing the card, you must umount the file system.  This
-          is equivalent to "ejecting" or "safely removing" the card on
-          Windows:  It flushes any cached data to the card and makes the SD
-          card unavailable to the applications.
-
-            nsh> umount -t /mnt/sd1
-
-          It is now safe to remove the card.  NuttX provides into callbacks
-          that can be used by an application to automatically unmount the
-          volume when it is removed.  But those callbacks are not used in
-          this configuration.
-
-    8. Support the USB high-speed device (UDPHS) driver is enabled.
-       These are the relevant NuttX configuration settings:
-
-       Device Drivers -> USB Device Driver Support
-         CONFIG_USBDEV=y                       : Enable USB device support
-         CONFIG_USBDEV_DUALSPEED=y             : Device support High and Full Speed
-         CONFIG_USBDEV_DMA=y                   : Device uses DMA
-
-       System Type -> ATSAMA5 Peripheral Support
-         CONFIG_SAMA5_UDPHS=y                  : Enable UDPHS High Speed USB device
-
-       Application Configuration -> NSH Library
-         CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-       The Mass Storage Class (MSC) class driver is seleced for use with
-       UDPHS:
-
-       Device Drivers -> USB Device Driver Support
-         CONFIG_USBMSC=y                       : Enable the USB MSC class driver
-         CONFIG_USBMSC_EPBULKOUT=1             : Use EP1 for the BULK OUT endpoint
-         CONFIG_USBMSC_EPBULKIN=2              : Use EP2 for the BULK IN endpoint
-
-       The following setting enables an add-on that can can be used to
-       control the CDC/ACM device.  It will add two new NSH commands:
-
-         a. msconn will connect the USB serial device and export the AT25
-            to the host, and
-         b. msdis which will disconnect the USB serial device.
-
-       Application Configuration -> System Add-Ons:
-         CONFIG_SYSTEM_USBMSC=y                : Enable the USBMSC add-on
-         CONFIG_SYSTEM_USBMSC_NLUNS=1          : One LUN
-         CONFIG_SYSTEM_USBMSC_DEVMINOR1=0      : Minor device zero
-         CONFIG_SYSTEM_USBMSC_DEVPATH1="/dev/mtdblock0"
-                                               : Use a single, LUN:  The AT25
-                                               : block driver.
-
-       NOTES:
-
-       a. To prevent file system corruption, make sure that the AT25 is un-
-          mounted *before* exporting the mass storage device to the host:
-
-            nsh> umount /mnt/at25
-            nsh> mscon
-
-          The AT25 can be re-mounted after the mass storage class is disconnected:
-
-           nsh> msdis
-           nsh> mount -t vfat /dev/mtdblock0 /mnt/at25
-
-       b. If you change the value CONFIG_SYSTEM_USBMSC_DEVPATH1, then you
-          can export other file systems:
-
-           "/dev/mmcsd1" will export the HSMCI1 microSD
-           "/dev/mmcsd0" will export the HSMCI0 full-size SD slot
-           "/dev/ram0" could even be used to export a RAM disk.  But you would
-             first have to use mkrd to create the RAM disk and mkfatfs to put
-             a FAT file system on it.
-
-    9. The USB high-speed EHCI and the low-/full- OHCI host drivers are supported
-       in this configuration.
-
-       Here are the relevant configuration options that enable EHCI support:
-
-       System Type -> ATSAMA5 Peripheral Support
-         CONFIG_SAMA5_UHPHS=y                 : USB Host High Speed
-
-       System Type -> USB High Speed Host driver options
-         CONFIG_SAMA5_EHCI=y                  : High-speed EHCI support
-         CONFIG_SAMA5_OHCI=y                  : Low/full-speed OHCI support
-                                              : Defaults for values probably OK for both
-       Device Drivers
-         CONFIG_USBHOST=y                     : Enable USB host support
-         CONFIG_USBHOST_ISOC_DISABLE=y        : Isochronous endpoints not needed
-
-       Device Drivers -> USB Host Driver Support
-         CONFIG_USBHOST_ISOC_DISABLE=y        : Isochronous endpoints not used
-         CONFIG_USBHOST_MSC=y                 : Enable the mass storage class driver
-         CONFIG_USBHOST_HIDKBD=y              : Enable the HID keybaord class driver
-                                              : Defaults for values probably OK for both
-
-       Library Routines
-         CONFIG_SCHED_WORKQUEUE=y             : Worker thread support is required
-
-       Application Configuration -> NSH Library
-         CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-       Example Usage:
-
-       NuttShell (NSH) NuttX-6.29
-       nsh> ls /dev
-        /dev:
-        console
-        mtdblock0
-        null
-        ttyS0
-
-       Here a USB FLASH stick is inserted.  Nothing visible happens in the
-       the shell.  But a new device will appear:
-
-       nsh> ls /dev
-       /dev:
-        console
-        mtdblock0
-        null
-        sda
-        ttyS0
-       nsh> mount -t vfat /dev/sda /mnt/sda
-       nsh> ls -l /mnt/sda
-       /mnt/sda:
-        -rw-rw-rw-    8788 viminfo
-        drw-rw-rw-       0 .Trash-1000/
-        -rw-rw-rw-    3378 zmodem.patch
-        -rw-rw-rw-    1503 sz-1.log
-        -rw-rw-rw-     613 .bashrc
-
-       Or, if a (supported) USB keyboard is connected, a /dev/kbda device
-       will appear:
-
-       nsh> ls /dev
-       /dev:
-        console
-        kbda
-        mtdblock0
-        null
-        ttyS0
-
-       /dev/kbda is a read-only serial device.  Reading from /dev/kbda will
-       get keyboard input as ASCII data (other encodings are possible):
-
-       nsh> cat /dev/kbda
-
-    10. Support SAMA5D3 TRNG peripheral is enabled so that it provides
-        /dev/random.  The following configuration settings are relevant:
-
-        System Type:
-          CONFIG_SAMA5_TRNG=y                 : Enable the TRNG peripheral
-
-        Drivers (automatically selected):
-          CONFIG_DEV_RANDOM=y                 : Enable /dev/random
-
-    The following features are *not* enabled in the demo configuration but
-    might be of some use to you:
-
-    10. The RTC supports an alarm that may be enable with the following settings.
-        However, there is nothing in the system that currently makes use of this
-        alarm.
-
-        Drivers:
-          CONFIG_RTC_ALARM=y                   : Enable the RTC alarm
-
-        Library Routines
-         CONFIG_SCHED_WORKQUEUE=y              : Alarm needs work queue support
-
-    11. Debugging USB.  There is normal console debug output available that
-        can be enabled with CONFIG_DEBUG + CONFIG_DEBUG_USB.  However, USB
-        operation is very time critical and enabling this debug output WILL
-        interfere with some operation.  USB tracing is a less invasive way
-        to get debug information:  If tracing is enabled, the USB driver(s)
-        will save encoded trace output in in-memory buffers; if the USB
-        monitor is also enabled, those trace buffers will be periodically
-        emptied and dumped to the system logging device (the serial console
-        in this configuration):
-
-        Either or both USB device or host controller driver tracing can
-        be enabled:
-
-        Device Drivers -> "USB Device Driver Support:
-          CONFIG_USBDEV_TRACE=y                   : Enable USB device trace feature
-          CONFIG_USBDEV_TRACE_NRECORDS=256        : Buffer 256 records in memory
-          CONFIG_USBDEV_TRACE_STRINGS=y           : (optional)
-
-        Device Drivers -> "USB Host Driver Support:
-          CONFIG_USBHOST_TRACE=y                   : Enable USB host trace feature
-          CONFIG_USBHOST_TRACE_NRECORDS=256        : Buffer 256 records in memory
-          CONFIG_USBHOST_TRACE_VERBOSE=y           : Buffer everything
-
-        These settings will configure the USB monitor thread which will dump the
-        buffered USB debug data once every second:
-
-        Application Configuration -> NSH LIbrary:
-          CONFIG_NSH_USBDEV_TRACE=n               : No builtin tracing from NSH (USB device only)
-          CONFIG_NSH_ARCHINIT=y                   : Automatically start the USB monitor
-
-        Application Configuration -> System NSH Add-Ons:
-          CONFIG_SYSTEM_USBMONITOR=y              : Enable the USB monitor daemon
-          CONFIG_SYSTEM_USBMONITOR_STACKSIZE=2048 : USB monitor daemon stack size
-          CONFIG_SYSTEM_USBMONITOR_PRIORITY=50    : USB monitor daemon priority
-          CONFIG_SYSTEM_USBMONITOR_INTERVAL=1     : Dump trace data every second
-
-          CONFIG_SYSTEM_USBMONITOR_TRACEINIT=y    : Enable TRACE output (USB device tracing only)
-          CONFIG_SYSTEM_USBMONITOR_TRACECLASS=y
-          CONFIG_SYSTEM_USBMONITOR_TRACETRANSFERS=y
-          CONFIG_SYSTEM_USBMONITOR_TRACECONTROLLER=y
-          CONFIG_SYSTEM_USBMONITOR_TRACEINTERRUPTS=y
-
-       NOTE: If USB debug output is also enabled, both outpus will appear
-       on the serial console.  However, the debug output will be
-       asynchronous with the trace output and, hence, difficult to
-       interpret.
-
-    12. See also the sections above for additional configuration options:
-        "AT24 Serial EEPROM", "CAN Usage", "SAMA5 ADC Support", "SAMA5 PWM
-        Support", "OV2640 Camera Interface", "I2S Audio Support"
+       configuration settings can be found in the section entitle "HSMCI
+       Card Slots" above.
+
+    9. Support the USB high-speed device (UDPHS) driver is enabled.  See the
+       section above entitled "USB High-Speed Device" for relevant NuttX
+       configuration settings.
+
+    10. The USB high-speed EHCI and the low-/full- OHCI host drivers are supported
+        in this configuration.  See the section above entitle "USB High-Speed Host"
+        for relevant configuration information.
+
+    11. Support SAMA5D3 TRNG peripheral is enabled so that it provides
+        /dev/random.  See the section entitled "TRNG and /dev/random"
+        above for detailed configuration information.
 
     STATUS:
        See the To-Do list below
@@ -1808,6 +2789,12 @@ Configurations
        CONFIG_WINDOWS_CYGWIN=y                 : POSIX environment under windows
        CONFIG_ARMV7A_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery for Windows
 
+       If you are running on Linux, make *certain* that you have
+       CONFIG_HOST_LINUX=y *before* the first make or you will create a
+       corrupt configuration that may not be easy to recover from. See
+       the warning in the section "Information Common to All Configurations"
+       for further information.
+
     3. This configuration executes out of internal SRAM and can only
        be loaded via JTAG.
 
@@ -1825,7 +2812,8 @@ Configurations
     - Waits for you to break in with GDB.
 
     At that point, you can set the PC and begin executing from NOR FLASH
-    under debug control.
+    under debug control.  See the section entitled "Creating and Using
+    NORBOOT" above.
 
     NOTES:
 
@@ -1841,6 +2829,10 @@ Configurations
     3. Be aware that the default norboot also disables the watchdog.
        Since you will not be able to re-enable the watchdog later, you may
        need to set CONFIG_SAMA5_WDT=y in the NuttX configuration file.
+
+    4. If you put norboot on the Serial FLASH, you can automatically
+       boot to NOR on reset.  See the section "Creating and Using NORBOOT"
+       above.
 
     STATUS:
        See the To-Do list below
@@ -1870,787 +2862,79 @@ Configurations
        CONFIG_WINDOWS_CYGWIN=y                 : POSIX environment under windows
        CONFIG_ARMV7A_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery for Windows
 
+       If you are running on Linux, make *certain* that you have
+       CONFIG_HOST_LINUX=y *before* the first make or you will create a
+       corrupt configuration that may not be easy to recover from. See
+       the warning in the section "Information Common to All Configurations"
+       for further information.
+
     3. This configuration executes out of CS0 NOR flash and can only
-       be loaded via SAM-BA.  These are the relevant configuration options
-       the define the NOR FLASH configuration:
-
-       CONFIG_SAMA5_BOOT_CS0FLASH=y            : Boot from FLASH on CS0
-       CONFIG_BOOT_RUNFROMFLASH=y              : Run in place on FLASH (vs copying to RAM)
-
-       CONFIG_SAMA5_EBICS0=y                   : Enable CS0 external memory
-       CONFIG_SAMA5_EBICS0_SIZE=134217728      : Memory size is 128KB
-       CONFIG_SAMA5_EBICS0_NOR=y               : Memory type is NOR FLASH
-
-       CONFIG_FLASH_START=0x10000000           : Physical FLASH start address
-       CONFIG_FLASH_VSTART=0x10000000          : Virtual FLASH start address
-       CONFIG_FLASH_SIZE=134217728             : FLASH size (again)
-
-       CONFIG_RAM_START=0x00300400             : Data stored after page table
-       CONFIG_RAM_VSTART=0x00300400
-       CONFIG_RAM_SIZE=114688                  : Available size of 128KB - 16KB for page table
-
-       NOTE:  In order to boot in this configuration, you need to close the
-       BMS jumper.
+       be loaded via SAM-BA.  The are the relevant configuration options
+       are provided above in the section entitled "NOR FLASH Support".
 
     4. This configuration has support for NSH built-in applications enabled.
        However, no built-in applications are selected in the base configuration.
 
-    5. This configuration has support for the FAT file system built in.  However,
-       by default, there are no block drivers intialized.  The FAT file system can
+    5. Data resides in ISRAM, but can be moved to SDRAM as described above
+       under "SDRAM Data Configuration."
+
+    6. This configuration has support for the FAT file system built in.  However,
+       by default, there are no block drivers initialized.  The FAT file system can
        still be used to create RAM disks.
 
-    6. SDRAM support can be enabled by adding the following to your NuttX
-       configuration file:
-
-       System Type->ATSAMA5 Peripheral Support
-         CONFIG_SAMA5_MPDDRC=y                 : Enable the DDR controller
-
-       System Type->External Memory Configuration
-         CONFIG_SAMA5_DDRCS=y                  : Tell the system that DRAM is at the DDR CS
-         CONFIG_SAMA5_DDRCS_SIZE=268435456     : 2Gb DRAM -> 256GB
-         CONFIG_SAMA5_DDRCS_LPDDR2=y           : Its DDR2
-         CONFIG_SAMA5_MT47H128M16RT=y          : This is the type of DDR2
-
-       Now that you have SDRAM enabled, what are you going to do with it?  One
-       thing you can is add it to the heap
-
-       System Type->Heap Configuration
-         CONFIG_SAMA5_DDRCS_HEAP=y             : Add the SDRAM to the heap
-         CONFIG_SAMA5_DDRCS_HEAP_OFFSET=0
-         CONFIG_SAMA5_DDRCS_HEAP_SIZE=268435456
-
-       Memory Management
-         CONFIG_MM_REGIONS=2                   : Two memory regions:  ISRAM and SDRAM
-
-       Another thing you could do is to enable the RAM test built-in
-       application:
-
-    7. You can enable the NuttX RAM test that may be used to verify the
-       external SDAM.  To do this, keep the SDRAM out of the heap so that
-       it can be tested without crashing programs using the memory:
-
-       System Type->Heap Configuration
-         CONFIG_SAMA5_DDRCS_HEAP=n             : Don't add the SDRAM to the heap
-
-       Memory Management
-         CONFIG_MM_REGIONS=1                   : One memory regions:  ISRAM
-
-       Then enable the RAM test built-in application:
-
-       Application Configuration->System NSH Add-Ons->Ram Test
-         CONFIG_SYSTEM_RAMTEST=y
-
-       In this configuration, the SDRAM is not added to heap and so is not
-       excessible to the applications.  So the RAM test can be freely
-       executed against the SRAM memory beginning at address 0x2000:0000
-       (DDR CS):
-
-       nsh> ramtest -h
-       Usage: <noname> [-w|h|b] <hex-address> <decimal-size>
-
-       Where:
-         <hex-address> starting address of the test.
-         <decimal-size> number of memory locations (in bytes).
-         -w Sets the width of a memory location to 32-bits.
-         -h Sets the width of a memory location to 16-bits (default).
-         -b Sets the width of a memory location to 8-bits.
-
-       To test the entire external 256MB SRAM:
-
-       nsh> ramtest -w 20000000 268435456
-       RAMTest: Marching ones: 20000000 268435456
-       RAMTest: Marching zeroes: 20000000 268435456
-       RAMTest: Pattern test: 20000000 268435456 55555555 aaaaaaaa
-       RAMTest: Pattern test: 20000000 268435456 66666666 99999999
-       RAMTest: Pattern test: 20000000 268435456 33333333 cccccccc
-       RAMTest: Address-in-address test: 20000000 268435456
+    7. SDRAM support can be enabled by modifying your NuttX configuration as
+       described above in the paragraph entitle "SDRAM Support"
 
     8. The Embest or Ronetix CPU module includes an Atmel AT25DF321A,
        32-megabit, 2.7-volt SPI serial flash.  Support for that serial
        FLASH can be enabled by modifying the NuttX configuration as
-       follows:
-
-       System Type -> SAMA5 Peripheral Support
-         CONFIG_SAMA5_SPI0=y                   : Enable SPI0
-
-       Device Drivers -> SPI Driver Support
-         CONFIG_SPI=y                          : Enable SPI support
-         CONFIG_SPI_EXCHANGE=y                 : Support the exchange method
-
-       Device Drivers -> Memory Technology Device (MTD) Support
-         CONFIG_MTD=y                          : Enable MTD support
-         CONFIG_MTD_AT25=y                     : Enable the AT25 driver
-         CONFIG_AT25_SPIMODE=0                 : Use SPI mode 0
-         CONFIG_AT25_SPIFREQUENCY=10000000     : Use SPI frequency 10MHz
-
-       The AT25 is capable of higher SPI rates than this.  I have not
-       experimented a lot, but at 20MHz, the behavior is not the same with
-       all CM modules.  This lower rate gives more predictable performance.
-
-       Application Configuration -> NSH Library
-         CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-       Board Selection
-         CONFIG_SAMA5_AT25_AUTOMOUNT=y         : Mounts AT25 for NSH
-         CONFIG_SAMA5_AT25_FTL=y               : Create block driver for FAT
-
-       The SPI driver can be built to do polled or DMA SPI data transfers.
-       The following additional changes will enable SPI DMA:
-
-       System Type -> SAMA5 Peripheral Support
-         CONFIG_SAMA5_DMAC0=y                   : Enable DMA controller 0
-
-       System Type -> SPI device driver options
-         CONFIG_SAMA5_SPI_DMA=y                 : Use DMA for SPI transfers
-         CONFIG_SAMA5_SPI_DMATHRESHOLD=4        : Don't DMA for small transfers
-
-       NOTE that you must close JP1 on the Embest/Ronetix board in
-       order to enable the AT25 FLASH chip select.
-
-       You can then format the AT25 FLASH for a FAT file system and mount
-       the file system at /mnt/at25 using these NSH commands:
-
-         nsh> mkfatfs /dev/mtdblock0
-         nsh> mount -t vfat /dev/mtdblock0 /mnt/at25
-
-       Then you an use the FLASH as a normal FAT file system:
-
-         nsh> echo "This is a test" >/mnt/at25/atest.txt
-         nsh> ls -l /mnt/at25
-         /mnt/at25:
-          -rw-rw-rw-      16 atest.txt
-         nsh> cat /mnt/at25/atest.txt
-         This is a test
+       described above in the paragraph entitled "AT25 Serial FLASH".
 
     9. Enabling HSMCI support. The SAMA5D3x-EK provides a two SD memory card
        slots:  (1) a full size SD card slot (J7 labeled MCI0), and (2) a
        microSD memory card slot (J6 labeled MCI1).  The full size SD card
        slot connects via HSMCI0; the microSD connects vi HSMCI1.  Support
-       for both SD slots can be enabled with the following settings:
-
-       System Type->ATSAMA5 Peripheral Support
-         CONFIG_SAMA5_HSMCI0=y                 : Enable HSMCI0 support
-         CONFIG_SAMA5_HSMCI1=y                 : Enable HSMCI1 support
-         CONFIG_SAMA5_DMAC0=y                  : DMAC0 is needed by HSMCI0
-         CONFIG_SAMA5_DMAC1=y                  : DMAC1 is needed by HSMCI1
-
-       System Type
-         CONFIG_SAMA5_PIO_IRQ=y                : PIO interrupts needed
-         CONFIG_SAMA5_PIOD_IRQ=y               : Card detect pins are on PIOD
-
-       Device Drivers -> MMC/SD Driver Support
-         CONFIG_MMCSD=y                        : Enable MMC/SD support
-         CONFIG_MMSCD_NSLOTS=1                 : One slot per driver instance
-         CONFIG_MMCSD_HAVECARDDETECT=y         : Supports card-detect PIOs
-         CONFIG_MMCSD_MMCSUPPORT=n             : Interferes with some SD cards
-         CONFIG_MMCSD_SPI=n                    : No SPI-based MMC/SD support
-         CONFIG_MMCSD_SDIO=y                   : SDIO-based MMC/SD support
-         CONFIG_SDIO_DMA=y                     : Use SDIO DMA
-         CONFIG_SDIO_BLOCKSETUP=y              : Needs to know block sizes
-
-       Library Routines
-         CONFIG_SCHED_WORKQUEUE=y              : Driver needs work queue support
-
-       Application Configuration -> NSH Library
-         CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-       Using the SD card:
-
-       1) After booting, the HSCMI devices will appear as /dev/mmcsd0
-          and /dev/mmcsd1.
-
-       2) If you try mounting an SD card with nothing in the slot, the
-          mount will fail:
-
-            nsh> mount -t vfat /dev/mmcsd1 /mnt/sd1
-            nsh: mount: mount failed: 19
-
-          NSH can be configured to provide errors as strings instead of
-          numbers.  But in this case, only the error number is reported.
-          The  error numbers can be found in nuttx/include/errno.h:
-
-            #define ENODEV              19
-            #define ENODEV_STR          "No such device"
-
-          So the mount command is saying that there is no device or, more
-          correctly, that there is no card in the SD card slot.
-
-       3) Inserted the SD card.  Then the mount should succeed.
-
-           nsh> mount -t vfat /dev/mmcsd1 /mnt/sd1
-           nsh> ls /mnt/sd1
-           /mnt/sd1:
-            atest.txt
-           nsh> cat /mnt/sd1/atest.txt
-           This is a test
-
-       3) Before removing the card, you must umount the file system.  This
-          is equivalent to "ejecting" or "safely removing" the card on
-          Windows:  It flushes any cached data to the card and makes the SD
-          card unavailable to the applications.
-
-            nsh> umount -t /mnt/sd1
-
-          It is now safe to remove the card.  NuttX provides into callbacks
-          that can be used by an application to automatically unmount the
-          volume when it is removed.  But those callbacks are not used in
-          this configuration.
-
-    10. Support the USB low/full-speed OHCI host driver can be enabled by changing
-        the NuttX configuration file as follows:
-
-        System Type -> ATSAMA5 Peripheral Support
-          CONFIG_SAMA5_UHPHS=y                 : USB Host High Speed
-
-        System Type -> USB High Speed Host driver options
-          CONFIG_SAMA5_OHCI=y                  : Low/full-speed OHCI support
-                                               : Defaults for values probably OK
-        Device Drivers
-          CONFIG_USBHOST=y                     : Enable USB host support
-
-        Device Drivers -> USB Host Driver Support
-          CONFIG_USBHOST_ISOC_DISABLE=y        : Isochronous endpoints not used
-          CONFIG_USBHOST_MSC=y                 : Enable the mass storage class driver
-
-        Library Routines
-          CONFIG_SCHED_WORKQUEUE=y             : Worker thread support is required
-
-       Application Configuration -> NSH Library
-         CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-       NOTE:  When OHCI is selected, the SAMA5 will operate at 384MHz instead
-       of 396MHz.  This is so that the PLL generates a frequency which is a
-       multiple of the 48MHz needed for OHCI.  The delay loop calibration
-       values that are used will be off slightly because of this.
-
-    11. Support the USB high-speed EHCI host driver can be enabled by changing
-        the NuttX configuration file as follows.  If EHCI is enabled by itself,
-        then only high-speed devices can be supported.  If OHCI is also enabled,
-        then all low-, full-, and high speed devices will work.
-
-        System Type -> ATSAMA5 Peripheral Support
-          CONFIG_SAMA5_UHPHS=y                 : USB Host High Speed
-
-        System Type -> USB High Speed Host driver options
-          CONFIG_SAMA5_EHCI=y                  : High-speed EHCI support
-          CONFIG_SAMA5_OHCI=y                  : Low/full-speed OHCI support
-                                               : Defaults for values probably OK for both
-        Device Drivers
-          CONFIG_USBHOST=y                     : Enable USB host support
-          CONFIG_USBHOST_INT_DISABLE=y         : Interrupt endpoints not needed
-          CONFIG_USBHOST_ISOC_DISABLE=y        : Isochronous endpoints not needed
-
-        Device Drivers -> USB Host Driver Support
-          CONFIG_USBHOST_ISOC_DISABLE=y        : Isochronous endpoints not used
-          CONFIG_USBHOST_MSC=y                 : Enable the mass storage class driver
-
-        Library Routines
-          CONFIG_SCHED_WORKQUEUE=y             : Worker thread support is required
-
-        Application Configuration -> NSH Library
-          CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-        Debugging USB Host.  There is normal console debug output available
-        that can be enabled with CONFIG_DEBUG + CONFIG_DEBUG_USB.  However,
-        USB host operation is very time critical and enabling this debug
-        output might interfere with the operation of the UDPHS.  USB host
-        tracing is a less invasive way to get debug information:  If tracing
-        is enabled, the USB host will save encoded trace output in in-memory
-        buffer; if the USB monitor is also enabled, that trace buffer will be
-        periodically emptied and dumped to the system logging device (the
-        serial console in this configuration):
-
-        Device Drivers -> "USB Host Driver Support:
-          CONFIG_USBHOST_TRACE=y                   : Enable USB host trace feature
-          CONFIG_USBHOST_TRACE_NRECORDS=256        : Buffer 256 records in memory
-          CONFIG_USBHOST_TRACE_VERBOSE=y           : Buffer everything
-
-        Application Configuration -> NSH LIbrary:
-          CONFIG_NSH_USBDEV_TRACE=n               : No builtin tracing from NSH
-          CONFIG_NSH_ARCHINIT=y                   : Automatically start the USB monitor
-
-        Application Configuration -> System NSH Add-Ons:
-          CONFIG_SYSTEM_USBMONITOR=y              : Enable the USB monitor daemon
-          CONFIG_SYSTEM_USBMONITOR_STACKSIZE=2048 : USB monitor daemon stack size
-          CONFIG_SYSTEM_USBMONITOR_PRIORITY=50    : USB monitor daemon priority
-          CONFIG_SYSTEM_USBMONITOR_INTERVAL=1     : Dump trace data every second
-
-       NOTE: If USB debug output is also enabled, both outpus will appear
-       on the serial console.  However, the debug output will be
-       asynchronous with the trace output and, hence, difficult to
-       interpret.
-
-    12. Support the USB high-speed USB device driver (UDPHS) can be enabled
-        by changing the NuttX configuration file as follows:
-
-        Device Drivers -> USB Device Driver Support
-          CONFIG_USBDEV=y                       : Enable USB device support
-          CONFIG_USBDEV_DMA=y                   : Device uses DMA
-          CONFIG_USBDEV_DUALSPEED=y             : Device support High and Full Speed
-
-        System Type -> ATSAMA5 Peripheral Support
-          CONFIG_SAMA5_UDPHS=y                  : Enable UDPHS High Speed USB device
-
-        Application Configuration -> NSH Library
-          CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-        You also need to select a device-side class driver for the USB device,
-        This will select the CDC/ACM serial device.  Defaults for the other
-        options should be okay.
-
-        Device Drivers -> USB Device Driver Support
-          CONFIG_CDCACM=y                       : Enable the CDC/ACM device
-          CONFIG_CDCACM_BULKIN_REQLEN=768       : Default too small for high-speed
-
-        The following setting enables an example that can can be used to
-        control the CDC/ACM device.  It will add two new NSH commands:
-        (1) sercon will connect the USB serial device (creating /dev/ttyACM0),
-        and (2) serdis which will disconnect the USB serial device (destroying
-        /dev/ttyACM0).
-
-        Application Configuration -> Examples:
-          CONFIG_SYSTEM_CDCACM=y              : Enable an CDC/ACM example
-
-        Debugging USB Device.  There is normal console debug output available
-        that can be enabled with CONFIG_DEBUG + CONFIG_DEBUG_USB.  However,
-        USB device operation is very time critical and enabling this debug
-        output WILL interfere with the operation of the UDPHS.  USB device
-        tracing is a less invasive way to get debug information:  If tracing
-        is enabled, the USB device will save encoded trace output in in-memory
-        buffer; if the USB monitor is also enabled, that trace buffer will be
-        periodically emptied and dumped to the system logging device (the
-        serial console in this configuration):
-
-        Device Drivers -> "USB Device Driver Support:
-          CONFIG_USBDEV_TRACE=y                   : Enable USB trace feature
-          CONFIG_USBDEV_TRACE_NRECORDS=256        : Buffer 256 records in memory
-          CONFIG_USBDEV_TRACE_STRINGS=y           : (optional)
-
-        Application Configuration -> NSH LIbrary:
-          CONFIG_NSH_USBDEV_TRACE=n               : No builtin tracing from NSH
-          CONFIG_NSH_ARCHINIT=y                   : Automatically start the USB monitor
-
-        Application Configuration -> System NSH Add-Ons:
-          CONFIG_SYSTEM_USBMONITOR=y              : Enable the USB monitor daemon
-          CONFIG_SYSTEM_USBMONITOR_STACKSIZE=2048 : USB monitor daemon stack size
-          CONFIG_SYSTEM_USBMONITOR_PRIORITY=50    : USB monitor daemon priority
-          CONFIG_SYSTEM_USBMONITOR_INTERVAL=1     : Dump trace data every second
-          CONFIG_SYSTEM_USBMONITOR_TRACEINIT=y    : Enable TRACE output
-          CONFIG_SYSTEM_USBMONITOR_TRACECLASS=y
-          CONFIG_SYSTEM_USBMONITOR_TRACETRANSFERS=y
-          CONFIG_SYSTEM_USBMONITOR_TRACECONTROLLER=y
-          CONFIG_SYSTEM_USBMONITOR_TRACEINTERRUPTS=y
-
-       NOTE: If USB debug output is also enabled, both outpus will appear
-       on the serial console.  However, the debug output will be
-       asynchronous with the trace output and, hence, difficult to
-       interpret.
-
-    13. AT24 Serial EEPROM. A AT24C512 Serial EEPPROM was used for tested
-        I2C.  There are other I2C/TWI devices on-board, but the serial
-        EEPROM is the simplest test.
-
-        There is, however, no AT24 EEPROM on board the SAMA5D3x-EK:  The
-        serial EEPROM was mounted on an external adaptor board and
-        connected to the SAMA5D3x-EK thusly:
-
-        - VCC -- VCC
-        - GND -- GND
-        - TWCK0(PA31) -- SCL
-        - TWD0(PA30)  -- SDA
-
-        By default, PA30 and PA31 are SWJ-DP pins, it can be used as a pin
-        for TWI peripheral in the end application.
-
-        The following configuration settings were used:
-
-       System Type -> SAMA5 Peripheral Support
-         CONFIG_SAMA5_TWI0=y                   : Enable TWI0
-
-       System Type -> TWI device driver options
-         SAMA5_TWI0_FREQUENCY=100000           : Select a TWI frequency
-
-       Device Drivers -> I2C Driver Support
-         CONFIG_I2C=y                          : Enable I2C support
-         CONFIG_I2C_TRANSFER=y                 : Driver supports the transfer() method
-         CONFIG_I2C_WRITEREAD=y                : Driver supports the writeread() method
-
-       Device Drivers -> Memory Technology Device (MTD) Support
-         CONFIG_MTD=y                          : Enable MTD support
-         CONFIG_MTD_AT24XX=y                   : Enable the AT24 driver
-         CONFIG_AT24XX_SIZE=512                : Specifies the AT 24C512 part
-         CONFIG_AT24XX_ADDR=0x53               : AT24 I2C address
-
-       Application Configuration -> NSH Library
-         CONFIG_NSH_ARCHINIT=y                 : NSH board-initialization
-
-       File systems
-         CONFIG_NXFFS=y                        : Enables the NXFFS file system
-         CONFIG_NXFFS_PREALLOCATED=y           : Required
-                                               : Other defaults are probably OK
-
-       Board Selection
-         CONFIG_SAMA5_AT24_AUTOMOUNT=y         : Mounts AT24 for NSH
-         CONFIG_SAMA5_AT24_NXFFS=y             : Mount the AT24 using NXFFS
-
-       You can then format the AT25 FLASH for a FAT file system and mount
-       the file system at /mnt/at24 using these NSH commands:
-
-         nsh> mkfatfs /dev/mtdblock0
-         nsh> mount -t vfat /dev/mtdblock0 /mnt/at24
-
-       Then you an use the FLASH as a normal FAT file system:
-
-         nsh> echo "This is a test" >/mnt/at24/atest.txt
-         nsh> ls -l /mnt/at24
-         /mnt/at24:
-          -rw-rw-rw-      16 atest.txt
-         nsh> cat /mnt/at24/atest.txt
-         This is a test
-
-    14. I2C Tool. NuttX supports an I2C tool at apps/system/i2c that can be
-        used to peek and poke I2C devices.  That tool cal be enabled by
-        setting the following:
-
-       System Type -> SAMA5 Peripheral Support
-         CONFIG_SAMA5_TWI0=y                   : Enable TWI0
-         CONFIG_SAMA5_TWI1=y                   : Enable TWI1
-         CONFIG_SAMA5_TWI2=y                   : Enable TWI2
-
-       System Type -> TWI device driver options
-         SAMA5_TWI0_FREQUENCY=100000           : Select a TWI0 frequency
-         SAMA5_TWI1_FREQUENCY=100000           : Select a TWI1 frequency
-         SAMA5_TWI2_FREQUENCY=100000           : Select a TWI2 frequency
-
-       Device Drivers -> I2C Driver Support
-         CONFIG_I2C=y                          : Enable I2C support
-         CONFIG_I2C_TRANSFER=y                 : Driver supports the transfer() method
-         CONFIG_I2C_WRITEREAD=y                : Driver supports the writeread() method
-
-       Application Configuration -> NSH Library
-         CONFIG_SYSTEM_I2CTOOL=y               : Enable the I2C tool
-         CONFIG_I2CTOOL_MINBUS=0               : TWI0 has the minimum bus number 0
-         CONFIG_I2CTOOL_MAXBUS=2               : TWI2 has the maximum bus number 2
-         CONFIG_I2CTOOL_DEFFREQ=100000         : Pick a consistent frequency
-
-       The I2C tool has extensive help that can be accessed as follows:
-
-       nsh> i2c help
-       Usage: i2c <cmd> [arguments]
-       Where <cmd> is one of:
-
-         Show help     : ?
-         List busses   : bus
-         List devices  : dev [OPTIONS] <first> <last>
-         Read register : get [OPTIONS] [<repititions>]
-         Show help     : help
-         Write register: set [OPTIONS] <value> [<repititions>]
-         Verify access : verf [OPTIONS] [<value>] [<repititions>]
-
-       Where common "sticky" OPTIONS include:
-         [-a addr] is the I2C device address (hex).  Default: 03 Current: 03
-         [-b bus] is the I2C bus number (decimal).  Default: 0 Current: 0
-         [-r regaddr] is the I2C device register address (hex).  Default: 00 Current: 00
-         [-w width] is the data width (8 or 16 decimal).  Default: 8 Current: 8
-         [-s|n], send/don't send start between command and data.  Default: -n Current: -n
-         [-i|j], Auto increment|don't increment regaddr on repititions.  Default: NO Current: NO
-         [-f freq] I2C frequency.  Default: 100000 Current: 100000
-
-       NOTES:
-       o Arguments are "sticky".  For example, once the I2C address is
-         specified, that address will be re-used until it is changed.
-
-       WARNING:
-       o The I2C dev command may have bad side effects on your I2C devices.
-         Use only at your own risk.
-
-       As an example, the I2C dev comman can be used to list all devices
-       responding on TWI0 (the default) like this:
-
-         nsh> i2c dev 0x03 0x77
-              0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-         00:          -- -- -- -- -- -- -- -- -- -- -- -- --
-         10: -- -- -- -- -- -- -- -- -- -- 1a -- -- -- -- --
-         20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-         30: -- -- -- -- -- -- -- -- -- 39 -- -- -- 3d -- --
-         40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-         50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-         60: 60 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-         70: -- -- -- -- -- -- -- --
-         nsh>
-
-        Address 0x1a is the WM8904.  Address 0x39 is the SIL9022A. I am
-        not sure what is at address 0x3d and 0x60
-
-    15. Networking support via the can be added to NSH be selecting the
-        following configuration options.  The SAMA5D3x supports two different
-        Ethernet MAC peripherals:  (1) The 10/100Base-T EMAC peripheral and
-        and (2) the 10/100/1000Base-T GMAC peripheral.  Only the SAMA5D31
-        and SAMAD35 support the EMAC peripheral; Only the SAMA5D33, SAMA5D34,
-        and SAMA5D35 support the GMAC perpheral!  NOTE that the SAMA5D35
-        supports both!
-
-        a) Selecting the EMAC peripheral:
-
-          System Type
-            CONFIG_ARCH_CHIP_ATSAMA5D31=y       : SAMA5D31 or SAMAD35 support EMAC
-            CONFIG_ARCH_CHIP_ATSAMA5D35=y       : (others do not)
-
-          System Type -> SAMA5 Peripheral Support
-            CONFIG_SAMA5_EMAC=y                 : Enable the EMAC peripheral
-
-          System Type -> EMAC device driver options
-            CONFIG_SAMA5_EMAC_NRXBUFFERS=16     : Set aside some RS and TX buffers
-            CONFIG_SAMA5_EMAC_NTXBUFFERS=4
-            CONFIG_SAMA5_EMAC_PHYADDR=1         : KSZ8051 PHY is at address 1
-            CONFIG_SAMA5_EMAC_AUTONEG=y         : Use autonegotiation
-            CONFIG_SAMA5_EMAC_RMII=y            : Either MII or RMII interface should work
-            CONFIG_SAMA5_EMAC_PHYSR=30          : Address of PHY status register on KSZ8051
-            CONFIG_SAMA5_EMAC_PHYSR_ALTCONFIG=y : Needed for KSZ8051
-            CONFIG_SAMA5_EMAC_PHYSR_ALTMODE=0x7 : "    " " " "     "
-            CONFIG_SAMA5_EMAC_PHYSR_10HD=0x1    : "    " " " "     "
-            CONFIG_SAMA5_EMAC_PHYSR_100HD=0x2   : "    " " " "     "
-            CONFIG_SAMA5_EMAC_PHYSR_10FD=0x5    : "    " " " "     "
-            CONFIG_SAMA5_EMAC_PHYSR_100FD=0x6   : "    " " " "     "
-
-          PHY selection.  Later in the configuration steps, you will need to
-          select the KSZ8051 PHY for EMAC (See below)
-
-        b) Selecting the GMAC peripheral:
-
-          System Type
-            CONFIG_ARCH_CHIP_ATSAMA5D33=y       : SAMA5D31, SAMA5D33 and SAMAD35
-            CONFIG_ARCH_CHIP_ATSAMA5D34=y       : support GMAC (others do not)
-            CONFIG_ARCH_CHIP_ATSAMA5D35=y       :
-
-          System Type -> SAMA5 Peripheral Support
-            CONFIG_SAMA5_GMAC=y                 : Enable the GMAC peripheral
-
-          System Type -> GMAC device driver options
-            CONFIG_SAMA5_GMAC_NRXBUFFERS=16     : Set aside some RS and TX buffers
-            CONFIG_SAMA5_GMAC_NTXBUFFERS=4
-            CONFIG_SAMA5_GMAC_PHYADDR=1         : KSZ8051 PHY is at address 1
-            CONFIG_SAMA5_GMAC_AUTONEG=y         : Use autonegotiation
-
-          If both EMAC and GMAC are selected, you will also need:
-
-            CONFIG_SAMA5_GMAC_ISETH0=y          : GMAC is "eth0"; EMAC is "eth1"
-
-          PHY selection.  Later in the configuration steps, you will need to
-          select the  KSZ9021/31 PHY for GMAC (See below)
-
-        c) Common configuration settings
-
-          Networking Support
-            CONFIG_NET=y                        : Enable Neworking
-            CONFIG_NET_SOCKOPTS=y               : Enable socket operations
-            CONFIG_NET_BUFSIZE=562              : Maximum packet size (MTD) 1518 is more standard
-            CONFIG_NET_RECEIVE_WINDOW=562       : Should be the same as CONFIG_NET_BUFSIZE
-            CONFIG_NET_TCP=y                    : Enable TCP/IP networking
-            CONFIG_NET_TCPBACKLOG=y             : Support TCP/IP backlog
-            CONFIG_NET_TCP_READAHEAD_BUFSIZE=562  Read-ahead buffer size
-            CONFIG_NET_UDP=y                    : Enable UDP networking
-            CONFIG_NET_ICMP=y                   : Enable ICMP networking
-            CONFIG_NET_ICMP_PING=y              : Needed for NSH ping command
-                                                : Defaults should be okay for other options
-          Device drivers -> Network Device/PHY Support
-            CONFIG_NETDEVICES=y                 : Enabled PHY selection
-            CONFIG_ETH0_PHY_KSZ8051=y           : Select the KSZ8051 PHY (for EMAC), OR
-            CONFIG_ETH0_PHY_KSZ90x1=y           : Select teh KSZ9021/31 PHY (for GMAC)
-
-          Application Configuration -> Network Utilities
-            CONFIG_NETUTILS_RESOLV=y            : Enable host address resolution
-            CONFIG_NETUTILS_TELNETD=y           : Enable the Telnet daemon
-            CONFIG_NETUTILS_TFTPC=y             : Enable TFTP data file transfers for get and put commands
-            CONFIG_NETUTILS_UIPLIB=y            : Network library support is needed
-            CONFIG_NETUTILS_WEBCLIENT=y         : Needed for wget support
-                                                : Defaults should be okay for other options
-          Application Configuration -> NSH Library
-            CONFIG_NSH_TELNET=y                 : Enable NSH session via Telnet
-            CONFIG_NSH_IPADDR=0x0a000002        : Select an IP address
-            CONFIG_NSH_DRIPADDR=0x0a000001      : IP address of gateway/host PC
-            CONFIG_NSH_NETMASK=0xffffff00       : Netmask
-            CONFIG_NSH_NOMAC=y                  : Need to make up a bogus MAC address
-                                                : Defaults should be okay for other options
-
-        d) Using the network with NSH
-
-          So what can you do with this networking support?  First you see that
-          NSH has several new network related commands:
-
-            ifconfig, ifdown, ifup:  Commands to help manage your network
-            get and put:             TFTP file transfers
-            wget:                    HTML file transfers
-            ping:                    Check for access to peers on the network
-            Telnet console:          You can access the NSH remotely via telnet.
-
-          You can also enable other add on features like full FTP or a Web
-          Server or XML RPC and others.  There are also other features that
-          you can enable like DHCP client (or server) or network name
-          resolution.
-
-          By default, the IP address of the SAMA5D3x-EK will be 10.0.0.2 and
-          it will assume that your host is the gateway and has the IP address
-          10.0.0.1.
-
-            nsh> ifconfig
-            eth0    HWaddr 00:e0:de:ad:be:ef at UP
-                    IPaddr:10.0.0.2 DRaddr:10.0.0.1 Mask:255.255.255.0
-
-          You can use ping to test for connectivity to the host (Careful,
-          Window firewalls usually block ping-related ICMP traffic).  On the
-          target side, you can:
-
-            nsh> ping 10.0.0.1
-            PING 10.0.0.1 56 bytes of data
-            56 bytes from 10.0.0.1: icmp_seq=1 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=2 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=3 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=4 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=5 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=6 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=7 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=8 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=9 time=0 ms
-            56 bytes from 10.0.0.1: icmp_seq=10 time=0 ms
-            10 packets transmitted, 10 received, 0% packet loss, time 10100 ms
-
-          NOTE: In this configuration is is normal to have packet loss > 0%
-          the first time you ping due to the default handling of the ARP
-          table.
-
-          On the host side, you should also be able to ping the SAMA5D3-EK:
-
-            $ ping 10.0.0.2
-
-          You can also log into the NSH from the host PC like this:
-
-            $ telnet 10.0.0.2
-            Trying 10.0.0.2...
-            Connected to 10.0.0.2.
-            Escape character is '^]'.
-            sh_telnetmain: Session [3] Started
-
-            NuttShell (NSH) NuttX-6.31
-            nsh> help
-            help usage:  help [-v] [<cmd>]
-
-              [           echo        ifconfig    mkdir       mw          sleep
-              ?           exec        ifdown      mkfatfs     ping        test
-              cat         exit        ifup        mkfifo      ps          umount
-              cp          free        kill        mkrd        put         usleep
-              cmp         get         losetup     mh          rm          wget
-              dd          help        ls          mount       rmdir       xd
-              df          hexdump     mb          mv          sh
-
-            Builtin Apps:
-            nsh>
-
-          NOTE:  If you enable this feature, you experience a delay on booting.
-          That is because the start-up logic waits for the network connection
-          to be established before starting NuttX.  In a real application, you
-          would probably want to do the network bringup on a separate thread
-          so that access to the NSH prompt is not delayed.
-
-          This delay will be especially long if the board is not connected to
-          a network.
-
-    16. You can enable the touchscreen by modifying the configuration
-        in the following ways:
-
-        System Type:
-          CONFIG_SAMA5_ADC=y                     : ADC support is required
-          CONFIG_SAMA5_TSD=y                     : Enabled touchcreen device support
-          SAMA5_TSD_4WIRE=y                      : 4-Wire interface with pressure
-
-        You might want to tinker with the SWAPXY and THRESHX and THRESHY
-        settings to get the result that you want.
-
-        Drivers:
-          CONFIG_INPUT=y                         : (automatically selected)
-
-        Board Selection:
-           CONFIG_SAMA5_TSD_DEVMINOR=0           : Register as /dev/input0
-
-        Library Support:
-          CONFIG_SCHED_WORKQUEUE=y               : Work queue support required
-
-        These options may also be applied to enable a built-in touchscreen
-        test application:
-
-        Applicaton Configuration:
-          CONFIG_EXAMPLES_TOUCHSCREEN=y          : Enable the touchscreen built-int test
-          CONFIG_EXAMPLES_TOUCHSCREEN_MINOR=0    : To match the board selection
-          CONFIG_EXAMPLES_TOUCHSCREEN_DEVPATH="/dev/input0"
-
-        Defaults should be okay for all related settings.
-
-    17. The Real Time Clock/Calendar RTC) may be enabled with these settings:
-
-        System Type:
-          CONFIG_SAMA5_RTC=y                   : Enable the RTC driver
-
-        Drivers (these values will be selected automatically):
-          CONFIG_RTC=y                         : Use the RTC for system time
-          CONFIG_RTC_DATETIME=y                : RTC supports data/time
-
-        The RTC supports an alarm that may be enable with the following settings.
-        However, there is nothing in the system that currently makes use of this
-        alarm.
-
-        Drivers:
-          CONFIG_RTC_ALARM=y                   : Enable the RTC alarm
-
-        Library Routines
-         CONFIG_SCHED_WORKQUEUE=y              : Alarm needs work queue support
-
-    18. This example can be configured to exercise the watchdog timer test
-        (apps/examples/watchdog).  This can be selected with the following
-        settings in the NuttX configuration file:
-
-        System Type:
-          CONFIG_SAMA5_WDT=y                  : Enable the WDT peripheral
-                                              : Defaults in "RTC Configuration" should be OK
-
-        Drivers (this will automatically be selected):
-          CONFIG_WATCHDOG=y                   : Enables watchdog timer driver support
-
-        Application Configuration -> Eamples
-          CONFIG_EXAMPLES_WATCHDOG=y          : Enable apps/examples/watchdog
-
-        The WDT timer is driven off the slow, 32768Hz clock divided by 128.
-        As a result, the watchdog a maximum timeout value of 16 seconds.  The
-        SAMA5 WDT may also only be programmed one time; the processor must be
-        reset before the WDT can be reprogrammed.
-
-        The SAMA5 always boots with the watchdog timer enabled at its maximum
-        timeout (16 seconds).  In the normal case where no watchdog timer driver
-        has been configured, the watchdog timer is disabled as part of the start
-        up logic.  But, since we are permitted only one opportunity to program
-        the WDT, we cannot disable the watchdog time if CONFIG_SAMA5_WDT=y.  So,
-        be forewarned:  You have only 16 seconds to run your watchdog timer test!
-
-        NOTE:  If you are using the norboot program to run from FLASH as I did,
-        beware that the default version also disables the watchdog.  You will
-        need a special version of norboot with CONFIG_SAMA5_WDT=y.
-
-    19. This example can be configured to enable the SAMA5 TRNG peripheral so
-        that it provides /dev/random.  The following configuration will enable
-        the TRNG, /dev/random, and the simple test of /dev/random at
-        apps/examples/ranadom:
-
-        System Type:
-          CONFIG_SAMA5_TRNG=y                 : Enable the TRNG peripheral
-
-        Drivers (automatically selected):
-          CONFIG_DEV_RANDOM=y                 : Enable /dev/random
-
-        Applications -> Examples
-          CONFIG_EXAMPLES_RANDOM=y            : Enable apps/examples/random
-          CONFIG_EXAMPLES_MAXSAMPLES=64       : Default settings are probably OK
-          CONFIG_EXAMPLES_NSAMPLES=8
-
-    20. See also the sections above for additional configuration options:
+       for both SD slots can be enabled with the settings provided in the
+       paragraph entitled "HSMCI Card Slots" above.
+
+    10. Support the USB low-, high- and full-speed OHCI host driver can be enabled
+        by changing the NuttX configuration file as described in the section
+        entitled "USB High-Speed Host" above.
+
+    11. Support the USB high-speed USB device driver (UDPHS) can be enabled
+        by changing the NuttX configuration file as described above in the
+        section entitled "USB High-Speed Device."
+
+    12. AT24 Serial EEPROM. A AT24C512 Serial EEPPROM was used for tested
+        I2C.  There is, however, no AT24 EEPROM on board the SAMA5D3x-EK:
+        The  serial EEPROM was mounted on an external adaptor board and
+        connected to the SAMA5D3x-EK thusly.  See the section above entitle
+        "AT24 Serial EEPROM" for further information.
+
+    13. I2C Tool. NuttX supports an I2C tool at apps/system/i2c that can be
+        used to peek and poke I2C devices.  See the discussion above under
+        "I2C Tool" for detailed configuration settings.
+
+    14. Networking support via the can be added to NSH by modifying the
+        configuration.  See the "Networking" section above for detailed
+        configuration settings.
+
+    15. You can enable the touchscreen and a touchscreen by following the
+        configuration instrcutions in the section entitled "Touchscreen
+        Testing" above.
+
+    16. The Real Time Clock/Calendar RTC) may be enabled by reconfiguring NuttX.
+        See the section entitled "RTC" above for detailed configuration settings.
+
+    17. This example can be configured to exercise the watchdog timer test
+        (apps/examples/watchdog).  See the detailed configuration settings in
+        the section entitled "Watchdog Timer" above.
+
+    18. This example can be configured to enable the SAMA5 TRNG peripheral so
+        that it provides /dev/random.  See the section entitled "TRNG and
+        /dev/random" above for detailed configuration information.
+
+    19. See also the sections above for additional configuration options:
         "AT24 Serial EEPROM", "CAN Usage", "SAMA5 ADC Support", "SAMA5 PWM
         Support", "OV2640 Camera Interface", "I2S Audio Support"
 
@@ -2658,7 +2942,7 @@ Configurations
        See the To-Do list below
 
       I2C
-      2013-9-12:  I have been unusuccessful getting the external serial
+      2013-9-12:  I have been unsuccessful getting the external serial
         AT24 EEPROM to work.  I am pretty sure that this is a problem with
         my external AT24 board (the TWI0 bus hangs when the AT24 is plugged
         in).  I will skip the AT24 integration since it is not on the critical
@@ -2685,7 +2969,7 @@ Configurations
     The NxWM window manager is a tiny window manager tailored for use
     with smaller LCDs.  It supports a toolchain, a start window, and
     multiple application windows.  However, to make the best use of
-    the visible LCD space, only one application window is visiable at
+    the visible LCD space, only one application window is visible at
     at time.
 
     The NxWM window manager can be found here:
@@ -2807,6 +3091,12 @@ Configurations
        CONFIG_WINDOWS_CYGWIN=y                 : POSIX environment under windows
        CONFIG_ARMV7A_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery for Windows
 
+       If you are running on Linux, make *certain* that you have
+       CONFIG_HOST_LINUX=y *before* the first make or you will create a
+       corrupt configuration that may not be easy to recover from. See
+       the warning in the section "Information Common to All Configurations"
+       for further information.
+
     3. This configuration executes out of CS0 NOR flash and can only
        be loaded via SAM-BA.  These are the relevant configuration options
        the define the NOR FLASH configuration:
@@ -2829,8 +3119,15 @@ Configurations
        NOTE:  In order to boot in this configuration, you need to close the
        BMS jumper.
 
+    4. Data resides in ISRAM, but can be moved to SDRAM as described above
+       under "SDRAM Data Configuration."
+
     STATUS:
        See the To-Do list below
+
+  ov2640:
+
+    A test of the SAMA5 ISI using an OV2640 camera.
 
 To-Do List
 ==========
@@ -2847,43 +3144,35 @@ To-Do List
    have been using the norboot configuration to start the program in NOR
    FLASH (see just above).  See "Creating and Using NORBOOT" above.
 
-3) Currently, these configurations keep all .bss and .data in internal SRAM.
-   The SDRAM is available for heap, but not for static data.  This is
-   because the SDRAM does not get configured until after the system has
-   booted; until after .bss and .data have been initialized.  To change
-   this, the solution would be to port the Bareboard assembly language
-   setup into the NuttX assembly language startup and execute it BEFORE
-   initializing .bss and .data.
+3) Neither USB OHCI nor EHCI support Isochronous endpoints.  Interrupt
+   endpoint support in the EHCI driver is untested (but works in similar
+   EHCI drivers).
 
-4) Neither USB OHCI nor EHCI support Isochronous endpoints.  Interrupt
-   endpoint support in the EHCI driver is untested.
+4) HSCMI TX DMA support is currently commented out.
 
-5) HSCMI TX DMA support is currently commented out.
-
-6) I believe that there is an issue when the internal AT25 FLASH is
+5) I believe that there is an issue when the internal AT25 FLASH is
    formatted by NuttX.  That format works fine with Linux, but does not
    appear to work with Windows.  Reformatting on Windows can resolve this.
    NOTE:  This is not a SAMA5Dx issue.
 
-7) CAN testing has not yet been performed due to issues with cabling.  I
+6) CAN testing has not yet been performed due to issues with cabling.  I
    just do not have a good test bed (or sufficient CAN knowledge) for
    good CAN testing.
 
-8) The NxWM example does not work well.  This example was designed to work
+7) The NxWM example does not work well.  This example was designed to work
    with much smaller displays and does not look good or work well with the
    SAMA5Dx-EKs 800x480 display.  See above for details.
 
-9) There are lots of LCDC hardware features that are not tested with NuttX.
+8) There are lots of LCDC hardware features that are not tested with NuttX.
    The simple NuttX graphics system does not have support for all of the
    layers and other features of the LCDC.
 
-10) I have a Camera, but there is still no ISI driver.  I am not sure what to
-    do with the camera.  NuttX needs something liek V4L to provide the
-    definition for what a camera driver is supposed to do.
+9) I have a Camera, but there is still no ISI driver.  I am not sure what to
+   do with the camera.  NuttX needs something like V4L to provide the
+   definition for what a camera driver is supposed to do.
 
-11) NAND.  There is no NAND support.  A NAND driver is a complex thing
-    because it must support not only basic NAND access but also bad block
-    detection, sparing and ECC.  Lots of work!
+   I will probably develop a test harness for ISI, but it is of only
+   minimal value with no OS infrastructure to deal with images and video.
 
-12) GMAC has only been tested on a 10/100Base-T network.  I don't have a
+10) GMAC has only been tested on a 10/100Base-T network.  I don't have a
     1000Base-T network to support additional testing.

@@ -1,7 +1,7 @@
 /****************************************************************************
  * libc/lib_internal.h
  *
- *   Copyright (C) 2007-2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,8 @@
  *
  ****************************************************************************/
 
-#ifndef __LIB_LIB_INTERNAL_H
-#define __LIB_LIB_INTERNAL_H
+#ifndef __LIBC_LIB_INTERNAL_H
+#define __LIBC_LIB_INTERNAL_H
 
 /****************************************************************************
  * Included Files
@@ -73,7 +73,7 @@
 #  define lib_give_semaphore(s)
 #endif
 
-/* The NuttX C library an be build in two modes: (1) as a standard, C-libary
+/* The NuttX C library an be build in two modes: (1) as a standard, C-library
  * that can be used by normal, user-space applications, or (2) as a special,
  * kernel-mode C-library only used within the OS.  If NuttX is not being
  * built as separated kernel- and user-space modules, then only the first
@@ -91,7 +91,7 @@
 #  define lib_memalign(p,s) krealloc(p,s)
 #  define lib_free(p)       kfree(p)
 
-   /* User-accesssible allocations */
+   /* User-accessible allocations */
 
 #  define lib_umalloc(s)    kumalloc(s)
 #  define lib_uzalloc(s)    kuzalloc(s)
@@ -108,7 +108,7 @@
 #  define lib_realloc(p,s)  realloc(p,s)
 #  define lib_free(p)       free(p)
 
-   /* User-accesssible allocations */
+   /* User-accessible allocations */
 
 #  define lib_umalloc(s)    malloc(s)
 #  define lib_uzalloc(s)    zalloc(s)
@@ -184,6 +184,11 @@ ssize_t lib_fwrite(FAR const void *ptr, size_t count, FAR FILE *stream);
 
 ssize_t lib_fread(FAR void *ptr, size_t count, FAR FILE *stream);
 
+/* Defined in lib_libfgets.c */
+
+FAR char *lib_fgets(FAR char *buf, size_t buflen, FILE *stream,
+                    bool keepnl, bool consume);
+
 /* Defined in lib_libfflush.c */
 
 ssize_t lib_fflush(FAR FILE *stream, bool bforce);
@@ -237,4 +242,4 @@ float lib_sqrtapprox(float x);
 }
 #endif
 
-#endif /* __LIB_LIB_INTERNAL_H */
+#endif /* __LIBC_LIB_INTERNAL_H */

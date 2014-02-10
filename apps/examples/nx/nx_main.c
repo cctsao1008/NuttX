@@ -54,7 +54,7 @@
 #ifdef CONFIG_NX_LCDDRIVER
 #  include <nuttx/lcd/lcd.h>
 #else
-#  include <nuttx/fb.h>
+#  include <nuttx/video/fb.h>
 #endif
 
 #include <nuttx/arch.h>
@@ -110,7 +110,7 @@ NXHANDLE g_fonthandle;
  * Public Data
  ****************************************************************************/
 
-/* The connecton handler */
+/* The connection handler */
 
 NXHANDLE g_hnx = NULL;
 

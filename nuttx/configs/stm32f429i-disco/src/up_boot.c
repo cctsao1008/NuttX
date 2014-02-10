@@ -75,7 +75,8 @@ void stm32_boardinitialize(void)
    * stm32_spiinitialize() has been brought into the link.
    */
 
-#if defined(CONFIG_STM32_SPI1) || defined(CONFIG_STM32_SPI2) || defined(CONFIG_STM32_SPI3)
+#if defined(CONFIG_STM32_SPI1) || defined(CONFIG_STM32_SPI2) || defined(CONFIG_STM32_SPI3) ||\
+	defined(CONFIG_STM32_SPI4) || defined(CONFIG_STM32_SPI5)
   if (stm32_spiinitialize)
     {
       stm32_spiinitialize();
@@ -98,7 +99,7 @@ void stm32_boardinitialize(void)
   /* Configure on-board LEDs if LED support has been selected. */
 
 #ifdef CONFIG_ARCH_LEDS
-  up_ledinit();
+  board_led_initialize();
 #endif
 
 #ifdef CONFIG_STM32_FSMC

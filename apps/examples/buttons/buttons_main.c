@@ -1,7 +1,7 @@
 /****************************************************************************
  * examples/buttons/buttons_main.c
  *
- *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2011, 2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,15 +45,16 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
-#include <nuttx/arch.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <debug.h>
 
+#include <nuttx/arch.h>
+
 /****************************************************************************
- * Definitions
+ * Pre-processor Definitions
  ****************************************************************************/
 /* Configuration ************************************************************/
 
@@ -311,7 +312,7 @@ static void show_buttons(uint8_t oldset, uint8_t newset)
 #ifdef CONFIG_ARCH_IRQBUTTONS
 static void button_handler(int id, int irq)
 {
-  uint8_t newset = up_buttons();
+  uint8_t newset = board_buttons();
 
   lowsyslog("IRQ:%d Button %d:%s SET:%02x:\n",
             irq, id, g_buttoninfo[BUTTON_INDEX(id)].name, newset);
@@ -414,14 +415,14 @@ int buttons_main(int argc, char *argv[])
 
   /* Initialize the button GPIOs */
 
-  up_buttoninit();
+  board_button_initialize();
 
   /* Register to recieve button interrupts */
 
 #ifdef CONFIG_ARCH_IRQBUTTONS
   for (i = CONFIG_EXAMPLES_IRQBUTTONS_MIN; i <= CONFIG_EXAMPLES_IRQBUTTONS_MAX; i++)
     {
-      xcpt_t oldhandler = up_irqbutton(i, g_buttoninfo[BUTTON_INDEX(i)].handler);
+      xcpt_t oldhandler = board_button_irq(i, g_buttoninfo[BUTTON_INDEX(i)].handler);
 
       /* Use lowsyslog() for compatibility with interrrupt handler output. */
 
@@ -447,7 +448,7 @@ int buttons_main(int argc, char *argv[])
 
   /* Poll button state */
 
-  g_oldset = up_buttons();
+  g_oldset = board_buttons();
 #ifdef CONFIG_NSH_BUILTIN_APPS
   while (g_nbuttons < maxbuttons)
 #else
@@ -456,7 +457,7 @@ int buttons_main(int argc, char *argv[])
     {
       /* Get the set of pressed and release buttons. */
 
-      newset = up_buttons();
+      newset = board_buttons();
 
       /* Any changes from the last sample? */
 
@@ -490,7 +491,7 @@ int buttons_main(int argc, char *argv[])
 #if defined(CONFIG_ARCH_IRQBUTTONS) && defined(CONFIG_NSH_BUILTIN_APPS)
   for (i = CONFIG_EXAMPLES_IRQBUTTONS_MIN; i <= CONFIG_EXAMPLES_IRQBUTTONS_MAX; i++)
     {
-      (void)up_irqbutton(i, NULL);
+      (void)board_button_irq(i, NULL);
     }
 #endif
 

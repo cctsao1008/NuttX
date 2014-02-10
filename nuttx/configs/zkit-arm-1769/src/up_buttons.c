@@ -1,11 +1,11 @@
 /****************************************************************************
- * configs/zkit-arm-1769/src/up_buttons.c
- *  arch/arm/src/board/up_buttons.c
+ * configs/zkit-arm-1769/src/board_buttons.c
+ *  arch/arm/src/board/board_buttons.c
  *
  *   Copyright (C)  2011 Zilogic Systems. All rights reserved.
  *   Author: Kannan <code@zilogic.com>
  *
- * Based on configs/stm3210e-eval/src/up_buttons.c
+ * Based on configs/stm3210e-eval/src/board_buttons.c
  *
  *   Copyright (C) 2009, 2011 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -83,17 +83,17 @@ static xcpt_t g_oldhandler;
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_buttoninit
+ * Name: board_button_initialize
  *
  * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_buttons() may be called to collect the current state of all
- *   buttons or up_irqbutton() may be called to register button interrupt
+ *   board_button_initialize() must be called to initialize button resources.  After
+ *   that, board_buttons() may be called to collect the current state of all
+ *   buttons or board_button_irq() may be called to register button interrupt
  *   handlers.
  *
  ****************************************************************************/
 
-void up_buttoninit(void)
+void board_button_initialize(void)
 {
   int i;
 
@@ -108,10 +108,10 @@ void up_buttoninit(void)
 }
 
 /****************************************************************************
- * Name: up_buttons
+ * Name: board_buttons
  ****************************************************************************/
 
-uint8_t up_buttons(void)
+uint8_t board_buttons(void)
 {
   uint8_t ret = 0;
   bool released;
@@ -138,17 +138,17 @@ uint8_t up_buttons(void)
  * Button support.
  *
  * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_buttons() may be called to collect the current state of all
- *   buttons or up_irqbutton() may be called to register button interrupt
+ *   board_button_initialize() must be called to initialize button resources.  After
+ *   that, board_buttons() may be called to collect the current state of all
+ *   buttons or board_button_irq() may be called to register button interrupt
  *   handlers.
  *
- *   After up_buttoninit() has been called, up_buttons() may be called to
- *   collect the state of all buttons.  up_buttons() returns an 8-bit bit set
+ *   After board_button_initialize() has been called, board_buttons() may be called to
+ *   collect the state of all buttons.  board_buttons() returns an 8-bit bit set
  *   with each bit associated with a button.  See the BUTTON_*_BIT and JOYSTICK_*_BIT
  *   definitions in board.h for the meaning of each bit.
  *
- *   up_irqbutton() may be called to register an interrupt handler that will
+ *   board_button_irq() may be called to register an interrupt handler that will
  *   be called when a button is depressed or released.  The ID value is a
  *   button enumeration value that uniquely identifies a button resource. See the
  *   BUTTON_* and JOYSTICK_* definitions in board.h for the meaning of enumeration
@@ -158,7 +158,7 @@ uint8_t up_buttons(void)
  ************************************************************************************/
 
 #if defined CONFIG_ARCH_IRQBUTTONS && CONFIG_GPIO_IRQ
-xcpt_t up_irqbutton(int id, xcpt_t irqhandler)
+xcpt_t board_button_irq(int id, xcpt_t irqhandler)
 {
   xcpt_t rethandler = NULL;
   irqstate_t flags;

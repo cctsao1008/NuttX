@@ -26,6 +26,16 @@ config MTD_PARTITION
 		managing the sub-region of flash beginning at 'offset' (in blocks)
 		and of size 'nblocks' on the device specified by 'mtd'.
 
+config MTD_PARTITION_NAMES
+	bool "Support MTD partition naming"
+	depends on FS_PROCFS
+	depends on MTD_PARTITION
+	default n
+	---help---
+		MTD partitions can be assigned a name for reporting via the procfs
+		file system interface.  This adds an API which must be called to
+		specify the partition name.
+
 config MTD_BYTE_WRITE
 	bool "Byte write"
 	default n
@@ -75,23 +85,13 @@ config MTD_CONFIG_ERASEDVALUE
 
 comment "MTD Device Drivers"
 
-config MTD_NAND
-	bool "Enable NAND support"
+menuconfig MTD_NAND
+	bool "MTD NAND support"
 	default n
 	---help---
 		Enable support for NAND FLASH devices.
 
-config ARCH_NAND_HWECC
-	bool
-	default n
-
 if MTD_NAND
-
-config MTD_NAND_BLOCKCHECK
-	bool "Block check"
-	default y
-	---help---
-		Enable support for bad block checking.
 
 config MTD_NAND_MAXNUMBLOCKS
 	int "Max blocks"
@@ -123,18 +123,31 @@ config MTD_NAND_MAXSPAREECCBYTES
 	---help---
 		Maximum number of ECC bytes stored in the spare for one single page.
 
+config MTD_NAND_BLOCKCHECK
+	bool "Block check"
+	default y
+	---help---
+		Enable support for ECC and bad block checking.
+
+config MTD_NAND_SWECC
+	bool "Sofware ECC support"
+	default n if ARCH_NAND_HWECC
+	default y if !ARCH_NAND_HWECC
+	---help---
+		Build in logic to support software calculation of ECC.
+
+config MTD_NAND_HWECC
+	bool "Hardware ECC support"
+	default n
+	depends on ARCH_NAND_HWECC
+	---help---
+		Build in logic to support hardware calculation of ECC.
+
 config MTD_NAND_MAXSPAREEXTRABYTES
 	int "Max extra free bytes"
 	default 206
 	---help---
 		Maximum number of extra free bytes inside the spare area of a page.
-
-config MTD_NAND_MAX_HWECCSIZE
-	int "Max H/W ECC size"
-	default 200
-	depends on ARCH_NAND_HWECC
-	---help---
-		Maximum HW ECC size
 
 config MTD_NAND_EMBEDDEDECC
 	bool "Support devices with Embedded ECC"
@@ -341,6 +354,42 @@ config SST25_SLOWWRITE
 config SST25_SLOWREAD
 	bool
 	default n
+
+endif
+
+config MTD_SST25XX
+	bool "SPI-based SST25XX FLASH (64-MBit and larger)"
+	default n
+	select SPI
+	---help---
+		With the 64 MBit and larger parts, SST changed the write mechanism to
+		support page write instead of byte/word write like the smaller parts.
+		As a result, the SST25 driver is not compatible with the larger density
+		parts, and the SST25XX driver must be used instead.
+
+if MTD_SST25XX
+
+config SST25XX_SPIMODE
+	int "SST25 SPI Mode"
+	default 0
+
+config SST25XX_SPIFREQUENCY
+	int "SST25 SPI Frequency"
+	default 20000000
+
+config SST25XX_MANUFACTURER
+	hex "Manufacturers ID"
+	default 0xBF
+	---help---
+		Various manufacturers may have produced the parts.  0xBF is the manufacturer ID
+		for the parts manufactured by SST.
+
+config SST25XX_MEMORY_TYPE
+	hex "Memory type ID"
+	default 0x25
+	---help---
+		The memory type for SST25VF065 series is 0x25, but this can be modified if needed
+		to support compatible devices from different manufacturers.
 
 endif
 

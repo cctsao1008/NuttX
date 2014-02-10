@@ -56,7 +56,7 @@
 #include <nuttx/fs/fs.h>
 #include <nuttx/fs/ioctl.h>
 #include <nuttx/mtd/mtd.h>
-#include <nuttx/smart.h>
+#include <nuttx/fs/smart.h>
 
 /****************************************************************************
  * Private Definitions
@@ -96,6 +96,7 @@
 #define SMARTFS_FMT_AGING_POS     32
 
 #define SMART_FMT_VERSION           1
+#define SMART_PARTNAME_SIZE         4
 
 #define SMART_FIRST_ALLOC_SECTOR    12      /* First logical sector number we will
                                              * use for assignment of requested Alloc
@@ -134,7 +135,7 @@ struct smart_struct_s
   FAR uint8_t          *releasecount;     /* Count of released sectors per erase block */
   FAR uint8_t          *freecount;        /* Count of free sectors per erase block */
   FAR char             *rwbuffer;         /* Our sector read/write buffer */
-  const FAR char       *partname;         /* Optional partition name */
+  char                  partname[SMART_PARTNAME_SIZE]; /* Optional partition name */
   uint8_t               formatversion;    /* Format version on the device */
   uint8_t               formatstatus;     /* Indicates the status of the device format */
   uint8_t               namesize;         /* Length of filenames on this device */
@@ -804,9 +805,9 @@ static int smart_scan(struct smart_struct_s *dev)
 
           for (x = 1; x < dev->rootdirentries; x++)
             {
-              if (dev->partname != NULL)
+              if (dev->partname[0] != '\0')
                 {
-                  snprintf(dev->rwbuffer, sizeof(devname), "/dev/smart%d%s%d",
+                  snprintf(dev->rwbuffer, sizeof(devname), "/dev/smart%d%sd%d",
                           dev->minor, dev->partname, x+1);
                 }
               else
@@ -2152,13 +2153,22 @@ int smart_initialize(int minor, FAR struct mtd_dev_s *mtd, const char *partname)
           ret = -EINVAL;
           goto errout;
         }
+
       dev->freesectors = (uint16_t) totalsectors;
 
       /* Mark the device format status an unknown */
 
       dev->formatstatus = SMART_FMT_STAT_UNKNOWN;
       dev->namesize = CONFIG_SMARTFS_MAXNAMLEN;
-      dev->partname = partname;
+      if (partname)
+        {
+          strncpy(dev->partname, partname, SMART_PARTNAME_SIZE);
+        }
+      else
+        {
+          dev->partname[0] = '\0';
+        }
+
 #ifdef CONFIG_SMARTFS_MULTI_ROOT_DIRS
       dev->minor = minor;
 #endif
@@ -2167,9 +2177,13 @@ int smart_initialize(int minor, FAR struct mtd_dev_s *mtd, const char *partname)
 
 #ifdef CONFIG_SMARTFS_MULTI_ROOT_DIRS
       if (partname != NULL)
-        snprintf(dev->rwbuffer, 18, "/dev/smart%d%sd1", minor, partname);
+        {
+          snprintf(dev->rwbuffer, 18, "/dev/smart%d%sd1", minor, partname);
+        }
       else
-        snprintf(dev->rwbuffer, 18, "/dev/smart%dd1", minor);
+        {
+          snprintf(dev->rwbuffer, 18, "/dev/smart%dd1", minor);
+        }
 
       /* Inode private data is a reference to a struct containing
        * the SMART device structure and the root directory number.
@@ -2194,9 +2208,13 @@ int smart_initialize(int minor, FAR struct mtd_dev_s *mtd, const char *partname)
 
 #else
       if (partname != NULL)
-        snprintf(dev->rwbuffer, 18, "/dev/smart%d%s", minor, partname);
+        {
+          snprintf(dev->rwbuffer, 18, "/dev/smart%d%s", minor, partname);
+        }
       else
-        snprintf(dev->rwbuffer, 18, "/dev/smart%d", minor);
+        {
+          snprintf(dev->rwbuffer, 18, "/dev/smart%d", minor);
+        }
 
       /* Inode private data is a reference to the SMART device structure */
 

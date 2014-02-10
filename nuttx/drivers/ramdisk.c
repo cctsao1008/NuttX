@@ -51,7 +51,7 @@
 
 #include <nuttx/kmalloc.h>
 #include <nuttx/fs/fs.h>
-#include <nuttx/ramdisk.h>
+#include <nuttx/fs/ramdisk.h>
 
 /****************************************************************************
  * Private Definitions
@@ -338,5 +338,6 @@ int romdisk_register(int minor, uint8_t *buffer, uint32_t nsectors,
           kfree(dev);
         }
     }
+
   return ret;
 }

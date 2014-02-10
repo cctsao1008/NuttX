@@ -1,7 +1,7 @@
 /****************************************************************************
  * arch/arm/src/sama5/sam_boot.c
  *
- *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2013-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -235,7 +235,7 @@ static const struct section_mapping_s section_mapping[] =
     SAM_EBICS3_MMUFLAGS,   SAM_EBICS3_NSECTIONS
   },
 #endif
-#ifdef CONFIG_SAMA5_NFCCR
+#ifdef CONFIG_SAMA5_HAVE_NAND
   { SAM_NFCCR_PSECTION,   SAM_NFCCR_VSECTION,
     SAM_NFCCR_MMUFLAGS,   SAM_NFCCR_NSECTIONS
   },
@@ -321,6 +321,8 @@ static inline void sam_setupmappings(void)
 {
   int i;
 
+  /* Set up each group of section mappings */
+
   for (i = 0; i < NMAPPINGS; i++)
     {
       mmu_l1_map_region(&section_mapping[i]);
@@ -340,6 +342,8 @@ static inline void sam_setupmappings(void)
 static inline void sam_remap(void)
 {
   int i;
+
+  /* Re-map each group of section */
 
   for (i = 0; i < NREMAPPINGS; i++)
     {
@@ -364,7 +368,7 @@ static void sam_vectorpermissions(uint32_t mmuflags)
 
   uint32_t pte = mmu_l2_getentry(PG_L2_VECT_VADDR, 0);
 
-  /* String the MMU flags from the page table entry.
+  /* Mask out the old MMU flags from the page table entry.
    *
    * The pte might be zero the first time this function is called.
    */
@@ -623,48 +627,60 @@ void up_boot(void)
 
   sam_clockconfig();
 
+#ifdef CONFIG_ARCH_FPU
   /* Initialize the FPU */
 
-#ifdef CONFIG_ARCH_FPU
   arm_fpuconfig();
-#endif
-
-  /* Perform common, low-level chip initialization (might do nothing) */
-
-  sam_lowsetup();
-
-  /* Perform early serial initialization if we are going to use the serial
-   * driver.
-   */
-
-#ifdef USE_EARLYSERIALINIT
-  sam_earlyserialinit();
-#endif
-
-  /* For the case of the separate user-/kernel-space build, perform whatever
-   * platform specific initialization of the user memory is required.
-   * Normally this just means initializing the user space .data and .bss
-   * segments.
-   */
-
-#ifdef CONFIG_NUTTX_KERNEL
-  sam_userspace();
 #endif
 
   /* Perform board-specific initialization,  This must include:
    *
    * - Initialization of board-specific memory resources (e.g., SDRAM)
    * - Configuration of board specific resources (PIOs, LEDs, etc).
+   *
+   * NOTE: We must use caution prior to this point to make sure that
+   * the logic does not access any global variables that might lie
+   * in SDRAM.
    */
 
   sam_boardinitialize();
 
+#ifdef NEED_SDRAM_REMAPPING
   /* SDRAM was configured in a temporary state to support low-level
-   * ininitialization.  Now that the SDRAM has been fully initialized,
+   * initialization.  Now that the SDRAM has been fully initialized,
    * we can reconfigure the SDRAM in its final, fully cache-able state.
    */
 
-#ifdef NEED_SDRAM_REMAPPING
   sam_remap();
+#endif
+
+#ifdef CONFIG_BOOT_SDRAM_DATA
+  /* If .data and .bss reside in SDRAM, then initialize the data sections
+   * now after SDRAM has been initialized.
+   */
+
+  arm_data_initialize();
+#endif
+
+  /* Perform common, low-level chip initialization (might do nothing) */
+
+  sam_lowsetup();
+
+#ifdef USE_EARLYSERIALINIT
+  /* Perform early serial initialization if we are going to use the serial
+   * driver.
+   */
+
+  sam_earlyserialinit();
+#endif
+
+#ifdef CONFIG_NUTTX_KERNEL
+  /* For the case of the separate user-/kernel-space build, perform whatever
+   * platform specific initialization of the user memory is required.
+   * Normally this just means initializing the user space .data and .bss
+   * segments.
+   */
+
+  sam_userspace();
 #endif
 }

@@ -53,6 +53,9 @@
 #define HSMC_CS2                      2
 #define HSMC_CS3                      3
 
+#define NFCSRAM_BASE                  SAM_NFCSRAM_VSECTION
+#define NFCCMD_BASE                   SAM_NFCCR_VSECTION
+
 /* SMC Register Offsets *************************************************************/
 
 #define SAM_HSMC_CFG_OFFSET           0x0000 /* HSMC NFC Configuration Register */
@@ -76,29 +79,31 @@
 #define SAM_HSMC_PMECCIMR_OFFSET      0x0094 /* PMECC Interrupt Mask Register */
 #define SAM_HSMC_PMECCISR_OFFSET      0x0098 /* PMECC Interrupt Status Register */
                                              /* 0x009c-0x00ac Reserved */
-#define SAM_HSMC_PMECC0_OFFSET(sec)   (0x00b0+0x00+((sec) << 6)) /* PMECC Redundancy 0 Register */
-#define SAM_HSMC_PMECC1_OFFSET(sec)   (0x00b0+0x04+((sec) << 6)) /* PMECC Redundancy 1 Register */
-#define SAM_HSMC_PMECC2_OFFSET(sec)   (0x00b0+0x08+((sec) << 6)) /* PMECC Redundancy 2 Register */
-#define SAM_HSMC_PMECC3_OFFSET(sec)   (0x00b0+0x0c+((sec) << 6)) /* PMECC Redundancy 3 Register */
-#define SAM_HSMC_PMECC4_OFFSET(sec)   (0x00b0+0x10+((sec) << 6)) /* PMECC Redundancy 4 Register */
-#define SAM_HSMC_PMECC5_OFFSET(sec)   (0x00b0+0x14+((sec) << 6)) /* PMECC Redundancy 5 Register */
-#define SAM_HSMC_PMECC6_OFFSET(sec)   (0x00b0+0x18+((sec) << 6)) /* PMECC Redundancy 6 Register */
-#define SAM_HSMC_PMECC7_OFFSET(sec)   (0x00b0+0x1c+((sec) << 6)) /* PMECC Redundancy 7 Register */
-#define SAM_HSMC_PMECC8_OFFSET(sec)   (0x00b0+0x20+((sec) << 6)) /* PMECC Redundancy 8 Register */
-#define SAM_HSMC_PMECC9_OFFSET(sec)   (0x00b0+0x24+((sec) << 6)) /* PMECC Redundancy 9 Register */
-#define SAM_HSMC_PMECC10_OFFSET(sec)  (0x00b0+0x28+((sec) << 6)) /* PMECC Redundancy 10 Register */
-#define SAM_HSMC_REM0_OFFSET(sec)     (0x02b0+0x00+((sec) << 6)) /* PMECC Remainder 0 Register */
-#define SAM_HSMC_REM1_OFFSET(sec)     (0x02b0+0x04+((sec) << 6)) /* PMECC Remainder 1 Register */
-#define SAM_HSMC_REM2_OFFSET(sec)     (0x02b0+0x08+((sec) << 6)) /* PMECC Remainder 2 Register */
-#define SAM_HSMC_REM3_OFFSET(sec)     (0x02b0+0x0c+((sec) << 6)) /* PMECC Remainder 3 Register */
-#define SAM_HSMC_REM4_OFFSET(sec)     (0x02b0+0x10+((sec) << 6)) /* PMECC Remainder 4 Register */
-#define SAM_HSMC_REM5_OFFSET(sec)     (0x02b0+0x14+((sec) << 6)) /* PMECC Remainder 5 Register */
-#define SAM_HSMC_REM6_OFFSET(sec)     (0x02b0+0x18+((sec) << 6)) /* PMECC Remainder 6 Register */
-#define SAM_HSMC_REM7_OFFSET(sec)     (0x02b0+0x1c+((sec) << 6)) /* PMECC Remainder 7 Register */
-#define SAM_HSMC_REM8_OFFSET(sec)     (0x02b0+0x20+((sec) << 6)) /* PMECC Remainder 8 Register */
-#define SAM_HSMC_REM9_OFFSET(sec)     (0x02b0+0x24+((sec) << 6)) /* PMECC Remainder 9 Register */
-#define SAM_HSMC_REM10_OFFSET(sec)    (0x02b0+0x28+((sec) << 6)) /* PMECC Remainder 10 Register */
-#define SAM_HSMC_REM11_OFFSET(sec)    (0x02b0+0x1c+((sec) << 6)) /* PMECC Remainder 11 Register */
+#define SAM_HSMC_PMECC_OFFSET(n)      (0x00b0 + ((n) << 6)) /* PMECC sector offset */
+#  define SAM_HSMC_PMECC0_OFFSET(n)   (0x00b0 + ((n) << 6)) /* PMECC Redundancy 0 Register */
+#  define SAM_HSMC_PMECC1_OFFSET(n)   (0x00b4 + ((n) << 6)) /* PMECC Redundancy 1 Register */
+#  define SAM_HSMC_PMECC2_OFFSET(n)   (0x00b8 + ((n) << 6)) /* PMECC Redundancy 2 Register */
+#  define SAM_HSMC_PMECC3_OFFSET(n)   (0x00bc + ((n) << 6)) /* PMECC Redundancy 3 Register */
+#  define SAM_HSMC_PMECC4_OFFSET(n)   (0x00c0 + ((n) << 6)) /* PMECC Redundancy 4 Register */
+#  define SAM_HSMC_PMECC5_OFFSET(n)   (0x00c4 + ((n) << 6)) /* PMECC Redundancy 5 Register */
+#  define SAM_HSMC_PMECC6_OFFSET(n)   (0x00c8 + ((n) << 6)) /* PMECC Redundancy 6 Register */
+#  define SAM_HSMC_PMECC7_OFFSET(n)   (0x00cc + ((n) << 6)) /* PMECC Redundancy 7 Register */
+#  define SAM_HSMC_PMECC8_OFFSET(n)   (0x00d0 + ((n) << 6)) /* PMECC Redundancy 8 Register */
+#  define SAM_HSMC_PMECC9_OFFSET(n)   (0x00d4 + ((n) << 6)) /* PMECC Redundancy 9 Register */
+#  define SAM_HSMC_PMECC10_OFFSET(n)  (0x00d8 + ((n) << 6)) /* PMECC Redundancy 10 Register */
+#define SAM_HSMC_REM_OFFSET(n)        (0x02b0 + ((n) << 6)) /* PMECC Remainder offset */
+#  define SAM_HSMC_REM0_OFFSET(n)     (0x02b0 + ((n) << 6)) /* PMECC Remainder 0 Register */
+#  define SAM_HSMC_REM1_OFFSET(n)     (0x02b4 + ((n) << 6)) /* PMECC Remainder 1 Register */
+#  define SAM_HSMC_REM2_OFFSET(n)     (0x02b8 + ((n) << 6)) /* PMECC Remainder 2 Register */
+#  define SAM_HSMC_REM3_OFFSET(n)     (0x02bc + ((n) << 6)) /* PMECC Remainder 3 Register */
+#  define SAM_HSMC_REM4_OFFSET(n)     (0x02b0 + ((n) << 6)) /* PMECC Remainder 4 Register */
+#  define SAM_HSMC_REM5_OFFSET(n)     (0x02b4 + ((n) << 6)) /* PMECC Remainder 5 Register */
+#  define SAM_HSMC_REM6_OFFSET(n)     (0x02b8 + ((n) << 6)) /* PMECC Remainder 6 Register */
+#  define SAM_HSMC_REM7_OFFSET(n)     (0x02bc + ((n) << 6)) /* PMECC Remainder 7 Register */
+#  define SAM_HSMC_REM8_OFFSET(n)     (0x02b0 + ((n) << 6)) /* PMECC Remainder 8 Register */
+#  define SAM_HSMC_REM9_OFFSET(n)     (0x02b4 + ((n) << 6)) /* PMECC Remainder 9 Register */
+#  define SAM_HSMC_REM10_OFFSET(n)    (0x02b8 + ((n) << 6)) /* PMECC Remainder 10 Register */
+#  define SAM_HSMC_REM11_OFFSET(n)    (0x02bc + ((n) << 6)) /* PMECC Remainder 11 Register */
                                              /* 0x04a0-0x04fc Reserved */
 #define SAM_HSMC_ELCFG_OFFSET         0x0500 /* PMECC Error Location Configuration Register */
 #define SAM_HSMC_ELPRIM_OFFSET        0x0504 /* PMECC Error Location Primitive Register */
@@ -110,7 +115,7 @@
 #define SAM_HSMC_ELIMR_OFFSET         0x051c /* PMECC Error Location Interrupt Mask Register */
 #define SAM_HSMC_ELISR_OFFSET         0x0520 /* PMECC Error Location Interrupt Status Register */
                                              /* 0x0524-0x052c Reserved */
-#define SAM_HSMC_SIGMA_OFFSET(n)      (0x0528+((n)<<2)) /* PMECC Error Location SIGMA n Register */
+#define SAM_HSMC_SIGMA_OFFSET(n)      (0x0528 + ((n) << 2)) /* PMECC Error Location SIGMA n Register */
 #  define SAM_HSMC_SIGMA0_OFFSET      0x0528 /* PMECC Error Location SIGMA 0 Register */
 #  define SAM_HSMC_SIGMA1_OFFSET      0x052c /* PMECC Error Location SIGMA 1 Register */
 #  define SAM_HSMC_SIGMA2_OFFSET      0x0530 /* PMECC Error Location SIGMA 2 Register */
@@ -136,7 +141,7 @@
 #  define SAM_HSMC_SIGMA22_OFFSET     0x0580 /* PMECC Error Location SIGMA 22 Register */
 #  define SAM_HSMC_SIGMA23_OFFSET     0x0584 /* PMECC Error Location SIGMA 23 Register */
 #  define SAM_HSMC_SIGMA24_OFFSET     0x0588 /* PMECC Error Location SIGMA 24 Register */
-#define SAM_HSMC_ERRLOC_OFFSET(n)     (0x058c+((n)<<2)) /* PMECC Error Location n Register */
+#define SAM_HSMC_ERRLOC_OFFSET(n)     (0x058c + ((n) << 2)) /* PMECC Error Location n Register */
 #  define SAM_HSMC_ERRLOC0_OFFSET     0x058c /* PMECC Error Location 0 Register */
 #  define SAM_HSMC_ERRLOC1_OFFSET     0x0590 /* PMECC Error Location 1 Register */
 #  define SAM_HSMC_ERRLOC2_OFFSET     0x0594 /* PMECC Error Location 2 Register */
@@ -162,11 +167,11 @@
 #  define SAM_HSMC_ERRLOC22_OFFSET    0x05e4 /* PMECC Error Location 22 Register */
 #  define SAM_HSMC_ERRLOC23_OFFSET    0x05e8 /* PMECC Error Location 23 Register */
                                              /* 0x05ec-0x05fc Reserved */
-#define SAM_HSMC_SETUP_OFFSET(cs)     (0x0600+0x14*(cs)) /* HSMC Setup Register */
-#define SAM_HSMC_PULSE_OFFSET(cs)     (0x0604+0x14*(cs)) /* HSMC Pulse Register */
-#define SAM_HSMC_CYCLE_OFFSET(cs)     (0x0608+0x14*(cs)) /* HSMC Cycle Register */
-#define SAM_HSMC_TIMINGS_OFFSET(cs)   (0x060c+0x14*(cs)) /* HSMC Timings Register */
-#define SAM_HSMC_MODE_OFFSET(cs)      (0x0610+0x14*(cs)) /* HSMC Mode Register */
+#define SAM_HSMC_SETUP_OFFSET(n)      (0x0600 + 0x14 * (n)) /* HSMC Setup Register */
+#define SAM_HSMC_PULSE_OFFSET(n)      (0x0604 + 0x14 * (n)) /* HSMC Pulse Register */
+#define SAM_HSMC_CYCLE_OFFSET(n)      (0x0608 + 0x14 * (n)) /* HSMC Cycle Register */
+#define SAM_HSMC_TIMINGS_OFFSET(n)    (0x060c + 0x14 * (n)) /* HSMC Timings Register */
+#define SAM_HSMC_MODE_OFFSET(n)       (0x0610 + 0x14 * (n)) /* HSMC Mode Register */
 #define SAM_HSMC_OCMS_OFFSET          0x06a0 /* HSMC OCMS Register */
 #define SAM_HSMC_KEY1_OFFSET          0x06a4 /* HSMC OCMS KEY1 Register */
 #define SAM_HSMC_KEY2_OFFSET          0x06a8 /* HSMC OCMS KEY2 Register */
@@ -195,29 +200,31 @@
 #define SAM_HSMC_PMECCIDR             (SAM_HSMC_VBASE+SAM_HSMC_PMECCIDR_OFFSET)
 #define SAM_HSMC_PMECCIMR             (SAM_HSMC_VBASE+SAM_HSMC_PMECCIMR_OFFSET)
 #define SAM_HSMC_PMECCISR             (SAM_HSMC_VBASE+SAM_HSMC_PMECCISR_OFFSET)
-#define SAM_HSMC_PMECC0(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC0_OFFSET(sec))
-#define SAM_HSMC_PMECC1(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC1_OFFSET(sec))
-#define SAM_HSMC_PMECC2(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC2_OFFSET(sec))
-#define SAM_HSMC_PMECC3(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC3_OFFSET(sec))
-#define SAM_HSMC_PMECC4(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC4_OFFSET(sec))
-#define SAM_HSMC_PMECC5(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC5_OFFSET(sec))
-#define SAM_HSMC_PMECC6(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC6_OFFSET(sec))
-#define SAM_HSMC_PMECC7(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC7_OFFSET(sec))
-#define SAM_HSMC_PMECC8(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC8_OFFSET(sec))
-#define SAM_HSMC_PMECC9(sec)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC9_OFFSET(sec))
-#define SAM_HSMC_PMECC10(sec)         (SAM_HSMC_VBASE+SAM_HSMC_PMECC10_OFFSET(sec))
-#define SAM_HSMC_REM0(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM0_OFFSET(sec))
-#define SAM_HSMC_REM1(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM1_OFFSET(sec))
-#define SAM_HSMC_REM2(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM2_OFFSET(sec))
-#define SAM_HSMC_REM3(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM3_OFFSET(sec))
-#define SAM_HSMC_REM4(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM4_OFFSET(sec))
-#define SAM_HSMC_REM5(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM5_OFFSET(sec))
-#define SAM_HSMC_REM6(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM6_OFFSET(sec))
-#define SAM_HSMC_REM7(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM7_OFFSET(sec))
-#define SAM_HSMC_REM8(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM8_OFFSET(sec))
-#define SAM_HSMC_REM9(sec)            (SAM_HSMC_VBASE+SAM_HSMC_REM9_OFFSET(sec))
-#define SAM_HSMC_REM10(sec)           (SAM_HSMC_VBASE+SAM_HSMC_REM10_OFFSET(sec))
-#define SAM_HSMC_REM11(sec)           (SAM_HSMC_VBASE+SAM_HSMC_REM11_OFFSET(sec))
+#define SAM_HSMC_PMECC_BASE(n)        (SAM_HSMC_VBASE+SAM_HSMC_PMECC_OFFSET(n))
+#  define SAM_HSMC_PMECC0(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC0_OFFSET(n))
+#  define SAM_HSMC_PMECC1(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC1_OFFSET(n))
+#  define SAM_HSMC_PMECC2(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC2_OFFSET(n))
+#  define SAM_HSMC_PMECC3(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC3_OFFSET(n))
+#  define SAM_HSMC_PMECC4(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC4_OFFSET(n))
+#  define SAM_HSMC_PMECC5(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC5_OFFSET(n))
+#  define SAM_HSMC_PMECC6(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC6_OFFSET(n))
+#  define SAM_HSMC_PMECC7(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC7_OFFSET(n))
+#  define SAM_HSMC_PMECC8(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC8_OFFSET(n))
+#  define SAM_HSMC_PMECC9(n)          (SAM_HSMC_VBASE+SAM_HSMC_PMECC9_OFFSET(n))
+#  define SAM_HSMC_PMECC10(n)         (SAM_HSMC_VBASE+SAM_HSMC_PMECC10_OFFSET(n))
+#define SAM_HSMC_REM_BASE(n)          (SAM_HSMC_VBASE+SAM_HSMC_REM_OFFSET(n))
+#  define SAM_HSMC_REM0(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM0_OFFSET(n))
+#  define SAM_HSMC_REM1(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM1_OFFSET(n))
+#  define SAM_HSMC_REM2(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM2_OFFSET(n))
+#  define SAM_HSMC_REM3(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM3_OFFSET(n))
+#  define SAM_HSMC_REM4(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM4_OFFSET(n))
+#  define SAM_HSMC_REM5(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM5_OFFSET(n))
+#  define SAM_HSMC_REM6(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM6_OFFSET(n))
+#  define SAM_HSMC_REM7(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM7_OFFSET(n))
+#  define SAM_HSMC_REM8(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM8_OFFSET(n))
+#  define SAM_HSMC_REM9(n)            (SAM_HSMC_VBASE+SAM_HSMC_REM9_OFFSET(n))
+#  define SAM_HSMC_REM10(n)           (SAM_HSMC_VBASE+SAM_HSMC_REM10_OFFSET(n))
+#  define SAM_HSMC_REM11(n)           (SAM_HSMC_VBASE+SAM_HSMC_REM11_OFFSET(n))
 #define SAM_HSMC_ELCFG                (SAM_HSMC_VBASE+SAM_HSMC_ELCFG_OFFSET)
 #define SAM_HSMC_ELPRIM               (SAM_HSMC_VBASE+SAM_HSMC_ELPRIM_OFFSET)
 #define SAM_HSMC_ELEN                 (SAM_HSMC_VBASE+SAM_HSMC_ELEN_OFFSET)
@@ -227,7 +234,7 @@
 #define SAM_HSMC_ELIDR                (SAM_HSMC_VBASE+SAM_HSMC_ELIDR_OFFSET)
 #define SAM_HSMC_ELIMR                (SAM_HSMC_VBASE+SAM_HSMC_ELIMR_OFFSET)
 #define SAM_HSMC_ELISR                (SAM_HSMC_VBASE+SAM_HSMC_ELISR_OFFSET)
-#define SAM_HSMC_SIGMA(n)             (SAM_HSMC_VBASE+SAM_HSMC_SIGMA_OFFSET(n))
+#define SAM_HSMC_SIGMA_BASE(n)        (SAM_HSMC_VBASE+SAM_HSMC_SIGMA_OFFSET(n))
 #  define SAM_HSMC_SIGMA0             (SAM_HSMC_VBASE+SAM_HSMC_SIGMA0_OFFSET)
 #  define SAM_HSMC_SIGMA1             (SAM_HSMC_VBASE+SAM_HSMC_SIGMA1_OFFSET)
 #  define SAM_HSMC_SIGMA2             (SAM_HSMC_VBASE+SAM_HSMC_SIGMA2_OFFSET)
@@ -253,7 +260,7 @@
 #  define SAM_HSMC_SIGMA22            (SAM_HSMC_VBASE+SAM_HSMC_SIGMA22_OFFSET)
 #  define SAM_HSMC_SIGMA23            (SAM_HSMC_VBASE+SAM_HSMC_SIGMA23_OFFSET)
 #  define SAM_HSMC_SIGMA24            (SAM_HSMC_VBASE+SAM_HSMC_SIGMA24_OFFSET)
-#define SAM_HSMC_ERRLOC(n)            (SAM_HSMC_VBASE+SAM_HSMC_ERRLOC_OFFSET(n))
+#define SAM_HSMC_ERRLOC_BASE(n)       (SAM_HSMC_VBASE+SAM_HSMC_ERRLOC_OFFSET(n))
 #  define SAM_HSMC_ERRLOC0            (SAM_HSMC_VBASE+SAM_HSMC_ERRLOC0_OFFSET)
 #  define SAM_HSMC_ERRLOC1            (SAM_HSMC_VBASE+SAM_HSMC_ERRLOC1_OFFSET)
 #  define SAM_HSMC_ERRLOC2            (SAM_HSMC_VBASE+SAM_HSMC_ERRLOC2_OFFSET)
@@ -278,11 +285,11 @@
 #  define SAM_HSMC_ERRLOC21           (SAM_HSMC_VBASE+SAM_HSMC_ERRLOC21_OFFSET)
 #  define SAM_HSMC_ERRLOC22           (SAM_HSMC_VBASE+SAM_HSMC_ERRLOC22_OFFSET)
 #  define SAM_HSMC_ERRLOC23           (SAM_HSMC_VBASE+SAM_HSMC_ERRLOC23_OFFSET)
-#define SAM_HSMC_SETUP(cs)            (SAM_HSMC_VBASE+SAM_HSMC_SETUP_OFFSET(cs))
-#define SAM_HSMC_PULSE(cs)            (SAM_HSMC_VBASE+SAM_HSMC_PULSE_OFFSET(cs))
-#define SAM_HSMC_CYCLE(cs)            (SAM_HSMC_VBASE+SAM_HSMC_CYCLE_OFFSET(cs))
-#define SAM_HSMC_TIMINGS(cs)          (SAM_HSMC_VBASE+SAM_HSMC_TIMINGS_OFFSET(cs))
-#define SAM_HSMC_MODE(cs)             (SAM_HSMC_VBASE+SAM_HSMC_MODE_OFFSET(cs))
+#define SAM_HSMC_SETUP(n)             (SAM_HSMC_VBASE+SAM_HSMC_SETUP_OFFSET(n))
+#define SAM_HSMC_PULSE(n)             (SAM_HSMC_VBASE+SAM_HSMC_PULSE_OFFSET(n))
+#define SAM_HSMC_CYCLE(n)             (SAM_HSMC_VBASE+SAM_HSMC_CYCLE_OFFSET(n))
+#define SAM_HSMC_TIMINGS(n)           (SAM_HSMC_VBASE+SAM_HSMC_TIMINGS_OFFSET(n))
+#define SAM_HSMC_MODE(n)              (SAM_HSMC_VBASE+SAM_HSMC_MODE_OFFSET(n))
 #define SAM_HSMC_OCMS                 (SAM_HSMC_VBASE+SAM_HSMC_OCMS_OFFSET)
 #define SAM_HSMC_KEY1                 (SAM_HSMC_VBASE+SAM_HSMC_KEY1_OFFSET)
 #define SAM_HSMC_KEY2                 (SAM_HSMC_VBASE+SAM_HSMC_KEY2_OFFSET)
@@ -306,6 +313,7 @@
 #define HSMC_CFG_RBEDGE               (1 << 13) /* Bit 13: Ready/Busy Signal Edge Detection */
 #define HSMC_CFG_DTOCYC_SHIFT         (16)      /* Bit 16-19: Data Timeout Cycle Number */
 #define HSMC_CFG_DTOCYC_MASK          (15 << HSMC_CFG_DTOCYC_SHIFT)
+#  define HSMC_CFG_DTOCYC(n)          ((uint32_t)(n) << HSMC_CFG_DTOCYC_SHIFT)
 #define HSMC_CFG_DTOMUL_SHIFT         (20)      /* Bit 20-22: Data Timeout Multiplier */
 #define HSMC_CFG_DTOMUL_MASK          (7 << HSMC_CFG_DTOMUL_SHIFT)
 #  define HSMC_CFG_DTOMUL_1           (0 << HSMC_CFG_DTOMUL_SHIFT) /* DTOCYC */
@@ -318,6 +326,7 @@
 #  define HSMC_CFG_DTOMUL_1048576     (7 << HSMC_CFG_DTOMUL_SHIFT) /* DTOCYC x 1048576 */
 #define HSMC_CFG_NFCSPARESIZE_SHIFT   (24)      /* Bit 24-30: NAND Flash Spare Area Size */
 #define HSMC_CFG_NFCSPARESIZE_MASK    (0x7f << HSMC_CFG_NFCSPARESIZE_SHIFT)
+#  define HSMC_CFG_NFCSPARESIZE(n)    ((uint32_t)(n) << HSMC_CFG_NFCSPARESIZE_SHIFT)
 
 /* HSMC NFC Control Register */
 
@@ -330,22 +339,21 @@
 /* HSMC NFC Interrupt Mask Register */
 
 #define HSMC_SR_SMCSTS                (1 << 0)  /* Bit 0:  NAND Flash Controller Status (SR only) */
-
 #define HSMC_NFCINT_RB_RISE           (1 << 4)  /* Bit 4:  Ready Busy Rising Edge Detection Interrupt */
 #define HSMC_NFCINT_RB_FALL           (1 << 5)  /* Bit 5:  Ready Busy Falling Edge Detection Interrupt */
-
 #define HSMC_SR_NFCBUSY               (1 << 8)  /* Bit 8:  NFC Busy (SR only) */
 #define HSMC_SR_NFCWR                 (1 << 11) /* Bit 11: NFC Write/Read Operation (SR only) */
 #define HSMC_SR_NFCSID_SHIFT          (12)      /* Bits 12-14:  NFC Chip Select ID (SR only) */
 #define HSMC_SR_NFCSID_MASK           (7 << HSMC_SR_NFCSID_SHIFT)
-
 #define HSMC_NFCINT_XFRDONE           (1 << 16) /* Bit 16: Transfer Done Interrupt */
 #define HSMC_NFCINT_CMDDONE           (1 << 17) /* Bit 17: Command Done Interrupt */
 #define HSMC_NFCINT_DTOE              (1 << 20) /* Bit 20: Data Timeout Error Interrupt Enable */
 #define HSMC_NFCINT_UNDEF             (1 << 21) /* Bit 21: Undefined Area Access Interrupt */
 #define HSMC_NFCINT_AWB               (1 << 22) /* Bit 22: Accessing While Busy Interrupt */
 #define HSMC_NFCINT_NFCASE            (1 << 23) /* Bit 23: NFC Access Size Error Interrupt */
-#define HSMC_NFCINT_RB_EDGE0          (1 << 24) /* Bit 24: Ready/Busy Line 0 Interrupt */
+#define HSMC_NFCINT_RBEDGE0           (1 << 24) /* Bit 24: Ready/Busy Line 0 Interrupt */
+
+#define HSMC_NFCINT_ALL               (0x01f30030)
 
 /* HSMC NFC Address Cycle Zero Register */
 
@@ -357,19 +365,35 @@
 
 /* PMECC Configuration Register */
 
-#define HSMC_PMECCFG_BCH_ERR_SHIFT    (0)       /* Bit 0-2: Error Correcting Capability */
-#define HSMC_PMECCFG_BCH_ERR_MASK     (7 << HSMC_PMECCFG_BCH_ERR_SHIFT)
-#  define HSMC_PMECCFG_BCH_ERR_2      (0 << HSMC_PMECCFG_BCH_ERR_SHIFT) /* 2 errors */
-#  define HSMC_PMECCFG_BCH_ERR_4      (1 << HSMC_PMECCFG_BCH_ERR_SHIFT) /* 4 errors */
-#  define HSMC_PMECCFG_BCH_ERR_8      (2 << HSMC_PMECCFG_BCH_ERR_SHIFT) /* 8 errors */
-#  define HSMC_PMECCFG_BCH_ERR_12     (3 << HSMC_PMECCFG_BCH_ERR_SHIFT) /* 12 errors */
-#  define HSMC_PMECCFG_BCH_ERR_24     (4 << HSMC_PMECCFG_BCH_ERR_SHIFT) /* 24 errors */
-#define HSMC_PMECCFG_SECTORSZ         (1 << 4)  /* Bit 4:  Sector Size */
+#define HSMC_PMECCFG_BCHERR_SHIFT     (0)       /* Bit 0-2: Error Correcting Capability */
+#define HSMC_PMECCFG_BCHERR_MASK      (7 << HSMC_PMECCFG_BCHERR_SHIFT)
+#  define HSMC_PMECCFG_BCHERR_2       (0 << HSMC_PMECCFG_BCHERR_SHIFT) /* 2 errors */
+#  define HSMC_PMECCFG_BCHERR_4       (1 << HSMC_PMECCFG_BCHERR_SHIFT) /* 4 errors */
+#  define HSMC_PMECCFG_BCHERR_8       (2 << HSMC_PMECCFG_BCHERR_SHIFT) /* 8 errors */
+#  define HSMC_PMECCFG_BCHERR_12      (3 << HSMC_PMECCFG_BCHERR_SHIFT) /* 12 errors */
+#  define HSMC_PMECCFG_BCHERR_24      (4 << HSMC_PMECCFG_BCHERR_SHIFT) /* 24 errors */
+#define HSMC_PMECCFG_SECTORSZ_SHIFT   (4)       /* Bit 4:  Sector Size */
+#define HSMC_PMECCFG_SECTORSZ_MASK    (1 << HSMC_PMECCFG_SECTORSZ_SHIFT)
+#  define HSMC_PMECCFG_SECTORSZ_512   (0 << HSMC_PMECCFG_SECTORSZ_SHIFT)
+#  define HSMC_PMECCFG_SECTORSZ_1024  (1 << HSMC_PMECCFG_SECTORSZ_SHIFT)
 #define HSMC_PMECCFG_PAGESIZE_SHIFT   (8)       /* Bit 8-9: Number of Sectors in the Page */
 #define HSMC_PMECCFG_PAGESIZE_MASK    (3 << HSMC_PMECCFG_PAGESIZE_SHIFT)
-#define HSMC_PMECCFG_NANDWR           (1 << 12) /* Bit 12: NAND Write Access */
-#define HSMC_PMECCFG_SPAREEN          (1 << 16) /* Bit 16: Spare Enable */
-#define HSMC_PMECCFG_AUTO             (1 << 20) /* Bit 20: Automatic Mode Enable */
+#  define HSMC_PMECCFG_PAGESIZE_1SEC  (0 << HSMC_PMECCFG_PAGESIZE_SHIFT) /* 1 sector (5121K) */
+#  define HSMC_PMECCFG_PAGESIZE_2SEC  (1 << HSMC_PMECCFG_PAGESIZE_SHIFT) /* 2 sectors (1/2K) */
+#  define HSMC_PMECCFG_PAGESIZE_4SEC  (2 << HSMC_PMECCFG_PAGESIZE_SHIFT) /* 4 sectors (2/4K) */
+#  define HSMC_PMECCFG_PAGESIZE_8SEC  (3 << HSMC_PMECCFG_PAGESIZE_SHIFT) /* 8 sectors (4/8K) */
+#define HSMC_PMECCFG_NANDWR_SHIFT     (12)      /* Bit 12: NAND Write Access */
+#define HSMC_PMECCFG_NANDWR_MASK      (1 << HSMC_PMECCFG_NANDWR_SHIFT)
+#  define HSMC_PMECCFG_NANDWR_READ    (0 << HSMC_PMECCFG_NANDWR_SHIFT)
+#  define HSMC_PMECCFG_NANDWR_WRITE   (1 << HSMC_PMECCFG_NANDWR_SHIFT)
+#define HSMC_PMECCFG_SPAREEN_SHIFT    (16)      /* Bit 16: Spare Enable */
+#define HSMC_PMECCFG_SPAREEN_MASK     (1 << HSMC_PMECCFG_SPAREEN_SHIFT)
+#  define HSMC_PMECCFG_SPARE_DISABLE  (0 << HSMC_PMECCFG_SPAREEN_SHIFT)
+#  define HSMC_PMECCFG_SPARE_ENABLE   (1 << HSMC_PMECCFG_SPAREEN_SHIFT)
+#define HSMC_PMECCFG_AUTO_SHIFT       (20)      /* Bit 20: Automatic Mode Enable */
+#define HSMC_PMECCFG_AUTO_MASK        (1 << HSMC_PMECCFG_AUTO_SHIFT)
+#  define HSMC_PMECCFG_AUTO_DISABLE   (0 << HSMC_PMECCFG_AUTO_SHIFT)
+#  define HSMC_PMECCFG_AUTO_ENABLE    (1 << HSMC_PMECCFG_AUTO_SHIFT)
 
 /* PMECC Spare Area Size Register */
 
@@ -404,7 +428,7 @@
 
 /* PMECC Interrupt Status Register */
 
-#define HSMC_PMECCISR_ERRIS(sec)      (1 << (sec))  /* Bits 0-7: Error Interrupt Status */
+#define HSMC_PMECCISR_ERRIS(n)        (1 << (n))  /* Bits 0-7: Error Interrupt Status */
 
 /* PMECC Redundancy x Register (32-bit ECC value) */
 
@@ -417,9 +441,13 @@
 
 /* PMECC Error Location Configuration Register */
 
-#define HSMC_ELCFG_SECTORSZ           (1 << 0)  /* Bit 0:  Sector Size */
+#define HSMC_ELCFG_SECTORSZ_SHIFT     (0)      /* Bit 0:  Sector Size */
+#define HSMC_ELCFG_SECTORSZ_MASK      (1 << HSMC_ELCFG_SECTORSZ_SHIFT)
+#  define HSMC_ELCFG_SECTORSZ_512     (0 << HSMC_ELCFG_SECTORSZ_SHIFT)
+#  define HSMC_ELCFG_SECTORSZ_1024    (1 << HSMC_ELCFG_SECTORSZ_SHIFT)
 #define HSMC_ELCFG_ERRNUM_SHIFT       (16)      /* Bit 16-20: Number of Errors */
 #define HSMC_ELCFG_ERRNUM_MASK        (0x1f << HSMC_ELCFG_ERRNUM_SHIFT)
+#  define HSMC_ELCFG_ERRNUM(n)        ((uint32_t)(n) << HSMC_ELCFG_ERRNUM_SHIFT)
 
 /* PMECC Error Location Primitive Register */
 
@@ -442,7 +470,6 @@
 /* PMECC Error Location Interrupt Mask Register */
 
 #define HSMC_ELIINT_DONE              (1 << 0)  /* Bit 0:  Computation Terminated Interrupt */
-
 #define HSMC_ELISR_ERRCNT_SHIFT       (8)       /* Bit 8-12: Error Counter value (SR only) */
 #define HSMC_ELISR_ERRCNT_MASK        (0x1f << HSMC_ELISR_ERRCNT_SHIFT)
 
@@ -555,5 +582,53 @@
 #define HSMC_WPSR_WPVS_MASK           (15 << HSMC_WPSR_WPVS_SHIFT)
 #define HSMC_WPSR_WPVSRC_SHIFT        (8)       /* Bit 8-23: Write Protection Violation Source */
 #define HSMC_WPSR_WPVSRC_MASK         (0xffff << HSMC_WPSR_WPVSRC_SHIFT)
+
+/* NFC Command/Data Registers *******************************************************/
+
+#define NFCADDR_CMD_CMD1_SHIFT        (2)        /* Bits 2-9: Command Register Value for Cycle 1 */
+#define NFCADDR_CMD_CMD1_MASK         (0xff <<  NFCADDR_CMD_CMD1_SHIFT)
+#  define NFCADDR_CMD_CMD1(n)         ((uint32_t)(n) <<  NFCADDR_CMD_CMD1_SHIFT)
+#define NFCADDR_CMD_CMD2_SHIFT        (10)       /* Bits 10-17: Command Register Value for Cycle 1 */
+#define NFCADDR_CMD_CMD2_MASK         (0xff <<  NFCADDR_CMD_CMD2_SHIFT)
+#  define NFCADDR_CMD_CMD2(n)         ((uint32_t)(n) <<  NFCADDR_CMD_CMD2_SHIFT)
+#define NFCADDR_CMD_VCMD2             (1 << 18)  /* Bit 18:Valid Cycle 2 Command */
+#define NFCADDR_CMD_ACYCLE_SHIFT      (19)       /* Bits 19-21: Number of Address required for command */
+#define NFCADDR_CMD_ACYCLE_MASK       (7 << NFCADDR_CMD_ACYCLE_SHIFT)
+#  define NFCADDR_CMD_ACYCLE(n)       ((uint32_t)(n) << NFCADDR_CMD_ACYCLE_SHIFT) /* n address cycles, n=0-5 */
+#  define NFCADDR_CMD_ACYCLE_NONE     (0 << NFCADDR_CMD_ACYCLE_SHIFT) /* No address cycle */
+#  define NFCADDR_CMD_ACYCLE_ONE      (1 << NFCADDR_CMD_ACYCLE_SHIFT) /* One address cycle */
+#  define NFCADDR_CMD_ACYCLE_TWO      (2 << NFCADDR_CMD_ACYCLE_SHIFT) /* Two address cycles */
+#  define NFCADDR_CMD_ACYCLE_THREE    (3 << NFCADDR_CMD_ACYCLE_SHIFT) /* Three address cycles */
+#  define NFCADDR_CMD_ACYCLE_FOUR     (4 << NFCADDR_CMD_ACYCLE_SHIFT) /* Four address cycles */
+#  define NFCADDR_CMD_ACYCLE_FIVE     (5 << NFCADDR_CMD_ACYCLE_SHIFT) /* Five address cycles */
+#define NFCADDR_CMD_CSID_SHIFT        (22)       /* Bits 22-24: Chip Select Identifier */
+#define NFCADDR_CMD_CSID_MASK         (7 << NFCADDR_CMD_CSID_SHIFT)
+#  define NFCADDR_CMD_CSID(n)         ((uint32_t)(n) << NFCADDR_CMD_CSID_SHIFT) /* CSn, n=0-7 */
+#  define NFCADDR_CMD_CSID_0          (0 << NFCADDR_CMD_CSID_SHIFT) /* CS0 */
+#  define NFCADDR_CMD_CSID_1          (1 << NFCADDR_CMD_CSID_SHIFT) /* CS1 */
+#  define NFCADDR_CMD_CSID_2          (2 << NFCADDR_CMD_CSID_SHIFT) /* CS2 */
+#  define NFCADDR_CMD_CSID_3          (3 << NFCADDR_CMD_CSID_SHIFT) /* CS3 */
+#  define NFCADDR_CMD_CSID_4          (4 << NFCADDR_CMD_CSID_SHIFT) /* CS4 */
+#  define NFCADDR_CMD_CSID_5          (5 << NFCADDR_CMD_CSID_SHIFT) /* CS5 */
+#  define NFCADDR_CMD_CSID_6          (6 << NFCADDR_CMD_CSID_SHIFT) /* CS6 */
+#  define NFCADDR_CMD_CSID_7          (7 << NFCADDR_CMD_CSID_SHIFT) /* CS7 */
+#define NFCADDR_CMD_DATAEN            (1 << 25) /* Bit 25: 1=NFC Data Enable */
+#define NFCADDR_CMD_DATADIS           (0 << 25) /* Bit 25: 0=NFC Data disable */
+#define NFCADDR_CMD_NFCRD             (0 << 26) /* Bit 26: 0=NFC Read Enable */
+#define NFCADDR_CMD_NFCWR             (1 << 26) /* Bit 26: 1=NFC Write Enable */
+#define NFCADDR_CMD_NFCCMD            (1 << 27) /* Bit 27: 1=NFC Command Enable */
+
+#define NFCDATA_ADDT_CYCLE1_SHIFT     (0)      /* Bits 0-7: NAND Flash Array Address Cycle 1 */
+#define NFCDATA_ADDT_CYCLE1_MASK      (0xff << NFCDATA_ADDT_CYCLE1_SHIFT)
+#  define NFCDATA_ADDT_CYCLE1(n)      ((uint32_t)(n) << NFCDATA_ADDT_CYCLE1_SHIFT)
+#define NFCDATA_ADDT_CYCLE2_SHIFT     (8)      /* Bits 8-15: NAND Flash Array Address Cycle 2 */
+#define NFCDATA_ADDT_CYCLE2_MASK      (0xff << NFCDATA_ADDT_CYCLE2_SHIFT)
+#  define NFCDATA_ADDT_CYCLE2(n)      ((uint32_t)(n) << NFCDATA_ADDT_CYCLE2_SHIFT)
+#define NFCDATA_ADDT_CYCLE3_SHIFT     (nn)      /* Bits 16-23: NAND Flash Array Address Cycle 3 */
+#define NFCDATA_ADDT_CYCLE3_MASK      (16 << NFCDATA_ADDT_CYCLE3_SHIFT)
+#  define NFCDATA_ADDT_CYCLE3(n)      ((uint32_t)(n) << NFCDATA_ADDT_CYCLE3_SHIFT)
+#define NFCDATA_ADDT_CYCLE4_SHIFT     (24)      /* Bits 24-31: NAND Flash Array Address Cycle 4 */
+#define NFCDATA_ADDT_CYCLE4_MASK      (0xff << NFCDATA_ADDT_CYCLE4_SHIFT)
+#  define NFCDATA_ADDT_CYCLE4(n)      ((uint32_t)(n) << NFCDATA_ADDT_CYCLE4_SHIFT)
 
 #endif /* __ARCH_ARM_SRC_SAMA5_CHIP_SAM_HSMC_H */

@@ -38,6 +38,8 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
+
+#include <sys/types.h>
 #include <syscall.h>
 
 /* The content of this file is only meaningful during the kernel phase of
@@ -78,6 +80,7 @@ uintptr_t STUB_sem_destroy(int nbr, uintptr_t parm1);
 uintptr_t STUB_sem_open(int nbr, uintptr_t parm1, uintptr_t parm2,
             uintptr_t parm3, uintptr_t parm4, uintptr_t parm5, uintptr_t parm6);
 uintptr_t STUB_sem_post(int nbr, uintptr_t parm1);
+uintptr_t STUB_sem_timedwait(int nbr, uintptr_t parm1, uintptr_t parm2);
 uintptr_t STUB_sem_trywait(int nbr, uintptr_t parm1);
 uintptr_t STUB_sem_unlink(int nbr, uintptr_t parm1);
 uintptr_t STUB_sem_wait(int nbr, uintptr_t parm1);
@@ -130,8 +133,7 @@ uintptr_t STUB_sigsuspend(int nbr, uintptr_t parm1);
 uintptr_t STUB_sigtimedwait(int nbr, uintptr_t parm1, uintptr_t parm2,
             uintptr_t parm3);
 uintptr_t STUB_sigwaitinfo(int nbr, uintptr_t parm1, uintptr_t parm2);
-uintptr_t STUB_sleep(int nbr, uintptr_t parm1);
-uintptr_t STUB_usleep(int nbr, uintptr_t parm1);
+uintptr_t STUB_nanosleep(int nbr, uintptr_t parm1, uintptr_t parm2);
 
 /* The following are only defined if the system clock is enabled in the
  * NuttX configuration.

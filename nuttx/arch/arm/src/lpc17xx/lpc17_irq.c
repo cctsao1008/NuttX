@@ -1,8 +1,7 @@
 /****************************************************************************
  * arch/arm/src/lpc17/lpc17_irq.c
- * arch/arm/src/chip/lpc17_irq.c
  *
- *   Copyright (C) 2010-2011, 2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2010-2011, 2013-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +65,13 @@
    NVIC_SYSH_PRIORITY_DEFAULT << 16 |\
    NVIC_SYSH_PRIORITY_DEFAULT << 8  |\
    NVIC_SYSH_PRIORITY_DEFAULT)
+
+/* Given the address of a NVIC ENABLE register, this is the offset to
+ * the corresponding CLEAR ENABLE register.
+ */
+
+#define NVIC_ENA_OFFSET    (0)
+#define NVIC_CLRENA_OFFSET (NVIC_IRQ0_31_CLEAR - NVIC_IRQ0_31_ENABLE)
 
 /****************************************************************************
  * Public Data
@@ -215,7 +221,8 @@ static inline void lpc17_prioritize_syscall(int priority)
  *
  ****************************************************************************/
 
-static int lpc17_irqinfo(int irq, uint32_t *regaddr, uint32_t *bit)
+static int lpc17_irqinfo(int irq, uintptr_t *regaddr, uint32_t *bit,
+                         uintptr_t offset)
 {
   DEBUGASSERT(irq >= LPC17_IRQ_NMI && irq < NR_IRQS);
 
@@ -225,12 +232,12 @@ static int lpc17_irqinfo(int irq, uint32_t *regaddr, uint32_t *bit)
     {
       if (irq < (LPC17_IRQ_EXTINT+32))
         {
-           *regaddr = NVIC_IRQ0_31_ENABLE;
+           *regaddr = (NVIC_IRQ0_31_ENABLE + offset);
            *bit     = 1 << (irq - LPC17_IRQ_EXTINT);
         }
       else if (irq < LPC17_IRQ_NIRQS)
         {
-           *regaddr = NVIC_IRQ32_63_ENABLE;
+           *regaddr = (NVIC_IRQ32_63_ENABLE + offset);
            *bit     = 1 << (irq - LPC17_IRQ_EXTINT - 32);
         }
       else
@@ -384,17 +391,28 @@ void up_irqinitialize(void)
 
 void up_disable_irq(int irq)
 {
-  uint32_t regaddr;
+  uintptr_t regaddr;
   uint32_t regval;
   uint32_t bit;
 
-  if (lpc17_irqinfo(irq, &regaddr, &bit) == 0)
+  if (lpc17_irqinfo(irq, &regaddr, &bit, NVIC_CLRENA_OFFSET) == 0)
     {
-      /* Clear the appropriate bit in the register to enable the interrupt */
+      /* Modify the appropriate bit in the register to disable the interrupt.
+       * For normal interrupts, we need to set the bit in the associated
+       * Interrupt Clear Enable register.  For other exceptions, we need to
+       * clear the bit in the System Handler Control and State Register.
+       */
 
-      regval  = getreg32(regaddr);
-      regval &= ~bit;
-      putreg32(regval, regaddr);
+      if (irq >= LPC17_IRQ_EXTINT)
+        {
+          putreg32(bit, regaddr);
+        }
+      else
+        {
+          regval  = getreg32(regaddr);
+          regval &= ~bit;
+          putreg32(regval, regaddr);
+        }
     }
 #ifdef CONFIG_GPIO_IRQ
   else if (irq >= LPC17_VALID_FIRST0L)
@@ -404,6 +422,7 @@ void up_disable_irq(int irq)
       lpc17_gpioirqdisable(irq);
     }
 #endif
+
   lpc17_dumpnvic("disable", irq);
 }
 
@@ -417,17 +436,28 @@ void up_disable_irq(int irq)
 
 void up_enable_irq(int irq)
 {
-  uint32_t regaddr;
+  uintptr_t regaddr;
   uint32_t regval;
   uint32_t bit;
 
-  if (lpc17_irqinfo(irq, &regaddr, &bit) == 0)
+  if (lpc17_irqinfo(irq, &regaddr, &bit, NVIC_ENA_OFFSET) == 0)
     {
-      /* Set the appropriate bit in the register to enable the interrupt */
+      /* Modify the appropriate bit in the register to enable the interrupt.
+       * For normal interrupts, we need to set the bit in the associated
+       * Interrupt Set Enable register.  For other exceptions, we need to
+       * set the bit in the System Handler Control and State Register.
+       */
 
-      regval  = getreg32(regaddr);
-      regval |= bit;
-      putreg32(regval, regaddr);
+      if (irq >= LPC17_IRQ_EXTINT)
+        {
+          putreg32(bit, regaddr);
+        }
+      else
+        {
+          regval  = getreg32(regaddr);
+          regval |= bit;
+          putreg32(regval, regaddr);
+        }
     }
 #ifdef CONFIG_GPIO_IRQ
   else if (irq >= LPC17_VALID_FIRST0L)
@@ -437,21 +467,20 @@ void up_enable_irq(int irq)
       lpc17_gpioirqenable(irq);
     }
 #endif
+
   lpc17_dumpnvic("enable", irq);
 }
 
 /****************************************************************************
- * Name: up_maskack_irq
+ * Name: up_ack_irq
  *
  * Description:
- *   Mask the IRQ and acknowledge it
+ *   Acknowledge the IRQ
  *
  ****************************************************************************/
 
-void up_maskack_irq(int irq)
+void up_ack_irq(int irq)
 {
-  up_disable_irq(irq);
-
 #if 0 /* Does not appear to be necessary in most cases */
   lpc17_clrpend(irq);
 #endif
@@ -475,14 +504,8 @@ int up_prioritize_irq(int irq, int priority)
   uint32_t regval;
   int shift;
 
-#ifdef CONFIG_ARMV7M_USEBASEPRI
-  DEBUGASSERT(irq >= LPC17_IRQ_MEMFAULT && irq < LPC17_IRQ_NIRQS &&
-              priority >= NVIC_SYSH_DISABLE_PRIORITY &&
-              priority <= NVIC_SYSH_PRIORITY_MIN);
-#else
   DEBUGASSERT(irq >= LPC17_IRQ_MEMFAULT && irq < LPC17_IRQ_NIRQS &&
               (unsigned)priority <= NVIC_SYSH_PRIORITY_MIN);
-#endif
 
   if (irq < LPC17_IRQ_EXTINT)
     {

@@ -1,7 +1,7 @@
 /****************************************************************************
  * include/nuttx/net/net.h
  *
- *   Copyright (C) 2007, 2009-2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007, 2009-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@
 #include <nuttx/net/uip/uip.h>
 
 /****************************************************************************
- * Definitions
+ * Pre-processor Definitions
  ****************************************************************************/
 
 /* Socket descriptors are the index into the TCB sockets list, offset by the
@@ -90,14 +90,27 @@ struct socket
   int           s_crefs;     /* Reference count on the socket */
   uint8_t       s_type;      /* Protocol type: Only SOCK_STREAM or SOCK_DGRAM */
   uint8_t       s_flags;     /* See _SF_* definitions */
+
+  /* Socket options */
+
 #ifdef CONFIG_NET_SOCKOPTS
   sockopt_t     s_options;   /* Selected socket options */
 #ifndef CONFIG_DISABLE_CLOCK
   socktimeo_t   s_rcvtimeo;  /* Receive timeout value (in deciseconds) */
   socktimeo_t   s_sndtimeo;  /* Send timeout value (in deciseconds) */
+#ifdef CONFIG_NET_SOLINGER
+  socktimeo_t   s_linger;    /* Linger timeout value (in deciseconds) */
 #endif
 #endif
+#endif
+
   FAR void     *s_conn;      /* Connection: struct uip_conn or uip_udp_conn */
+
+#ifdef CONFIG_NET_TCP_WRITE_BUFFERS
+  /* Callback instance for TCP send */
+
+  FAR struct uip_callback_s *s_sndcb;
+#endif
 };
 
 /* This defines a list of sockets indexed by the socket descriptor */
@@ -105,7 +118,7 @@ struct socket
 #if CONFIG_NSOCKET_DESCRIPTORS > 0
 struct socketlist
 {
-  sem_t   sl_sem;            /* Manage access to the socket list */
+  sem_t         sl_sem;      /* Manage access to the socket list */
   struct socket sl_sockets[CONFIG_NSOCKET_DESCRIPTORS];
 };
 #endif

@@ -1,7 +1,7 @@
 /****************************************************************************
  * fs/fat/fs_fat32.c
  *
- *   Copyright (C) 2007-2009, 2011-2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2009, 2011-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * References:
@@ -518,7 +518,9 @@ static ssize_t fat_read(FAR struct file *filep, char *buffer, size_t buflen)
     {
       bytesread  = 0;
 
+#ifdef CONFIG_FAT_DMAMEMORY /* Warning avoidance */
 fat_read_restart:
+#endif
 
       /* Check if the user has provided a buffer large enough to
        * hold one or more complete sectors -AND- the read is
@@ -621,7 +623,7 @@ fat_read_restart:
        * cluster boundary
        */
 
-      if (ff->ff_sectorsincluster < 1)
+      if (buflen > 0 && ff->ff_sectorsincluster < 1)
         {
           /* Find the next cluster in the FAT. */
 
@@ -756,7 +758,9 @@ static ssize_t fat_write(FAR struct file *filep, const char *buffer,
        * hold one or more complete sectors.
        */
 
+#ifdef CONFIG_FAT_DMAMEMORY /* Warning avoidance */
 fat_write_restart:
+#endif
 
       nsectors = buflen / fs->fs_hwsectorsize;
       if (nsectors > 0 && sectorindex == 0 && !force_indirect)
@@ -895,7 +899,7 @@ fat_write_restart:
        * cluster boundary
        */
 
-      if (ff->ff_sectorsincluster < 1)
+      if (buflen > 0 && ff->ff_sectorsincluster < 1)
         {
           /* Extend the current cluster by one (unless lseek was used to
            * move the file position back from the end of the file)
@@ -2115,7 +2119,7 @@ static int fat_mkdir(struct inode *mountpt, const char *relpath, mode_t mode)
   DIR_PUTFSTCLUSTLO(direntry, dircluster);
 
   parentcluster = dirinfo.dir.fd_startcluster;
-  if (fs->fs_type != FSTYPE_FAT32 && parentcluster == fs->fs_rootbase)
+  if (parentcluster == fs->fs_rootbase)
     {
       parentcluster = 0;
     }

@@ -1,6 +1,6 @@
 /************************************************************************************
  * arch/arm/src/sama5/sam_pio.h
- * Parallel Input/Output (PIO) definitions for the SAM4S
+ * Parallel Input/Output (PIO) definitions for the SAMA5
  *
  *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -323,11 +323,6 @@ void sam_pioirqdisable(int irq);
 int sam_dumppio(uint32_t pinset, const char *msg);
 #else
 #  define sam_dumppio(p,m)
-#endif
-
-#undef EXTERN
-#if defined(__cplusplus)
-}
 #endif
 
 #undef EXTERN

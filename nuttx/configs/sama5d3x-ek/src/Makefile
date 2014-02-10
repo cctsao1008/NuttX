@@ -1,5 +1,5 @@
 ############################################################################
-# configs/sam4s-xplained/src/Makefile
+# configs/sama5d3x-ek/src/Makefile
 #
 #   Copyright (C) 2013 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -142,6 +142,10 @@ endif
 
 ifeq ($(CONFIG_SAMA5_TSD),y)
 CSRCS += sam_touchscreen.c
+endif
+
+ifeq ($(CONFIG_VIDEO_OV2640),y)
+CSRCS += sam_ov2640.c
 endif
 
 ifeq ($(CONFIG_ARCH_LEDS),y)

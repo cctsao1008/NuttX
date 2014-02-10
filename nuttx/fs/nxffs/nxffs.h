@@ -311,7 +311,8 @@ struct nxffs_blkstats_s
   off_t                     ngood;      /* Number of good FLASH blocks found */
   off_t                     nbad;       /* Number of well-formatted FLASH blocks marked as bad */
   off_t                     nunformat;  /* Number of unformatted FLASH blocks */
-  off_t                     ncorrupt;   /* Number of blocks with correupted format info */
+  off_t                     ncorrupt;   /* Number of blocks with corrupted format info */
+  off_t                     nbadread;   /* Number of blocks that could not be read */
 };
 
 /****************************************************************************
@@ -373,7 +374,7 @@ extern struct nxffs_volume_s g_volume;
  *
  ****************************************************************************/
 
-extern int nxffs_limits(FAR struct nxffs_volume_s *volume);
+int nxffs_limits(FAR struct nxffs_volume_s *volume);
 
 /****************************************************************************
  * Name: nxffs_rdle16
@@ -391,7 +392,7 @@ extern int nxffs_limits(FAR struct nxffs_volume_s *volume);
  *
  ****************************************************************************/
 
-extern uint16_t nxffs_rdle16(FAR const uint8_t *val);
+uint16_t nxffs_rdle16(FAR const uint8_t *val);
 
 /****************************************************************************
  * Name: nxffs_wrle16
@@ -410,7 +411,7 @@ extern uint16_t nxffs_rdle16(FAR const uint8_t *val);
  *
  ****************************************************************************/
 
-extern void nxffs_wrle16(uint8_t *dest, uint16_t val);
+void nxffs_wrle16(uint8_t *dest, uint16_t val);
 
 /****************************************************************************
  * Name: nxffs_rdle32
@@ -428,7 +429,7 @@ extern void nxffs_wrle16(uint8_t *dest, uint16_t val);
  *
  ****************************************************************************/
 
-extern uint32_t nxffs_rdle32(FAR const uint8_t *val);
+uint32_t nxffs_rdle32(FAR const uint8_t *val);
 
 /****************************************************************************
  * Name: nxffs_wrle32
@@ -447,7 +448,7 @@ extern uint32_t nxffs_rdle32(FAR const uint8_t *val);
  *
  ****************************************************************************/
 
-extern void nxffs_wrle32(uint8_t *dest, uint32_t val);
+void nxffs_wrle32(uint8_t *dest, uint32_t val);
 
 /****************************************************************************
  * Name: nxffs_erased
@@ -466,7 +467,7 @@ extern void nxffs_wrle32(uint8_t *dest, uint32_t val);
  *
  ****************************************************************************/
 
-extern size_t nxffs_erased(FAR const uint8_t *buffer, size_t buflen);
+size_t nxffs_erased(FAR const uint8_t *buffer, size_t buflen);
 
 /****************************************************************************
  * Name: nxffs_rdcache
@@ -486,7 +487,7 @@ extern size_t nxffs_erased(FAR const uint8_t *buffer, size_t buflen);
  *
  ****************************************************************************/
 
-extern int nxffs_rdcache(FAR struct nxffs_volume_s *volume, off_t block);
+int nxffs_rdcache(FAR struct nxffs_volume_s *volume, off_t block);
 
 /****************************************************************************
  * Name: nxffs_wrcache
@@ -504,7 +505,7 @@ extern int nxffs_rdcache(FAR struct nxffs_volume_s *volume, off_t block);
  *
  ****************************************************************************/
 
-extern int nxffs_wrcache(FAR struct nxffs_volume_s *volume);
+int nxffs_wrcache(FAR struct nxffs_volume_s *volume);
 
 /****************************************************************************
  * Name: nxffs_ioseek
@@ -523,7 +524,7 @@ extern int nxffs_wrcache(FAR struct nxffs_volume_s *volume);
  *
  ****************************************************************************/
 
-extern void nxffs_ioseek(FAR struct nxffs_volume_s *volume, off_t offset);
+void nxffs_ioseek(FAR struct nxffs_volume_s *volume, off_t offset);
 
 /****************************************************************************
  * Name: nxffs_iotell
@@ -541,7 +542,7 @@ extern void nxffs_ioseek(FAR struct nxffs_volume_s *volume, off_t offset);
  *
  ****************************************************************************/
 
-extern off_t nxffs_iotell(FAR struct nxffs_volume_s *volume);
+off_t nxffs_iotell(FAR struct nxffs_volume_s *volume);
 
 /****************************************************************************
  * Name: nxffs_getc
@@ -565,7 +566,7 @@ extern off_t nxffs_iotell(FAR struct nxffs_volume_s *volume);
  *
  ****************************************************************************/
 
-extern int nxffs_getc(FAR struct nxffs_volume_s *volume, uint16_t reserve);
+int nxffs_getc(FAR struct nxffs_volume_s *volume, uint16_t reserve);
 
 /****************************************************************************
  * Name: nxffs_freeentry
@@ -589,7 +590,7 @@ extern int nxffs_getc(FAR struct nxffs_volume_s *volume, uint16_t reserve);
  *
  ****************************************************************************/
 
-extern void nxffs_freeentry(FAR struct nxffs_entry_s *entry);
+void nxffs_freeentry(FAR struct nxffs_entry_s *entry);
 
 /****************************************************************************
  * Name: nxffs_nextentry
@@ -611,8 +612,8 @@ extern void nxffs_freeentry(FAR struct nxffs_entry_s *entry);
  *
  ****************************************************************************/
 
-extern int nxffs_nextentry(FAR struct nxffs_volume_s *volume, off_t offset,
-                           FAR struct nxffs_entry_s *entry);
+int nxffs_nextentry(FAR struct nxffs_volume_s *volume, off_t offset,
+                    FAR struct nxffs_entry_s *entry);
 
 /****************************************************************************
  * Name: nxffs_findinode
@@ -635,9 +636,8 @@ extern int nxffs_nextentry(FAR struct nxffs_volume_s *volume, off_t offset,
  *
  ****************************************************************************/
 
-extern int nxffs_findinode(FAR struct nxffs_volume_s *volume,
-                           FAR const char *name,
-                           FAR struct nxffs_entry_s *entry);
+int nxffs_findinode(FAR struct nxffs_volume_s *volume, FAR const char *name,
+                    FAR struct nxffs_entry_s *entry);
 
 /****************************************************************************
  * Name: nxffs_inodeend
@@ -663,8 +663,8 @@ extern int nxffs_findinode(FAR struct nxffs_volume_s *volume,
  *
  ****************************************************************************/
 
-extern off_t nxffs_inodeend(FAR struct nxffs_volume_s *volume,
-                            FAR struct nxffs_entry_s *entry);
+off_t nxffs_inodeend(FAR struct nxffs_volume_s *volume,
+                     FAR struct nxffs_entry_s *entry);
 
 /****************************************************************************
  * Name: nxffs_verifyblock
@@ -679,14 +679,19 @@ extern off_t nxffs_inodeend(FAR struct nxffs_volume_s *volume,
  *   block - The (logical) block number to load and verify.
  *
  * Returned Values:
- *   Zero is returned on success.  Otherwise, a negated errno value is
- *   returned indicating the nature of the failure.
+ *   OK (zero( is returned on success.  Otherwise, a negated errno value is
+ *   returned indicating the nature of the failure:
+ *
+ *     -EIO is returned if we failed to read the block.  If we are using
+ *        NAND memory, then this probably means that the block has
+ *        uncorrectable bit errors.
+ *     -ENOENT is returned if the block is a bad block.
  *
  * Defined in nxffs_block.c
  *
  ****************************************************************************/
 
-extern int nxffs_verifyblock(FAR struct nxffs_volume_s *volume, off_t block);
+int nxffs_verifyblock(FAR struct nxffs_volume_s *volume, off_t block);
 
 /****************************************************************************
  * Name: nxffs_validblock
@@ -708,7 +713,7 @@ extern int nxffs_verifyblock(FAR struct nxffs_volume_s *volume, off_t block);
  *
  ****************************************************************************/
 
-extern int nxffs_validblock(struct nxffs_volume_s *volume, off_t *block);
+int nxffs_validblock(struct nxffs_volume_s *volume, off_t *block);
 
 /****************************************************************************
  * Name: nxffs_blockstats
@@ -731,8 +736,8 @@ extern int nxffs_validblock(struct nxffs_volume_s *volume, off_t *block);
  *
  ****************************************************************************/
 
-extern int nxffs_blockstats(FAR struct nxffs_volume_s *volume,
-                            FAR struct nxffs_blkstats_s *stats);
+int nxffs_blockstats(FAR struct nxffs_volume_s *volume,
+                     FAR struct nxffs_blkstats_s *stats);
 
 /****************************************************************************
  * Name: nxffs_reformat
@@ -753,7 +758,27 @@ extern int nxffs_blockstats(FAR struct nxffs_volume_s *volume,
  *
  ****************************************************************************/
 
-extern int nxffs_reformat(FAR struct nxffs_volume_s *volume);
+int nxffs_reformat(FAR struct nxffs_volume_s *volume);
+
+/****************************************************************************
+ * Name: nxffs_blkinit
+ *
+ * Description:
+ *   Initialize an NXFFS block to the erased state with the specified block
+ *   status.
+ *
+ * Input Parameters:
+ *   volume - Describes the NXFFS volume (needed for the blocksize).
+ *   blkptr - Pointer to the logic block to initialize.
+ *   state  - Either BLOCK_STATE_GOOD or BLOCK_STATE_BAD.
+ *
+ * Returned Value:
+ *   None.
+ *
+ ****************************************************************************/
+
+void nxffs_blkinit(FAR struct nxffs_volume_s *volume, FAR uint8_t *blkptr,
+                   uint8_t state);
 
 /****************************************************************************
  * Name: nxffs_findofile
@@ -775,8 +800,8 @@ extern int nxffs_reformat(FAR struct nxffs_volume_s *volume);
  *
  ****************************************************************************/
 
-extern FAR struct nxffs_ofile_s *nxffs_findofile(FAR struct nxffs_volume_s *volume,
-                                                 FAR const char *name);
+FAR struct nxffs_ofile_s *nxffs_findofile(FAR struct nxffs_volume_s *volume,
+                                          FAR const char *name);
 
 /****************************************************************************
  * Name: nxffs_findwriter
@@ -796,7 +821,7 @@ extern FAR struct nxffs_ofile_s *nxffs_findofile(FAR struct nxffs_volume_s *volu
  *
  ****************************************************************************/
 
-extern FAR struct nxffs_wrfile_s *nxffs_findwriter(FAR struct nxffs_volume_s *volume);
+FAR struct nxffs_wrfile_s *nxffs_findwriter(FAR struct nxffs_volume_s *volume);
 
 /****************************************************************************
  * Name: nxffs_wrinode
@@ -822,8 +847,8 @@ extern FAR struct nxffs_wrfile_s *nxffs_findwriter(FAR struct nxffs_volume_s *vo
  *
  ****************************************************************************/
 
-extern int nxffs_wrinode(FAR struct nxffs_volume_s *volume,
-                         FAR struct nxffs_entry_s *entry);
+int nxffs_wrinode(FAR struct nxffs_volume_s *volume,
+                  FAR struct nxffs_entry_s *entry);
 
 /****************************************************************************
  * Name: nxffs_updateinode
@@ -842,8 +867,8 @@ extern int nxffs_wrinode(FAR struct nxffs_volume_s *volume,
  *
  ****************************************************************************/
 
-extern int nxffs_updateinode(FAR struct nxffs_volume_s *volume,
-                           FAR struct nxffs_entry_s *entry);
+int nxffs_updateinode(FAR struct nxffs_volume_s *volume,
+                      FAR struct nxffs_entry_s *entry);
 
 /****************************************************************************
  * Name: nxffs_wrreserve
@@ -883,7 +908,7 @@ extern int nxffs_updateinode(FAR struct nxffs_volume_s *volume,
  *
  ****************************************************************************/
 
-extern int nxffs_wrreserve(FAR struct nxffs_volume_s *volume, size_t size);
+int nxffs_wrreserve(FAR struct nxffs_volume_s *volume, size_t size);
 
 /****************************************************************************
  * Name: nxffs_wrverify
@@ -927,7 +952,7 @@ extern int nxffs_wrreserve(FAR struct nxffs_volume_s *volume, size_t size);
  *
  ****************************************************************************/
 
-extern int nxffs_wrverify(FAR struct nxffs_volume_s *volume, size_t size);
+int nxffs_wrverify(FAR struct nxffs_volume_s *volume, size_t size);
 
 /****************************************************************************
  * Name: nxffs_wrblkhdr
@@ -949,8 +974,8 @@ extern int nxffs_wrverify(FAR struct nxffs_volume_s *volume, size_t size);
  *
  ****************************************************************************/
 
-extern int nxffs_wrblkhdr(FAR struct nxffs_volume_s *volume,
-                          FAR struct nxffs_wrfile_s *wrfile);
+int nxffs_wrblkhdr(FAR struct nxffs_volume_s *volume,
+                   FAR struct nxffs_wrfile_s *wrfile);
 
 /****************************************************************************
  * Name: nxffs_nextblock
@@ -971,8 +996,8 @@ extern int nxffs_wrblkhdr(FAR struct nxffs_volume_s *volume,
  *
  ****************************************************************************/
 
-extern int nxffs_nextblock(FAR struct nxffs_volume_s *volume, off_t offset,
-                           FAR struct nxffs_blkentry_s *blkentry);
+int nxffs_nextblock(FAR struct nxffs_volume_s *volume, off_t offset,
+                    FAR struct nxffs_blkentry_s *blkentry);
 
 /****************************************************************************
  * Name: nxffs_rdblkhdr
@@ -994,8 +1019,8 @@ extern int nxffs_nextblock(FAR struct nxffs_volume_s *volume, off_t offset,
  *
  ****************************************************************************/
 
-extern int nxffs_rdblkhdr(FAR struct nxffs_volume_s *volume, off_t offset,
-                          FAR uint16_t *datlen);
+int nxffs_rdblkhdr(FAR struct nxffs_volume_s *volume, off_t offset,
+                   FAR uint16_t *datlen);
 
 /****************************************************************************
  * Name: nxffs_rminode
@@ -1014,7 +1039,7 @@ extern int nxffs_rdblkhdr(FAR struct nxffs_volume_s *volume, off_t offset,
  *
  ****************************************************************************/
 
-extern int nxffs_rminode(FAR struct nxffs_volume_s *volume, FAR const char *name);
+int nxffs_rminode(FAR struct nxffs_volume_s *volume, FAR const char *name);
 
 /****************************************************************************
  * Name: nxffs_pack
@@ -1032,7 +1057,7 @@ extern int nxffs_rminode(FAR struct nxffs_volume_s *volume, FAR const char *name
  *
  ****************************************************************************/
 
-extern int nxffs_pack(FAR struct nxffs_volume_s *volume);
+int nxffs_pack(FAR struct nxffs_volume_s *volume);
 
 /****************************************************************************
  * Standard mountpoint operation methods

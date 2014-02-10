@@ -43,6 +43,15 @@ else
   LDSCRIPT = ld.script
 endif
 
+ifeq ($(CONFIG_WINDOWS_NATIVE),y)
+  # Windows-native toolchains
+  DIRLINK = $(TOPDIR)\tools\copydir.bat
+  DIRUNLINK = $(TOPDIR)\tools\unlink.bat
+  MKDEP = $(TOPDIR)\tools\mkdeps.exe
+  ARCHINCLUDES = -I. -isystem $(TOPDIR)\include
+  ARCHXXINCLUDES = -I. -isystem $(TOPDIR)\include -isystem $(TOPDIR)\include\cxx
+  ARCHSCRIPT = -T$(TOPDIR)\configs\$(CONFIG_ARCH_BOARD)\scripts\$(LDSCRIPT)
+else
 ifeq ($(WINTOOL),y)
   # Windows-native toolchains
   DIRLINK = $(TOPDIR)/tools/copydir.sh
@@ -51,13 +60,13 @@ ifeq ($(WINTOOL),y)
   ARCHINCLUDES = -I. -isystem "${shell cygpath -w $(TOPDIR)/include}"
   ARCHXXINCLUDES = -I. -isystem "${shell cygpath -w $(TOPDIR)/include}" -isystem "${shell cygpath -w $(TOPDIR)/include/cxx}"
   ARCHSCRIPT = -T "${shell cygpath -w $(TOPDIR)/configs/$(CONFIG_ARCH_BOARD)/scripts/$(LDSCRIPT)}"
-  MAXOPTIMIZATION = -O2
 else
-  # Linux/Cygwin-native toolchain 
+  # Linux/Cygwin-native toolchain
   MKDEP = $(TOPDIR)/tools/mkdeps.sh
   ARCHINCLUDES = -I. -isystem $(TOPDIR)/include
   ARCHXXINCLUDES = -I. -isystem $(TOPDIR)/include -isystem $(TOPDIR)/include/cxx
   ARCHSCRIPT = -T$(TOPDIR)/configs/$(CONFIG_ARCH_BOARD)/scripts/$(LDSCRIPT)
+endif
 endif
 
 CC = $(CROSSDEV)gcc
@@ -74,8 +83,10 @@ ARCHCCMAJOR = ${shell echo $(ARCHCCVERSION) | cut -d'.' -f1}
 
 ifeq ($(CONFIG_DEBUG_SYMBOLS),y)
   ARCHOPTIMIZATION = -g
-else
-  ARCHOPTIMIZATION = $(MAXOPTIMIZATION) -fno-strict-aliasing -fno-strength-reduce -fomit-frame-pointer
+endif
+
+ifneq ($(CONFIG_DEBUG_NOOPT),y)
+  ARCHOPTIMIZATION += $(MAXOPTIMIZATION) -fno-strict-aliasing -fno-strength-reduce -fomit-frame-pointer
 endif
 
 ARCHCFLAGS = -fno-builtin

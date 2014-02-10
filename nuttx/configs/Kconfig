@@ -12,6 +12,15 @@ choice
 		be available for selection.  Use ARCH_BOARD_CUSTOM to create a new
 		board configuration.
 
+config ARCH_BOARD_16Z
+	bool "16z Board"
+	depends on ARCH_CHIP_Z16F2811
+	select ARCH_HAVE_LEDS
+	---help---
+		This selection enables the port of NuttX port to the 16z board. The
+		16z board is based on the ZiLOG ZNEO Z16F2811AL20EG part.  See
+		https://github.com/toyaga/16z for further information.
+
 config ARCH_BOARD_AMBER
 	bool "Amber Web Server"
 	depends on ARCH_CHIP_ATMEGA128
@@ -372,6 +381,14 @@ config ARCH_BOARD_OLIMEXLPC2378
 		Linux or Cygwin.  STATUS: ostest and NSH configurations available.
 		This port for the NXP LPC2378 was contributed by Rommel Marcelo.
 
+config ARCH_BOARD_OLIMEX_LPC_H3131
+	bool "Olimex LPC-H3131 Development board"
+	depends on ARCH_CHIP_LPC3131
+	select ARCH_HAVE_LEDS
+	---help---
+		Olimex LPC-H3131 development board.  This board is based on the the
+		NXP LPC3131 MCU.
+
 config ARCH_BOARD_OLIMEX_STRP711
 	bool "Olimex STR-P711 board"
 	depends on ARCH_CHIP_STR71X
@@ -451,6 +468,19 @@ config ARCH_BOARD_PCBLOGICPIC32MX
 		STATUS:  Code complete but testing has been stalled due to tool related problems
 		(PICkit 2 does not work with the PIC32).
 
+config ARCH_BOARD_PCDUINO_A10
+	bool "pcDuino A10"
+	depends on ARCH_CHIP_A10
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		This is the port of NuttX to the Allwinner A10-based pcDuino v1
+		board.  See http://www.pcduino.com/ for information about pcDuino Lite, v1,
+		and v2.  I have not compared these boards in detail, but I believe that
+		the differences are cosmetic.  This port was developed on the v1 board,
+		but the others may be compatible.
+
 config ARCH_BOARD_PIC32_STARTERKIT
 	bool "Microchip PIC32 Ethernet Starter Kit (DM320004)"
 	depends on ARCH_CHIP_PIC32MX795F512L
@@ -482,6 +512,16 @@ config ARCH_BOARD_PJRC_87C52
 	---help---
 		8051 Microcontroller.  This port uses the PJRC 87C52 development system
 		and the SDCC toolchain.   This port is not quite ready for prime time.
+
+config ARCH_BOARD_PX4FMU_V2
+	bool "PX4FMU v2"
+	depends on ARCH_CHIP_STM32F427V
+	---help---
+		This is a minimal configuration that supports low-level test of the
+		PX4FMU v2 in the NuttX source tree.  If you are using PX4, you
+		probably don't want this configuration.  You probably want the
+		latest supported configuration available from the PX4 GIT
+		repositories.
 
 config ARCH_BOARD_QEMU_I486
 	bool "Qemu i486 Mode"
@@ -657,6 +697,15 @@ config ARCH_BOARD_STM32L_DISCOVERY
 	---help---
 		STMicro STM32L-Discovery board based on the STMicro STM32L152RB MCU.
 
+config ARCH_BOARD_STM32VL_DISCOVERY
+	bool "STMicro STM32VL-Discovery board"
+	depends on ARCH_CHIP_STM32F100RB
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		STMicro STM32VL-Discovery board based on the STMicro STM32F100RB MCU.
+
 config ARCH_BOARD_MIKROE_STM32F4
 	bool "MikroElektronika Mikromedia for STM32F4 board"
 	depends on ARCH_CHIP_STM32F407VG
@@ -715,6 +764,16 @@ config ARCH_BOARD_US7032EVB1
 	---help---
 		This is a port of the Hitachi SH-1 on the Hitachi SH-1/US7032EVB1 board.
 		STATUS:  Work has just began on this port.
+
+config ARCH_BOARD_VIEWTOOL_STM32F107
+	bool "ViewTool STM32F103/F107"
+	depends on ARCH_CHIP_STM32F107VC || ARCH_CHIP_STM32F103VCT6
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	---help---
+		This port uses the ViewTool STM32F103/F107 V1.2 board.  This
+		board may be fitted with either: (1) STM32F107VCT6 or (2) STM32F103VCT6.
+		See http://www.viewtool.com/ for further information.
 
 config ARCH_BOARD_VSN
 	bool "SOTEL NetClamps VSN sensor network platform"
@@ -808,8 +867,20 @@ config ARCH_BOARD_CUSTOM
 
 endchoice
 
+config ARCH_BOARD_CUSTOM_DIR
+	string "Custom board directory"
+	depends on ARCH_BOARD_CUSTOM
+	---help---
+		If the custom board configuration is selected, then it is necessary
+		to also tell the build system where it can find the board directory
+		for the custom board. This may be either a relative path from the
+		toplevel NuttX directory (like "configs/myboard") or an absolute path
+		to some location outside of the NuttX source tree (like
+		"~/projects/myboard").
+
 config ARCH_BOARD
 	string
+	default "16z"                 if ARCH_BOARD_16Z
 	default "amber"               if ARCH_BOARD_AMBER
 	default "arduino-due"         if ARCH_BOARD_ARDUINO_DUE
 	default "avr32dev1"           if ARCH_BOARD_AVR32DEV1
@@ -848,16 +919,19 @@ config ARCH_BOARD
 	default "nutiny-nuc120"       if ARCH_BOARD_NUTINY_NUC120
 	default "olimex-lpc1766stk"   if ARCH_BOARD_LPC1766STK
 	default "olimex-lpc2378"      if ARCH_BOARD_OLIMEXLPC2378
+	default "olimex-lpc-h3131"    if ARCH_BOARD_OLIMEX_LPC_H3131
 	default "olimex-stm32-p107"   if ARCH_BOARD_OLIMEX_STM32P107
 	default "olimex-stm32-p207"   if ARCH_BOARD_OLIMEX_STM32P207
 	default "olimex-strp711"      if ARCH_BOARD_OLIMEX_STRP711
 	default "open1788"            if ARCH_BOARD_OPEN1788
 	default "p112"                if ARCH_BOARD_P112
 	default "pcblogic-pic32mx"    if ARCH_BOARD_PCBLOGICPIC32MX
+	default "pcduino-a10"         if ARCH_BOARD_PCDUINO_A10
 	default "pic32-starterkit"    if ARCH_BOARD_PIC32_STARTERKIT
 	default "pic32mx7mmb"         if ARCH_BOARD_PIC32_PIC32MX7MMB
 	default "pirelli_dpl10"       if ARCH_BOARD_PIRELLI_DPL10
 	default "pjrc-8051"           if ARCH_BOARD_PJRC_87C52
+	default "px4fmu-v2_upstream"  if ARCH_BOARD_PX4FMU_V2
 	default "qemu-i486"           if ARCH_BOARD_QEMU_I486
 	default "rgmp"                if ARCH_BOARD_RGMP
 	default "sama5d3x-ek"         if ARCH_BOARD_SAMA5D3X_EK
@@ -876,12 +950,14 @@ config ARCH_BOARD
 	default "stm32f4discovery"    if ARCH_BOARD_STM32F4_DISCOVERY
 	default "stm32f429i-disco"    if ARCH_BOARD_STM32F429I_DISCO
 	default "stm32ldiscovery"     if ARCH_BOARD_STM32L_DISCOVERY
+	default "stm32vldiscovery"    if ARCH_BOARD_STM32VL_DISCOVERY
 	default "mikroe-stm32f4"      if ARCH_BOARD_MIKROE_STM32F4
 	default "sure-pic32mx"        if ARCH_BOARD_SUREPIC32MX
 	default "teensy"              if ARCH_BOARD_TEENSY
 	default "twr-k60n512"         if ARCH_BOARD_TWR_K60N512
 	default "ubw32"               if ARCH_BOARD_UBW32
 	default "us7032evb1"          if ARCH_BOARD_US7032EVB1
+	default "viewtool-stm32f107"  if ARCH_BOARD_VIEWTOOL_STM32F107
 	default "vsn"                 if ARCH_BOARD_VSN
 	default "xtrs"                if ARCH_BOARD_XTRS
 	default "z16f2800100zcog"     if ARCH_BOARD_Z16F2800100ZCOG
@@ -891,7 +967,6 @@ config ARCH_BOARD
 	default "zp214xpa"            if ARCH_BOARD_ZP214XPA
 	default "zkit-arm-1769"       if ARCH_BOARD_ZKITARM
 	default "sim"                 if ARCH_BOARD_SIM
-	default ""                    if ARCH_BOARD_CUSTOM
 
 comment "Common Board Options"
 
@@ -948,6 +1023,9 @@ config NSH_MMCSDSPIPORTNO
 
 comment "Board-Specific Options"
 
+if ARCH_BOARD_16Z
+source "configs/16z/Kconfig"
+endif
 if ARCH_BOARD_AMBER
 source "configs/amber/Kconfig"
 endif
@@ -1062,6 +1140,9 @@ endif
 if ARCH_BOARD_OLIMEXLPC2378
 source "configs/olimex-lpc2378/Kconfig"
 endif
+if ARCH_BOARD_OLIMEX_LPC_H3131
+source "configs/olimex-lpc-h3131/Kconfig"
+endif
 if ARCH_BOARD_OLIMEX_STM32P107
 source "configs/olimex-stm32-p107/Kconfig"
 endif
@@ -1077,6 +1158,9 @@ endif
 if ARCH_BOARD_PCBLOGICPIC32MX
 source "configs/pcblogic-pic32mx/Kconfig"
 endif
+if ARCH_BOARD_PCDUINO_A10
+source "configs/pcduino-a10/Kconfig"
+endif
 if ARCH_BOARD_PIC32_STARTERKIT
 source "configs/pic32-starterkit/Kconfig"
 endif
@@ -1088,6 +1172,9 @@ source "configs/pirelli_dpl10/Kconfig"
 endif
 if ARCH_BOARD_PJRC_87C52
 source "configs/pjrc-8051/Kconfig"
+endif
+if ARCH_BOARD_PX4FMU_V2
+source "configs/px4fmu-v2_upstream/Kconfig"
 endif
 if ARCH_BOARD_QEMU_I486
 source "configs/qemu-i486/Kconfig"
@@ -1134,11 +1221,14 @@ endif
 if ARCH_BOARD_STM32F4_DISCOVERY
 source "configs/stm32f4discovery/Kconfig"
 endif
-if ARCH_BOARD_STM32F49I_DISCO
+if ARCH_BOARD_STM32F429I_DISCO
 source "configs/stm32f429i-disco/Kconfig"
 endif
 if ARCH_BOARD_STM32L_DISCOVERY
 source "configs/stm32ldiscovery/Kconfig"
+endif
+if ARCH_BOARD_STM32VL_DISCOVERY
+source "configs/stm32vldiscovery/Kconfig"
 endif
 if ARCH_BOARD_SUREPIC32MX
 source "configs/sure-pic32mx/Kconfig"
@@ -1154,6 +1244,9 @@ source "configs/ubw32/Kconfig"
 endif
 if ARCH_BOARD_US7032EVB1
 source "configs/us7032evb1/Kconfig"
+endif
+if ARCH_BOARD_VIEWTOOL_STM32F107
+source "configs/viewtool-stm32f107/Kconfig"
 endif
 if ARCH_BOARD_VSN
 source "configs/vsn/Kconfig"

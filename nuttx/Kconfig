@@ -17,6 +17,7 @@ config NUTTX_NEWCONFIG
 	default y
 
 menu "Build Setup"
+
 config EXPERIMENTAL
 	bool "Prompt for development and/or incomplete code/drivers"
 
@@ -93,7 +94,7 @@ config APPS_DIR
 		Identifies the directory that builds the
 		application to link with NuttX.  Default: ../apps This symbol must be assigned
 		to the path to the application build directory *relative* to
-		the NuttX top build direcory. If you had an application
+		the NuttX top build directory. If you had an application
 		directory and the NuttX directory each in separate directory
 		trees like this:
 
@@ -117,7 +118,7 @@ config APPS_DIR
 		2)clean. Do whatever is appropriate to clean the application
 		directories for a fresh build.
 		
-		3)distclean. Clean everthing -- auto-generated files, symbolic
+		3)distclean. Clean everything -- auto-generated files, symbolic
 		links etc. -- so that the directory contents are the same as
 		the contents in your configuration management system.
 		This is only done when you change the NuttX configuration.
@@ -144,10 +145,11 @@ config BUILD_2PASS
 		library (archive) (some modification to this Makefile would be required if
 		PASS1_TARGET generates an archive). Pass 1 1ncremental (relative) link
 		objects should be put into the processor-specific source directory (where other
-		link objects will be created).  If the pass1 obect is an archive, it could
+		link objects will be created).  If the pass1 object is an archive, it could
 		go anywhere.
 
 if BUILD_2PASS
+
 config PASS1_TARGET
 	string "Pass one target"
 	default "all"
@@ -191,8 +193,8 @@ config NUTTX_USERSPACE
 		address where the user-space blob is loaded into memory.  NuttX will
 		expect to find and instance of struct userspace_s at this location.
 
-endif
-endmenu
+endif # Build 2-pass
+endmenu # Build Setup
 
 menu "Binary Output Formats"
 
@@ -226,7 +228,8 @@ config RAW_BINARY
 		Create the nuttx.bin in the raw binary format that is used with many
 		different loaders using the GNU objcopy program.  This option
 		should not be selected if you are not using the GNU toolchain.
-endmenu
+
+endmenu # Binary Output Formats
 
 menu "Customize Header Files"
 
@@ -274,7 +277,7 @@ config ARCH_FLOAT_H
 	---help---
 		The float.h header file defines the properties of your floating
 		point implementation.  It would always be best to use your
-		toolchain's float.h header file but if none is avaiable, a default
+		toolchain's float.h header file but if none is available, a default
 		float.h header file will provided if this option is selected.  However
 		there is no assurance that the settings in this float.h are actually
 		correct for your platform!
@@ -298,7 +301,7 @@ config ARCH_STDARG_H
 		ARCH_STDARG_H=y and providing. If ARCH_STDARG_H, is not defined, then
 		the stdarg.h header file will stay out-of-the-way in include/nuttx/.
 
-endmenu
+endmenu # Customize Header Files
 
 menu "Debug Options"
 
@@ -321,11 +324,12 @@ config ARCH_HAVE_HEAPCHECK
 	default n
 
 if DEBUG
+
 config DEBUG_VERBOSE
 	bool "Enable Debug Verbose Output"
 	default n
 	---help---
-		Enables verbose debug output (assuming debug featurses are enabled).
+		Enables verbose debug output (assuming debug features are enabled).
 		As a general rule, when DEBUG is enabled only errors will be
 		reported in the debug SYSLOG output.  But if you also enable
 		DEBUG_VERBOSE, then very chatty (and often annoying) output will be
@@ -560,16 +564,53 @@ config DEBUG_AUDIO
 		device drivers. (disabled by default).  Support for this debug option
 		is architecture-specific and may not be available for some MCUs.
 
-endif
+endif # DEBUG
 
 config DEBUG_SYMBOLS
 	bool "Generate Debug Symbols"
 	default n
 	---help---
-		Build without optimization and with debug symbols (needed
-		for use with a debugger).
-endmenu
-endmenu
+		Build with debug symbols (needed for use with a debugger).
+
+endmenu # Debug Options
+
+config ARCH_HAVE_CUSTOMOPT
+	bool
+	default n
+
+choice
+	prompt "Optimization Level"
+	default DEBUG_NOOPT if DEBUG_SYMBOLS
+	default DEBUG_FULLOPT if !DEBUG_SYMBOLS
+
+config DEBUG_NOOPT
+	bool "Suppress Optimization"
+	---help---
+		Build without optimization.  This is often helpful when debugging code.
+
+config DEBUG_CUSTOMOPT
+	bool "Custom Optimization"
+	depends on ARCH_HAVE_CUSTOMOPT
+	---help---
+		Select a custom debug level.  This is often helpful if you suspect an
+		optimization level error and want to lower the level of optimization.
+
+config DEBUG_FULLOPT
+	bool "Normal, Full optimization"
+	---help---
+		Build full optimization.  This is the normal case for production
+		firmware.
+
+endchoice # Optimization Level
+
+config DEBUG_OPTLEVEL
+	string "Custom Optimization Level"
+	default "-O2"
+	depends on DEBUG_CUSTOMOPT
+	---help---
+		This string represents the custom optimization level that will be used if DEBUG_CUSTOMOPT.
+
+endmenu # Build Setup
 
 menu "System Type"
 source "arch/Kconfig"

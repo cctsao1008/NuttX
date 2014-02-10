@@ -46,6 +46,40 @@
 #include "chip.h"
 
 /************************************************************************************
+ * Pre-processor Definitions
+ ************************************************************************************/
+/* Configuration ********************************************************************/
+
+#ifdef CONFIG_ARCH_HIPRI_INTERRUPT
+  /* In kernel mode without an interrupt stack, this interrupt handler will set the
+   * MSP to the stack pointer of the interrupted thread.  If the interrupted thread
+   * was a privileged thread, that will be the MSP otherwise it will be the PSP.  If
+   * the PSP is used, then the value of the MSP will be invalid when the interrupt
+   * handler returns because it will be a pointer to an old position in the
+   * unprivileged stack.  Then when the high priority interrupt occurs and uses this
+   * stale MSP, there will most likely be a system failure.
+   *
+   * If the interrupt stack is selected, on the other hand, then the interrupt
+   * handler will always set the the MSP to the interrupt stack.  So when the high
+   * priority interrupt occurs, it will either use the MSP of the last privileged
+   * thread to run or, in the case of the nested interrupt, the interrupt stack if
+   * no privileged task has run.
+   */
+
+#  if defined(CONFIG_NUTTX_KERNEL) && CONFIG_ARCH_INTERRUPTSTACK < 4
+#    error Interrupt stack must be used with high priority interrupts in kernel mode
+#  endif
+
+  /* Use the the BASEPRI to control interrupts is required if nested, high
+   * priority interrupts are supported.
+   */
+
+#  ifndef CONFIG_ARMV7M_USEBASEPRI
+#    error CONFIG_ARMV7M_USEBASEPRI must be used with CONFIG_ARCH_HIPRI_INTERRUPT
+#  endif
+#endif
+
+/************************************************************************************
  * Global Symbols
  ************************************************************************************/
 
@@ -76,7 +110,7 @@
  *      R14 Contains the EXC_RETURN value
  *      We are in handler mode and the current SP is the MSP
  *
- * If CONFIG_ARCH_FPU is defined, the volatile FP registers and FPSCR are on the 
+ * If CONFIG_ARCH_FPU is defined, the volatile FP registers and FPSCR are on the
  * return stack immediately above REG_XPSR.
  */
 
@@ -92,11 +126,12 @@ exception_common:
 	/* The EXC_RETURN value tells us whether the context is on the MSP or PSP */
 
 	tst		r14, #EXC_RETURN_PROCESS_STACK /* nonzero if context on process stack */
-	ite		eq						/* next two instructions conditional */
-	mrseq	r1, msp					/* R1=The main stack pointer */
-	mrsne	r1, psp					/* R1=The process stack pointer */
+	beq		1f						/* Branch if context already on the MSP */
+	mrs		r1, psp					/* R1=The process stack pointer (PSP) */
+	mov     sp, r1					/* Set the MSP to the PSP */
 
-	mov		r2, r1					/* R2=Copy of the main/process stack pointer */
+1:
+	mov		r2, sp					/* R2=Copy of the main/process stack pointer */
 	add		r2, #HW_XCPT_SIZE		/* R2=MSP/PSP before the interrupt was taken */
 									/* (ignoring the xPSR[9] alignment bit) */
 #ifdef CONFIG_ARMV7M_USEBASEPRI
@@ -114,36 +149,59 @@ exception_common:
 	 * as they are restored before returning, so we can't assume that we can get at the
 	 * true values of these registers in any routine called from here.
 	 *
-	 * XXX we could do all this saving lazily on the context switch side if we knew where to put
-	 *     the registers.
+	 * REVISIT: we could do all this saving lazily on the context switch side if we knew
+	 * where to put the registers.
 	 */
 
-	vstmdb	r1!, {s16-s31}			/* Save the non-volatile FP context */
+	vstmdb	sp!, {s16-s31}			/* Save the non-volatile FP context */
 
 #endif
 
-	stmdb	r1!, {r2-r11,r14}		/* Save the remaining registers plus the SP/PRIMASK values */
+	stmdb	sp!, {r2-r11,r14}		/* Save the remaining registers plus the SP/PRIMASK values */
 
+#ifndef CONFIG_ARCH_HIPRI_INTERRUPT
 	/* Disable interrupts, select the stack to use for interrupt handling
 	 * and call up_doirq to handle the interrupt
 	 */
 
 	cpsid	i						/* Disable further interrupts */
 
-	/* If CONFIG_ARCH_INTERRUPTSTACK is defined, we will use a special interrupt
-	 * stack pointer.  The way that this is done here prohibits nested interrupts!
-	 * Otherwise, we will use the stack that was current when the interrupt was taken.
+#else
+	/* Set the BASEPRI register so that further normal interrupts will be
+	 * masked.  Nested, high priority may still occur, however.
 	 */
 
+	mov		r2, #NVIC_SYSH_DISABLE_PRIORITY
+	msr		basepri, r2				/* Set the BASEPRI */
+#endif
+
+	/* There are two arguments to up_doirq:
+	 *
+	 *   R0 = The IRQ number
+	 *   R1 = The top of the stack points to the saved state
+	 */
+
+	mov		r1, sp
+
 #if CONFIG_ARCH_INTERRUPTSTACK > 3
+	/* If CONFIG_ARCH_INTERRUPTSTACK is defined, we will set the MSP to use
+	 * a special special interrupt stack pointer.  The way that this is done
+	 * here prohibits nested interrupts without some additional logic!
+	 */
+
 	ldr		sp, =g_intstackbase
 	push	{r1}					/* Save the MSP on the interrupt stack */
 	bl		up_doirq				/* R0=IRQ, R1=register save area on stack */
 	pop		{r1}					/* Recover R1=main stack pointer */
+
 #else
-	msr	 msp, r1					/* We are using the main stack pointer */
+	/* Otherwise, we will re-use the interrupted thread's stack.  That may
+	 * mean using either MSP or PSP stack for interrupt level processing (in
+	 * kernel mode).
+	 */
+
 	bl		up_doirq				/* R0=IRQ, R1=register save area on stack */
-	mrs	 r1, msp					/* Recover R1=main stack pointer */
+	mrs		r1, msp					/* Get R1=main stack pointer */
 #endif
 
 	/* On return from up_doirq, R0 will hold a pointer to register context
@@ -152,7 +210,7 @@ exception_common:
 	 */
 
 	cmp		r0, r1					/* Context switch? */
-	beq		1f						/* Branch if no context switch */
+	beq		2f						/* Branch if no context switch */
 
 	/* We are returning with a pending context switch.  This case is different
 	 * because in this case, the register save structure does not lie on the
@@ -185,9 +243,9 @@ exception_common:
 	vldmia	r0, {s16-s31}			/* Recover S16-S31 */
 #endif
 
-	b		2f						/* Re-join common logic */
+	b		3f						/* Re-join common logic */
 
-1:
+2:
 	/* We are returning with no context switch.  We simply need to "unwind"
 	 * the same stack frame that we created at entry.
 	 */
@@ -197,8 +255,8 @@ exception_common:
 	vldmia  r1!, {s16-s31}			/* Recover S16-S31 */
 #endif
 
-2:
-	/* The EXC_RETURN value tells us whether we are returning on the MSP or PSP 
+3:
+	/* The EXC_RETURN value tells us whether we are returning on the MSP or PSP
 	 */
 
 #ifdef CONFIG_NUTTX_KERNEL
@@ -209,15 +267,15 @@ exception_common:
 
 	mrs		r2, control				/* R2=Contents of the control register */
 	tst		r14, #EXC_RETURN_PROCESS_STACK /* nonzero if context on process stack */
-	beq		3f						/* Branch if privileged */
+	beq		4f						/* Branch if privileged */
 
 	orr		r2, r2, #1				/* Unprivileged mode */
 	msr		psp, r1					/* R1=The process stack pointer */
-	b		4f
-3:
+	b		5f
+4:
 	bic		r2, r2, #1				/* Privileged mode */
 	msr		msp, r1					/* R1=The main stack pointer */
-4:
+5:
 	msr		control, r2				/* Save the updated control register */
 #else
 	tst		r14, #EXC_RETURN_PROCESS_STACK /* nonzero if context on process stack */
@@ -229,8 +287,11 @@ exception_common:
 	/* Restore the interrupt state */
 
 #ifdef CONFIG_ARMV7M_USEBASEPRI
-	msr		basepri, r3				/* Restore interrupts priority masking*/
+	msr		basepri, r3				/* Restore interrupts priority masking */
+#ifndef CONFIG_ARCH_HIPRI_INTERRUPT
 	cpsie	i						/* Re-enable interrupts */
+#endif
+
 #else
 	msr		primask, r3				/* Restore interrupts */
 #endif

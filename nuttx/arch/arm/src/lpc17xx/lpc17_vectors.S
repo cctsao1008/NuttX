@@ -48,8 +48,37 @@
 /************************************************************************************************
  * Preprocessor Definitions
  ************************************************************************************************/
-/* Memory Map:
- *
+/* Configuration ********************************************************************************/
+
+#ifdef CONFIG_ARCH_HIPRI_INTERRUPT
+  /* In kernel mode without an interrupt stack, this interrupt handler will set the MSP to the
+   * stack pointer of the interrupted thread.  If the interrupted thread was a privileged
+   * thread, that will be the MSP otherwise it will be the PSP.  If the PSP is used, then the
+   * value of the MSP will be invalid when the interrupt handler returns because it will be a
+   * pointer to an old position in the unprivileged stack.  Then when the high priority
+   * interrupt occurs and uses this stale MSP, there will most likely be a system failure.
+   *
+   * If the interrupt stack is selected, on the other hand, then the interrupt handler will
+   * always set the the MSP to the interrupt stack.  So when the high priority interrupt occurs,
+   * it will either use the MSP of the last privileged thread to run or, in the case of the
+   * nested interrupt, the interrupt stack if no privileged task has run.
+   */
+
+#  if defined(CONFIG_NUTTX_KERNEL) && CONFIG_ARCH_INTERRUPTSTACK < 4
+#    error Interrupt stack must be used with high priority interrupts in kernel mode
+#  endif
+
+  /* Use the the BASEPRI to control interrupts is required if nested, high
+   * priority interrupts are supported.
+   */
+
+#  ifndef CONFIG_ARMV7M_USEBASEPRI
+#    error CONFIG_ARMV7M_USEBASEPRI must be used with CONFIG_ARCH_HIPRI_INTERRUPT
+#  endif
+#endif
+
+/* Memory Map ***********************************************************************************/
+/*
  * 0x0000:0000 - Beginning of FLASH. Address of vectors
  * 0x0003:ffff - End of flash
  * 0x1000:0000 - Start of CPU SRAM and start of .data (_sdata)
@@ -92,7 +121,7 @@
 	.thumb_func
 \label:
 	mov		r0, #\irqno
-	b		lpc17_common
+	b		exception_common
 	.endm
 
 /************************************************************************************************
@@ -102,10 +131,10 @@
 	.section	.vectors, "ax"
 	.code		16
 	.align		2
-	.globl		lpc17_vectors
-	.type		lpc17_vectors, function
+	.globl		_vectors
+	.type		_vectors, function
 
-lpc17_vectors:
+_vectors:
 
 /* Processor Exceptions */
 
@@ -142,7 +171,7 @@ lpc17_vectors:
 #  error "Unrecognized LPC17xx family"
 #endif
 
-	.size	lpc17_vectors, .-lpc17_vectors
+	.size	_vectors, .-_vectors
 
 /************************************************************************************************
  * .text
@@ -197,7 +226,10 @@ handlers:
  *      We are in handler mode and the current SP is the MSP
  */
 
-lpc17_common:
+	.globl		exception_common
+	.type		exception_common, function
+
+exception_common:
 
 	/* Complete the context save */
 
@@ -207,12 +239,12 @@ lpc17_common:
 	 * EXC_RETURN is 0xfffffffd (unprivileged thread)
 	 */
 
-	adds	r2, r14, #3				/* If R14=0xfffffffd, then r2 == 0 */
-	ite		ne						/* Next two instructions are conditional */
-	mrsne	r1, msp					/* R1=The main stack pointer */
-	mrseq	r1, psp					/* R1=The process stack pointer */
-#else
-	mrs		r1, msp					/* R1=The main stack pointer */
+	tst		r14, #EXC_RETURN_PROCESS_STACK /* nonzero if context on process stack */
+	beq		1f						/* Branch if context already on the MSP */
+	mrs		r1, psp					/* R1=The process stack pointer (PSP) */
+	mov     sp, r1					/* Set the MSP to the PSP */
+
+1:
 #endif
 
 	/* r1 holds the value of the stack pointer AFTER the excption handling logic
@@ -220,7 +252,7 @@ lpc17_common:
 	 * stack pointer BEFORE the interrupt modified it.
 	 */
 
-	mov		r2, r1					/* R2=Copy of the main/process stack pointer */
+	mov		r2, sp					/* R2=Copy of the main/process stack pointer */
 	add		r2, #HW_XCPT_SIZE		/* R2=MSP/PSP before the interrupt was taken */
 #ifdef CONFIG_ARMV7M_USEBASEPRI
 	mrs		r3, basepri				/* R3=Current BASEPRI setting */
@@ -235,7 +267,7 @@ lpc17_common:
 	 * cannot be used in interrupt processing).
 	 */
 
-	sub		r1, #(4*SW_FPU_REGS)
+	sub		sp, #(4*SW_FPU_REGS)
 #endif
 
 	/* Save the remaining registers on the stack after the registers pushed
@@ -244,29 +276,52 @@ lpc17_common:
 	 */
 
 #ifdef CONFIG_NUTTX_KERNEL
-	stmdb	r1!, {r2-r11,r14}		/* Save the remaining registers plus the SP value */
+	stmdb	sp!, {r2-r11,r14}		/* Save the remaining registers plus the SP value */
 #else
-	stmdb	r1!, {r2-r11}			/* Save the remaining registers plus the SP value */
+	stmdb	sp!, {r2-r11}			/* Save the remaining registers plus the SP value */
 #endif
 
+#ifndef CONFIG_ARCH_HIPRI_INTERRUPT
 	/* Disable interrupts, select the stack to use for interrupt handling
 	 * and call up_doirq to handle the interrupt
 	 */
 
 	cpsid	i						/* Disable further interrupts */
 
-	/* If CONFIG_ARCH_INTERRUPTSTACK is defined, we will use a special interrupt
-	 * stack pointer.  The way that this is done here prohibits nested interrupts!
-	 * Otherwise, we will re-use the main stack for interrupt level processing.
+#else
+	/* Set the BASEPRI register so that further normal interrupts will be
+	 * masked.  Nested, high priority may still occur, however.
 	 */
 
+	mov		r2, #NVIC_SYSH_DISABLE_PRIORITY
+	msr		basepri, r2				/* Set the BASEPRI */
+#endif
+
+	/* There are two arguments to up_doirq:
+	 *
+	 *   R0 = The IRQ number
+	 *   R1 = The top of the stack points to the saved state
+	 */
+
+	mov		r1, sp
+
 #if CONFIG_ARCH_INTERRUPTSTACK > 3
+	/* If CONFIG_ARCH_INTERRUPTSTACK is defined, we will set the MSP to use
+	 * a special special interrupt stack pointer.  The way that this is done
+	 * here prohibits nested interrupts without some additional logic!
+	 */
+
 	ldr		sp, =g_intstackbase
 	str		r1, [sp, #-4]!			/* Save the MSP on the interrupt stack */
 	bl		up_doirq				/* R0=IRQ, R1=register save (msp) */
 	ldr		r1, [sp, #+4]!			/* Recover R1=main stack pointer */
+
 #else
-	mov		sp, r1					/* We are using the main stack pointer */
+	/* Otherwise, we will re-use the interrupted thread's stack.  That may
+	 * mean using either MSP or PSP stack for interrupt level processing (in
+	 * kernel mode).
+	 */
+
 	bl		up_doirq				/* R0=IRQ, R1=register save (msp) */
 	mov		r1, sp					/* Recover R1=main stack pointer */
 #endif
@@ -277,7 +332,7 @@ lpc17_common:
 	 */
 
 	cmp		r0, r1					/* Context switch? */
-	beq		1f						/* Branch if no context switch */
+	beq		2f						/* Branch if no context switch */
 
 	/* We are returning with a pending context switch.
 	 *
@@ -313,7 +368,7 @@ lpc17_common:
 #else
 	ldmia	r0, {r2-r11}			/* Recover R4-R11 + 2 temp values */
 #endif
-	b		2f						/* Re-join common logic */
+	b		3f						/* Re-join common logic */
 
 	/* We are returning with no context switch.  We simply need to "unwind"
 	 * the same stack frame that we created
@@ -321,7 +376,8 @@ lpc17_common:
 	 * Here:
 	 *   r1 = Address of the return stack (same as r0)
 	 */
-1:
+
+2:
 #ifdef CONFIG_NUTTX_KERNEL
 	ldmia	r1!, {r2-r11,r14}		/* Recover R4-R11, r14 + 2 temp values */
 #else
@@ -344,7 +400,8 @@ lpc17_common:
 	 *   r3 = primask or basepri
 	 *   r4-r11 = restored register values
 	 */
-2:
+
+3:
 
 #ifdef CONFIG_NUTTX_KERNEL
 	/* The EXC_RETURN value will be 0xfffffff9 (privileged thread) or 0xfffffff1
@@ -354,15 +411,15 @@ lpc17_common:
 
 	mrs		r2, control				/* R2=Contents of the control register */
 	tst		r14, #EXC_RETURN_PROCESS_STACK /* nonzero if context on process stack */
-	beq		3f						/* Branch if privileged */
+	beq		4f						/* Branch if privileged */
 
 	orr		r2, r2, #1				/* Unprivileged mode */
 	msr		psp, r1					/* R1=The process stack pointer */
-	b		4f
-3:
+	b		5f
+4:
 	bic		r2, r2, #1				/* Privileged mode */
 	msr		msp, r1					/* R1=The main stack pointer */
-4:
+5:
 	msr		control, r2				/* Save the updated control register */
 #else
 	msr		msp, r1					/* Recover the return MSP value */
@@ -377,8 +434,11 @@ lpc17_common:
     /* Restore the interrupt state */
 
 #ifdef CONFIG_ARMV7M_USEBASEPRI
-	msr		basepri, r3				/* Restore interrupts priority masking*/
+	msr		basepri, r3				/* Restore interrupts priority masking */
+#ifndef CONFIG_ARCH_HIPRI_INTERRUPT
 	cpsie	i						/* Re-enable interrupts */
+#endif
+
 #else
 	msr		primask, r3				/* Restore interrupts */
 #endif

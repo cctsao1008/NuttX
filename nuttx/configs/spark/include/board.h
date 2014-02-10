@@ -221,39 +221,9 @@ extern "C"
 /************************************************************************************
  * Public Function Prototypes
  ************************************************************************************/
-/************************************************************************************
- * Button support.
- *
- * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_buttons() may be called to collect the current state of all
- *   buttons or up_irqbutton() may be called to register button interrupt
- *   handlers.
- *
- *   After up_buttoninit() has been called, up_buttons() may be called to
- *   collect the state of all buttons.  up_buttons() returns an 8-bit bit set
- *   with each bit associated with a button.  See the BUTTON_*_BIT and JOYSTICK_*_BIT
- *   definitions in board.h for the meaning of each bit.
- *
- *   up_irqbutton() may be called to register an interrupt handler that will
- *   be called when a button is depressed or released.  The ID value is a
- *   button enumeration value that uniquely identifies a button resource. See the
- *   BUTTON_* and JOYSTICK_* definitions in board.h for the meaning of enumeration
- *   value.  The previous interrupt handler address is returned (so that it may
- *   restored, if so desired).
- *
- ************************************************************************************/
-
-#ifdef CONFIG_ARCH_BUTTONS
-void up_buttoninit(void);
-uint8_t up_buttons(void);
-#ifdef CONFIG_ARCH_IRQBUTTONS
-xcpt_t up_irqbutton(int id, xcpt_t irqhandler);
-#endif
-#endif
 
 /************************************************************************************
- * Name:  up_ledinit, up_setled, and up_setleds
+ * Name:  board_led_initialize, up_setled, and up_setleds
  *
  * Description:
  *   If CONFIG_ARCH_LEDS is defined, then NuttX will control the on-board LEDs.  If
@@ -263,8 +233,8 @@ xcpt_t up_irqbutton(int id, xcpt_t irqhandler);
  ************************************************************************************/
 
 #ifndef CONFIG_ARCH_LEDS
-#undef up_ledinit // Remove macro definition to reuse name
-void up_ledinit(void);
+#undef board_led_initialize // Remove macro definition to reuse name
+void board_led_initialize(void);
 void up_setled(int led, bool ledon);
 void up_setleds(uint8_t ledset, uint8_t led_states_set);
 #endif

@@ -86,15 +86,16 @@
 #define SYS_sem_destroy                (CONFIG_SYS_RESERVED+14)
 #define SYS_sem_open                   (CONFIG_SYS_RESERVED+15)
 #define SYS_sem_post                   (CONFIG_SYS_RESERVED+16)
-#define SYS_sem_trywait                (CONFIG_SYS_RESERVED+17)
-#define SYS_sem_unlink                 (CONFIG_SYS_RESERVED+18)
-#define SYS_sem_wait                   (CONFIG_SYS_RESERVED+19)
-#define SYS_set_errno                  (CONFIG_SYS_RESERVED+20)
-#define SYS_task_create                (CONFIG_SYS_RESERVED+21)
-#define SYS_task_delete                (CONFIG_SYS_RESERVED+22)
-#define SYS_task_restart               (CONFIG_SYS_RESERVED+23)
-#define SYS_up_assert                  (CONFIG_SYS_RESERVED+24)
-#define __SYS_vfork                    (CONFIG_SYS_RESERVED+25)
+#define SYS_sem_timedwait              (CONFIG_SYS_RESERVED+17)
+#define SYS_sem_trywait                (CONFIG_SYS_RESERVED+18)
+#define SYS_sem_unlink                 (CONFIG_SYS_RESERVED+19)
+#define SYS_sem_wait                   (CONFIG_SYS_RESERVED+20)
+#define SYS_set_errno                  (CONFIG_SYS_RESERVED+21)
+#define SYS_task_create                (CONFIG_SYS_RESERVED+22)
+#define SYS_task_delete                (CONFIG_SYS_RESERVED+23)
+#define SYS_task_restart               (CONFIG_SYS_RESERVED+24)
+#define SYS_up_assert                  (CONFIG_SYS_RESERVED+25)
+#define __SYS_vfork                    (CONFIG_SYS_RESERVED+26)
 
 /* The following can be individually enabled */
 
@@ -162,9 +163,8 @@
 #  define SYS_sigsuspend               (__SYS_signals+5)
 #  define SYS_sigtimedwait             (__SYS_signals+6)
 #  define SYS_sigwaitinfo              (__SYS_signals+7)
-#  define SYS_sleep                    (__SYS_signals+8)
-#  define SYS_usleep                   (__SYS_signals+9)
-#  define __SYS_clock                  (__SYS_signals+10)
+#  define SYS_nanosleep                (__SYS_signals+8)
+#  define __SYS_clock                  (__SYS_signals+9)
 #else
 #  define __SYS_clock                  __SYS_signals
 #endif
@@ -206,7 +206,7 @@
 #  define CONFIG_NSOCKET_DESCRIPTORS 0
 #endif
 
-#if CONFIG_NFILE_DESCRIPTORS > 0 || CONFIG_NSOCKET_DESCRIPTORS > 0 
+#if CONFIG_NFILE_DESCRIPTORS > 0 || CONFIG_NSOCKET_DESCRIPTORS > 0
 #  define SYS_close                    (__SYS_descriptors+0)
 #  define SYS_ioctl                    (__SYS_descriptors+1)
 #  define SYS_read                     (__SYS_descriptors+2)

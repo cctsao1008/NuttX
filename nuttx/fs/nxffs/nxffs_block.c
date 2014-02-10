@@ -1,7 +1,7 @@
 /****************************************************************************
  * fs/nxffs/nxffs_block.c
  *
- *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2011, 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * References: Linux/Documentation/filesystems/romfs.txt
@@ -83,9 +83,13 @@
  *   block - The (logical) block number to load and verify.
  *
  * Returned Values:
- *   Zero is returned on success.  Otherwise, a negated errno value is
- *   returned indicating the nature of the failure.  -ENOENT is returned
- *   if the block is a bad block.
+ *   OK (zero( is returned on success.  Otherwise, a negated errno value is
+ *   returned indicating the nature of the failure:
+ *
+ *     -EIO is returned if we failed to read the block.  If we are using
+ *        NAND memory, then this probably means that the block has
+ *        uncorrectable bit errors.
+ *     -ENOENT is returned if the block is a bad block.
  *
  ****************************************************************************/
 
@@ -101,8 +105,8 @@ int nxffs_verifyblock(FAR struct nxffs_volume_s *volume, off_t block)
     {
       /* Perhaps we are at the end of the media */
 
-      fvdbg("Failed to read data into cache: %d\n", ret);
-      return ret;
+      fdbg("ERROR: Failed to read data into cache: %d\n", ret);
+      return -EIO;
     }
 
   /* Check if the block has a magic number (meaning that it is not
@@ -181,6 +185,6 @@ int nxffs_validblock(struct nxffs_volume_s *volume, off_t *block)
    * valid blocks left in the volume.
    */
 
-  fdbg("No valid block found\n");
+  fdbg("ERROR: No valid block found\n");
   return -ENOSPC;
 }

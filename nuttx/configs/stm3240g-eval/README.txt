@@ -49,7 +49,7 @@ GNU Toolchain Options
 
   Most testing has been conducted using the CodeSourcery toolchain for Windows and
   that is the default toolchain in most configurations (FPU-related testing has
-  been performed with the Atolloc toolchain for windows.  To use the Atollic,
+  been performed with the Atollic toolchain for windows.  To use the Atollic,
   devkitARM, Raisonance GNU, or NuttX buildroot toolchain, you simply need to
   add one of the following configuration options to your .config (or defconfig)
   file:
@@ -115,7 +115,7 @@ GNU Toolchain Options
   The Atollic "Lite" Toolchain
   ----------------------------
   The free, "Lite" version of the Atollic toolchain does not support C++ nor
-  does it support ar, nm, objdump, or objdcopy. If you use the Atollic "Lite"
+  does it support ar, nm, objdump, or objcopy. If you use the Atollic "Lite"
   toolchain, you will have to set:
 
     CONFIG_HAVE_CXX=n
@@ -162,7 +162,7 @@ IDEs
   2) Start the NuttX build at least one time from the Cygwin command line
      before trying to create your project.  This is necessary to create
      certain auto-generated files and directories that will be needed.
-  3) Set up include pathes:  You will need include/, arch/arm/src/stm32,
+  3) Set up include paths:  You will need include/, arch/arm/src/stm32,
      arch/arm/src/common, arch/arm/src/armv7-m, and sched/.
   4) All assembly files need to have the definition option -D __ASSEMBLY__
      on the command line.
@@ -242,7 +242,7 @@ NXFLAT Toolchain
   tools -- just the NXFLAT tools.  The buildroot with the NXFLAT tools can
   be downloaded from the NuttX SourceForge download site
   (https://sourceforge.net/projects/nuttx/files/).
- 
+
   This GNU toolchain builds and executes in the Linux or Cygwin environment.
 
   1. You must have already configured Nuttx in <some-dir>/nuttx.
@@ -304,7 +304,7 @@ events as follows:
   * If LED1, LED2, LED3 are statically on, then NuttX probably failed to boot
     and these LEDs will give you some indication of where the failure was
  ** The normal state is LED3 ON and LED1 faintly glowing.  This faint glow
-    is because of timer interupts that result in the LED being illuminated
+    is because of timer interrupts that result in the LED being illuminated
     on a small proportion of the time.
 *** LED2 may also flicker normally if signals are processed.
 
@@ -331,7 +331,7 @@ the LCD).
 
   ACCESS:
 
-    Daughterboard Extension Connector, CN3, pin 32
+    Daughter board Extension Connector, CN3, pin 32
     Ground is available on CN3, pin1
 
   NOTE: TIM4 hardware will not support pulse counting.
@@ -670,7 +670,7 @@ STM3240G-EVAL-specific Configuration Options
 
     CONFIG_ARCH_CALIBRATION - Enables some build in instrumentation that
        cause a 100 second delay during boot-up.  This 100 second delay
-       serves no purpose other than it allows you to calibratre
+       serves no purpose other than it allows you to calibrate
        CONFIG_ARCH_LOOPSPERMSEC.  You simply use a stop watch to measure
        the 100 second delay then adjust CONFIG_ARCH_LOOPSPERMSEC until
        the delay actually is 100 seconds.
@@ -805,7 +805,7 @@ STM3240G-EVAL-specific Configuration Options
     CONFIG_STM32_MII_MCO1 - Use MCO1 to clock the MII interface
     CONFIG_STM32_MII_MCO2 - Use MCO2 to clock the MII interface
     CONFIG_STM32_RMII - Support Ethernet RMII interface
-    CONFIG_STM32_AUTONEG - Use PHY autonegotion to determine speed and mode
+    CONFIG_STM32_AUTONEG - Use PHY autonegotiation to determine speed and mode
     CONFIG_STM32_ETHFD - If CONFIG_STM32_AUTONEG is not defined, then this
       may be defined to select full duplex mode. Default: half-duplex
     CONFIG_STM32_ETH100MBPS - If CONFIG_STM32_AUTONEG is not defined, then this
@@ -887,14 +887,14 @@ STM3240G-EVAL-specific Configuration Options
   STM32 USB OTG FS Host Driver Support
 
   Pre-requisites
- 
+
    CONFIG_USBHOST         - Enable USB host support
    CONFIG_STM32_OTGFS     - Enable the STM32 USB OTG FS block
    CONFIG_STM32_SYSCFG    - Needed
    CONFIG_SCHED_WORKQUEUE - Worker thread support is required
- 
+
   Options:
- 
+
    CONFIG_STM32_OTGFS_RXFIFO_SIZE - Size of the RX FIFO in 32-bit words.
      Default 128 (512 bytes)
    CONFIG_STM32_OTGFS_NPTXFIFO_SIZE - Size of the non-periodic Tx FIFO
@@ -955,11 +955,129 @@ Where <subdir> is one of the following:
     control the configuration.  See the section entitled "NuttX Configuration
     Tool" in the top-level README.txt file.
 
+  knxwm:
+  -----
+    [WARNING:  This is a work in progress].
+
+    This is identical to the nxwm configuration below except that NuttX
+    is built as a kernel-mode, monolithic module and the user applications
+    are built separately.  Is is recommended to use a special make command;
+    not just 'make' but make with the following two arguments:
+
+        make pass1 pass2
+
+    In the normal case (just 'make'), make will attempt to build both user-
+    and kernel-mode blobs more or less interleaved.  This actual works!
+    However, for me it is very confusing so I prefer the above make command:
+    Make the user-space binaries first (pass1), then make the kernel-space
+    binaries (pass2)
+
+    NOTES:
+
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configuration using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. This is the default platform/toolchain in the configuration:
+
+       CONFIG_HOST_WINDOWS=y                   : Windows
+       CONFIG_WINDOWS_CYGWIN=y                 : Cygwin environment on Windows
+       CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y     : NuttX EABI buildroot toolchain
+       CONFIG_CXX_NEWLONG=y                    : size_t is long (maybe?)
+
+       This is easily changed by modifying the configuration.
+
+       NOTE:  When I used a recent CodeSourcery toolchain, then toolchain
+       generated an illegal blx to an even address when calling into one
+       of the EABI math libraries.  I don't know why this happened or if
+       the probably is repeatable with other CodeSourcery versions.  You
+       can try for yourself setting:
+
+       CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery under Windows
+       CONFIG_CXX_NEWLONG=n                    : size_t is unsigned int (maybe?)
+
+    3. In addition to the the kernel mode build, this NxWM configuration
+       differences from the nxwm configuration in that:
+
+       a. Networking is disabled.  There are issues with some of the network-
+          related NSH commands and with Telnet in the kernel build (see the
+          top-level TODO file).  Without these NSH commands, there is no use
+          for networking in this configuration.
+
+       b. The NxConsole windows are disabled. There are also issues with the
+          NxConsole build now (see the top-level TODO file).
+
+       c. The initialization sequence is quite different:  NX and the
+          touchscreen are initialized in kernel mode by logic in this src/
+          directory before the NxWM application is started.
+
+    4. At the end of the build, there will be several files in the top-level
+       NuttX build directory:
+
+       PASS1:
+         nuttx_user.elf    - The pass1 user-space ELF file
+         nuttx_user.hex    - The pass1 Intel HEX format file (selected in defconfig)
+         User.map          - Symbols in the user-space ELF file
+
+       PASS2:
+         nuttx             - The pass2 kernel-space ELF file
+         nuttx.hex         - The pass2 Intel HEX file (selected in defconfig)
+         System.map        - Symbols in the kernel-space ELF file
+
+    5. Combining .hex files.  If you plan to use the STM32 ST-Link Utility to
+       load the .hex files into FLASH, then you need to combine the two hex
+       files into a single .hex file.  Here is how you can do that.
+
+       a. The 'tail' of the nuttx.hex file should look something like this
+          (with my comments added):
+
+            $ tail nuttx.hex
+            # 00, data records
+            ...
+            :10 9DC0 00 01000000000800006400020100001F0004
+            :10 9DD0 00 3B005A0078009700B500D400F300110151
+            :08 9DE0 00 30014E016D0100008D
+            # 05, Start Linear Address Record
+            :04 0000 05 0800 0419 D2
+            # 01, End Of File record
+            :00 0000 01 FF
+
+          Use an editor such as vi to remove the 05 and 01 records.
+
+       b. The 'head' of the nuttx_user.hex file should look something like
+          this (again with my comments added):
+
+            $ head nuttx_user.hex
+            # 04, Extended Linear Address Record
+            :02 0000 04 0801 F1
+            # 00, data records
+            :10 8000 00 BD89 01084C800108C8110208D01102087E
+            :10 8010 00 0010 00201C1000201C1000203C16002026
+            :10 8020 00 4D80 01085D80010869800108ED83010829
+            ...
+
+          Nothing needs to be done here.  The nuttx_user.hex file should
+          be fine.
+
+       c. Combine the edited nuttx.hex and un-edited nuttx_user.hex
+          file to produce a single combined hex file:
+
+          $ cat nuttx.hex nuttx_user.hex >combined.hex
+
+       Then use the combined.hex file with the STM32 ST-Link tool.  If
+       you do this a lot, you will probably want to invest a little time
+       to develop a tool to automate these steps.
+
   nettest:
   -------
 
     This configuration directory may be used to verify networking performance
-    using the STM32's Ethernet controller. It uses apps/examples/nettest to excercise the
+    using the STM32's Ethernet controller. It uses apps/examples/nettest to exercise the
     TCP/IP network.
 
     CONFIG_EXAMPLES_NETTEST_SERVER=n                       : Target is configured as the client
@@ -1097,7 +1215,7 @@ Where <subdir> is one of the following:
        CONFIG_MM_REGIONS=3                  : When FSMC is enabled, so is the on-board SRAM memory region
 
     8. USB OTG FS Device or Host Support
- 
+
        CONFIG_USBDEV          - Enable USB device support, OR
        CONFIG_USBHOST         - Enable USB host support
        CONFIG_STM32_OTGFS     - Enable the STM32 USB OTG FS block
@@ -1168,7 +1286,7 @@ Where <subdir> is one of the following:
 
         -CONFIG_STM32_RNG=y
         +CONFIG_STM32_RNG=n
- 
+
         -CONFIG_DEV_RANDOM=y
         +CONFIG_DEV_RANDOM=n
 
@@ -1301,7 +1419,7 @@ Where <subdir> is one of the following:
     Here is the quick summary of the build steps (Assuming that all of
     the required packages are available in a directory ~/nuttx-code):
 
-    1. Intall the nxwm configuration
+    1. Install the nxwm configuration
 
        $ cd ~/nuttx-code/nuttx/tools
        $ ./configure.sh stm3240g-eval/nxwm

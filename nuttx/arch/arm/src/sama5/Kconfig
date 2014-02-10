@@ -788,8 +788,11 @@ endchoice # Base layer color format
 endif # SAMA5_LCDC_HCR
 
 config SAMA5_LCDC_REGDEBUG
-	bool "Low level register debug"
+	bool "Register-Level Debug"
+	default n
 	depends on DEBUG
+	---help---
+		Enable very low-level register access debug.  Depends on DEBUG.
 
 endmenu # LCDC configuration
 endif # SAMA5_LCDC
@@ -2966,6 +2969,7 @@ config SAMA5_DDRCS
 	bool "External DDR-SDRAM Memory"
 	default n
 	depends on SAMA5_MPDDRC
+	select ARCH_HAVE_SDRAM
 	---help---
 		Build in support for DDR-SDRAM memory resources.
 
@@ -3035,12 +3039,46 @@ config SAMA5_EBICS0_LCD
 config SAMA5_EBICS0_NOR
 	bool "NOR Flash"
 
-config SAMA5_EBICS0_NAND
-	bool "NAND Flash"
-	select MTD
-	select MTD_NAND
+# CS0 cannot support NAND
+# config SAMA5_EBICS0_NAND
+#	bool "NAND Flash"
+#	select MTD
+#	select MTD_NAND
+#	select SAMA5_HAVE_NAND
 
 endchoice # CS0 Memory Type
+
+# CS0 cannot support NAND
+# choice
+#	prompt "NAND ECC type"
+#	default SAMA5_EBICS0_ECCNONE
+#	depends on SAMA5_EBICS0_NAND
+#
+# config SAMA5_EBICS0_ECCNONE
+# 	bool "No ECC"
+# 	---help---
+# 		Only raw transfers to/from NAND are supported
+#
+# config SAMA5_EBICS0_SWECC
+#	bool "Software ECC"
+#	depends on MTD_NAND_SWECC
+#	---help---
+#		ECC is performed by higher level software logic
+#
+# config SAMA5_EBICS0_PMECC
+#	bool "NAND H/W PMECC Support"
+#	depends on MTD_NAND_HWECC
+#	select SAMA5_HAVE_PMECC
+#	---help---
+#		Enable hardware assisted support for ECC calculations
+#
+# config SAMA5_EBICS0_CHIPECC
+#	bool "Embedded chip ECC"
+#	depends on MTD_NAND_EMBEDDEDECC
+#	---help---
+#		Some NAND devices have internal, embedded ECC function.
+#
+# endchoice # NAND ECC type
 endif # SAMA5_EBICS0
 
 config SAMA5_EBICS1
@@ -3086,12 +3124,46 @@ config SAMA5_EBICS1_LCD
 config SAMA5_EBICS1_NOR
 	bool "NOR Flash"
 
-config SAMA5_EBICS1_NAND
-	bool "NAND Flash"
-	select MTD
-	select MTD_NAND
+# CS1 cannot support NAND
+# config SAMA5_EBICS1_NAND
+#	bool "NAND Flash"
+#	select MTD
+#	select MTD_NAND
+#	select SAMA5_HAVE_NAND
 
 endchoice # CS1 Memory Type
+
+# CS1 cannot support NAND
+# choice
+#	prompt "NAND ECC type"
+#	default SAMA5_EBICS1_ECCNONE
+#	depends on SAMA5_EBICS1_NAND
+#
+# config SAMA5_EBICS1_ECCNONE
+#	bool "No ECC"
+#	---help---
+#		Only raw transfers to/from NAND are supported
+#
+# config SAMA5_EBICS1_SWECC
+#	bool "Software ECC"
+#	depends on MTD_NAND_SWECC
+#	---help---
+#		ECC is performed by higher level software logic
+#
+# config SAMA5_EBICS1_PMECC
+#	bool "NAND H/W PMECC Support"
+#	depends on MTD_NAND_HWECC
+#	select SAMA5_HAVE_PMECC
+#	---help---
+#		Enable hardware assisted support for ECC calculations
+#
+# config SAMA5_EBICS1_CHIPECC
+#	bool "Embedded chip ECC"
+#	depends on MTD_NAND_EMBEDDEDECC
+#	---help---
+#		Some NAND devices have internal, embedded ECC function.
+#
+# endchoice # NAND ECC type
 endif # SAMA5_EBICS1
 
 config SAMA5_EBICS2
@@ -3137,12 +3209,46 @@ config SAMA5_EBICS2_LCD
 config SAMA5_EBICS2_NOR
 	bool "NOR Flash"
 
-config SAMA5_EBICS2_NAND
-	bool "NAND Flash"
-	select MTD
-	select MTD_NAND
+# CS2 cannot support NAND
+# config SAMA5_EBICS2_NAND
+#	bool "NAND Flash"
+#	select MTD
+#	select MTD_NAND
+#	select SAMA5_HAVE_NAND
 
 endchoice # CS2 Memory Type
+
+# CS2 cannot support NAND
+# choice
+#	prompt "NAND ECC type"
+#	default SAMA5_EBICS2_ECCNONE
+#	depends on SAMA5_EBICS2_NAND
+#
+# config SAMA5_EBICS2_ECCNONE
+#	bool "No ECC"
+#	---help---
+#		Only raw transfers to/from NAND are supported
+#
+# config SAMA5_EBICS2_SWECC
+#	bool "Software ECC"
+#	depends on MTD_NAND_SWECC
+#	---help---
+#		ECC is performed by higher level software logic
+#
+# config SAMA5_EBICS2_PMECC
+#	bool "NAND H/W PMECC Support"
+#	depends on MTD_NAND_HWECC
+#	select SAMA5_HAVE_PMECC
+#	---help---
+#		Enable hardware assisted support for ECC calculations
+#
+# config SAMA5_EBICS2_CHIPECC
+#	bool "Embedded chip ECC"
+#	depends on MTD_NAND_EMBEDDEDECC
+#	---help---
+#		Some NAND devices have internal, embedded ECC function.
+#
+# endchoice # NAND ECC type
 endif # SAMA5_EBICS2
 
 config SAMA5_EBICS3
@@ -3192,11 +3298,77 @@ config SAMA5_EBICS3_NAND
 	bool "NAND Flash"
 	select MTD
 	select MTD_NAND
+	select SAMA5_HAVE_NAND
 
 endchoice # CS3 Memory Type
+
+choice
+	prompt "NAND ECC type"
+	default SAMA5_EBICS3_ECCNONE
+	depends on SAMA5_EBICS3_NAND
+
+config SAMA5_EBICS3_ECCNONE
+	bool "No ECC"
+	---help---
+		Only raw transfers to/from NAND are supported
+
+config SAMA5_EBICS3_SWECC
+	bool "Software ECC"
+	depends on MTD_NAND_SWECC
+	---help---
+		ECC is performed by higher level software logic
+
+config SAMA5_EBICS3_PMECC
+	bool "NAND H/W PMECC Support"
+	depends on MTD_NAND_HWECC
+	select SAMA5_HAVE_PMECC
+	---help---
+		Enable hardware assisted support for ECC calculations
+
+config SAMA5_EBICS3_CHIPECC
+	bool "Embedded chip ECC"
+	depends on MTD_NAND_EMBEDDEDECC
+	---help---
+		Some NAND devices have internal, embedded ECC function.
+
+endchoice # NAND ECC type
 endif # SAMA5_EBICS3
 
-if SAMA5_EBICS0_NAND || SAMA5_EBICS1_NAND || SAMA5_EBICS2_NAND || SAMA5_EBICS3_NAND
+config SAMA5_HAVE_NAND
+bool
+default n
+
+config SAMA5_HAVE_PMECC
+bool
+default n
+
+if SAMA5_HAVE_NAND
+
+config SAMA5_NAND_DMA
+	bool "NAND DMA Transfers"
+	default y
+	depends on SAMA5_DMAC0
+	---help---
+		Use memory-to-memory DMA to perform NAND data transfers.  NOTE that
+		DMAC0 must be selected (DMAC1 cannot access NFC SRAM).
+
+config SAMA5_NAND_DMA_THRESHOLD
+	int "DMA threshold"
+	default 784
+	depends on SAMA5_NAND_DMA
+	---help---
+		Defines a threshold value for performing memory-to-memory DMA.
+
+		If memory-to-memory DMAs are used, then two context switches will
+		occur:  (1) when the NAND logic waits for the DMA to complete, and
+		(2) again when the DMA completes and the NAND logic is re-awakened.
+		Each context switch will required saving and restoring a set of
+		registers defining the task state.  Those register include the PSR,
+		16 general purpose registers, and 32 floating point registers or
+		about 196 bytes per task state.  That is then 392*2 bytes per
+		context and 784 bytes for both.  Plus there is processing overhead.
+		So certainly, there is no reason to use a memory-to-memory DMA
+		transfer for much smaller blocks of data.
 
 config SAMA5_NAND_READYBUSY
 	bool "NAND Ready/Busy"
@@ -3216,8 +3388,102 @@ config SAMA5_NAND_CE
 
 			void board_nand_ce(int cs, bool enable);
 
-endif # SAMA5_EBICS0_NAND
+if SAMA5_HAVE_PMECC
 
+config MTD_NAND_MAX_PMECCSIZE
+	int "Max H/W ECC size"
+	default 200
+	---help---
+		Maximum HW ECC size
+
+config SAMA5_PMECC_TRIMPAGE
+	bool "Trim page support"
+	default n
+	---help---
+		Support page trimming.  This behavior was found to fix both UBI and
+		JFFS2 images written to cleanly erased NAND partitions.  NOTE:
+		Nothing in the code base now uses these trim pages.  Option support
+		is provided in case it becomes necessary in the future.
+
+config SAMA5_PMECC_EMBEDDEDALGO
+	bool "ROM ECC detection/correction"
+	default y
+	---help---
+		The SAMA5D3 ROM code embeds the software used in the process of ECC
+		detection/correction: function pmecc_correctionalgo(). If this
+		option is selected, the ROM code will be used.  If not, then the an
+		implementation pmecc_correctionalgo() will be built into the NuttX
+		image.
+
+config SAMA5_PMECC_EMBEDDEDALGO_ADDR
+	hex "Address of ROM ECC detection/correction"
+	default 0x00104510
+	depends on SAMA5_PMECC_EMBEDDEDALGO
+	---help---
+		The ROM code embeds the software used in the process of ECC
+		detection/correction at this address.  Don't change this address
+		unless you know what you are doing.
+
+config SAMA5_PMECC_GALOIS_ROMTABLES
+	bool "ROM Galois Tables"
+	default y
+	---help---
+		Support the PMECC algorithm using Galois tables in ROM.
+
+if SAMA5_PMECC_GALOIS_ROMTABLES
+
+config SAMA5_PMECC_GALOIS_TABLE512_ROMADDR
+	hex "Address of Galois Table 512"
+	default 0x00110000
+	---help---
+		Address of Galois Field Table 512 mapping in ROM.  Don't change this
+		address unless you know what you are doing.
+
+config SAMA5_PMECC_GALOIS_TABLE1024_ROMADDR
+	hex "Address of Galois Table 1024"
+	default 0x00118000
+	---help---
+		Address of Galois Field Table 1024 mapping in ROM.  Don't change this
+		address unless you know what you are doing.
+
+endif # SAMA5_PMECC_GALOIS_ROMTABLES
+
+config SAMA5_PMECC_GALOIS_CUSTOM
+	bool "Custom Galois Tables"
+	default n
+	---help---
+		Build in support to build Galois tables on-the-fly.  No current used
+		by any NuttX logic.
+
+endif # SAMA5_HAVE_PMECC
+
+config SAMA5_NAND_DMADEBUG
+	bool "NAND DMA transfer debug"
+	depends on SAMA5_NAND_DMA && DEBUG && DEBUG_DMA
+	default n
+	---help---
+		Enable special debug instrumentation analyze NAND DMA data transfers.
+		This logic is as non-invasive as possible:  It samples DMA
+		registers at key points in the data transfer and then dumps all of
+		the registers at the end of the transfer.
+
+config SAMA5_NAND_REGDEBUG
+	bool "Register-Level NAND Debug"
+	default n
+	depends on DEBUG && DEBUG_FS
+	---help---
+		Enable very low-level register access debug.  Depends on DEBUG and
+		DEBUG_FS.
+
+config SAMA5_NAND_DUMP
+	bool "NAND data dump"
+	default n
+	depends on DEBUG && DEBUG_FS
+	---help---
+		Dump the contents of all data read and written to FLAH.  Depends on
+		DEBUG and DEBUG_FS.
+
+endif # SAMA5_HAVE_NAND
 endmenu # External Memory Configuration
 
 choice

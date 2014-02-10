@@ -1,7 +1,7 @@
 /****************************************************************************
  * include/sys/types.h
  *
- *   Copyright (C) 2007-2009, 2011-2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2009, 2011-2012, 2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@
 #ifndef TRUE
 #  define TRUE  1
 #endif
+
 #ifndef FALSE
 #  define FALSE 0
 #endif
@@ -129,15 +130,23 @@ typedef unsigned int mode_t;
 
 /* size_t is used for sizes of memory objects.
  * ssize_t is used for a count of bytes or an error indication.
+ *
+ * REVISIT: size_t belongs in stddef.h
  */
 
 #ifdef CONFIG_SMALL_MEMORY
+
 typedef uint16_t     size_t;
 typedef int16_t      ssize_t;
-#else
+typedef uint16_t     rsize_t;
+
+#else /* CONFIG_SMALL_MEMORY */
+
 typedef uint32_t     size_t;
 typedef int32_t      ssize_t;
-#endif
+typedef uint32_t     rsize_t;
+
+#endif /* CONFIG_SMALL_MEMORY */
 
 /* uid_t is used for user IDs
  * gid_t is used for group IDs.
@@ -173,6 +182,8 @@ typedef intptr_t     ptrdiff_t;
 /* Wide, 16-bit character types.  wchar_t is a built-in type in C++ and
  * its declaration here may cause compilation errors on some compilers
  * if -DCONFIG_WCHAR_BUILTIN is not included in the CXXFLAGS.
+ *
+ * REVISIT: wchar_t belongs in stddef.h
  */
 
 #ifndef CONFIG_WCHAR_BUILTIN
@@ -223,7 +234,7 @@ typedef int32_t      suseconds_t;
 
 /* Task entry point */
 
-typedef int (*main_t)(int argc, char *argv[]);
+typedef CODE int (*main_t)(int argc, char *argv[]);
 
 #endif
 

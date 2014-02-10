@@ -705,7 +705,7 @@
 	* apps/system/nxplayer: Add logic to verify the audio sub-format.
 	  From Ken Pettit (2013-10-28).
 
-6.31 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+6.32 2013-12-07 Gregory Nutt <gnutt@nuttx.org>
 
 	* apps/platform:  A new home for board-specific application code
 	  (2013-10-30).
@@ -718,22 +718,104 @@
 	  data.  From Ken Pettit (2013-10-30).
 	* apps/nshlib/nsh_dbgcmds.c and others:  Add skip= and count=
 	  options to the hexdump command.  From Ken Pettit (2013-11-1).
-	* apps/platrorm/mikroe-stm32f4:  Now uses /dev/config for configuration
+	* apps/platform/mikroe-stm32f4:  Now uses /dev/config for configuration
 	  data storage.  From Ken Pettit (2013-11-1).
 	* apps/platform/Makefile:  Was not dealing with the bin sub-directory
 	  correctly (2013-11-2).
 	* apps/examples/configdata:  A unit test for the MTD configuration
-	  data drriver from Ken Pettit (2013-11-4).
+	  data driver from Ken Pettit (2013-11-4).
 	* apps/platform/mikroe-stm32f4:  Updated to use new MTD configuration
 	  driver features.  From Ken Pettit (2013-11-1).
-	* apps/nshlib/nsh.h:  Allow USB trace wihtout a USB console. From
+	* apps/nshlib/nsh.h:  Allow USB trace without a USB console. From
 	  David Sidrane (2013-11-06).
 	* apps/system/composite/composite_main.c:  The wrong handle was getting
 	  nullified.  From David Sidrane (2013-11-7).
 	* apps/system/nxplayer: Play thread stack size is now configurable.  All
 	  NxPlayer threads now have names assigned via pthread_setname_np().
 	  From Ken Pettit (2013-11-10).
-	* apps/examples/i2schar:  The beginning of an I2C test based on the I2C
+	* apps/examples/i2schar:  The beginning of an I2S test based on the I2S
 	  character driver (2013-11-10).
 	* apps/nshlib/nsh_mntcmds.c:  Mount command updates from Ken Pettit
 	  (2013-11-17).
+	* apps/examples/hidkbd/hidkbd_main.c:  Now calls a function named
+	  arch_usbhost_initialize() that must be provided by the platform-
+	  specific code (2013-11-29).
+	* apps/nshlib/nsh_fscmds.c:  Add an option to the mkfatfs command to
+	  specify FAT12, FAT16, or FAT32 (2013-12-5).
+
+6.33 2014-01-30 Gregory Nutt <gnutt@nuttx.org>
+
+	* apps/nshlib/nsh_mntcmds.c:  Modified the df -h logic to eliminate
+	  truncating numbers in conversion (like 7900 -> 7M).  From Ken
+	  Pettit (2013-12-12).
+	* Moved configs/stm3240g-eval/src/up_cxxinitialize.c to
+	  apps/platform/stm3240g-eval/up_cxxinitialize.c:  Now it is available
+	  in user-space in the kernel mode build (2013-12-29).
+	* apps/examples/mount/Kconfig:  Fill in empty Kconfig file (2013-12-31).
+	* builtin/Makefile: Fixes for native Windows build from Max Holtzberg
+	  (2014-1-4).
+	* apps/netutils/dhcpc/Kconfig, resolv/Kconfig, telnetd/Kconfig, and
+	  apps/nshlib/Kconfig:  Refactor some configuration dependencies:  NSH
+	  features should depend on netutil selections; netutil selections
+	  should depend on networking selections. (2014-1-9).
+	* apps/nshlib/nsh_command.c:  Separate NSH command handling from NSH
+	  line parsing.  This re-partitioning simplifies the logic and will
+	  enable some things to come (2014-1-10).
+	* apps/nshlib/nsh_parse.c:  Will now support multiple commands on a
+	  command line, each separated with a semi-colon (2014-1-10).
+	* apps/nshlib/nsh_parse.c:  Put the logic that executes a command
+	  after parsing parameters into a separate file so that it can be
+	  reused (2014-1-10).
+	* apps/nshlib/nsh_parse.c:  Add initial support of commands enclosed
+	  in back quotes as command arguments.  Functionality still incomplete
+	  on initial commit (2014-1-10).
+	* Logic to support commands enclosed in back quotes is functional
+	  but not thoroughly tested (2014-1-11).
+	* apps/nshlib/nsh_parse.c:  Can now handle arguments that are
+	  concatenations of constant strings, command return data, application
+	  return data, and environment variables (2014-1-11).
+	* apps/nshlib/nsh_parse.c:  Fix a memory leak ... forgot to close
+	  a temporary file (2013-1-12).
+	* apps/system/inifile:  A simple INI file parser (perhaps too simple).
+	  This is code that I wrote a long time ago and have used many time but
+	  is untested in its current incarnation (2014-1-15).
+	* aps/nshlib/nsh_parse.c:  Recent changes broke redirection of output
+	  (2014-1-14).
+	* apps/nshlib/nsh_parse.c:  Add true and false commands (2014-1-17)
+	* apps/nshlib/nsh.h and nsh_parse.c:  Re-name and re-organize some
+	  if-then-else related structures to better support forthcoming until
+	  and while loops (2014-1-17).
+	* apps/nshlib/nsh_script.c:  Now saves the FILE stream for the script
+	  file in the vtbl structure so that it can be accessed by forthcoming
+	  while and until logic (2014-1-17).
+	* apps/nshlib/nsh.h, nsh_command.c, nsh_parse.c, and nsh_script.c:  Add
+	  support for while-do-done and until-do-done loops.  These only work
+	  when executing a script file because they depend on the ability to seek
+	  in the file to implement the looping behaviors (2014-1-17).
+	* apps/nshlib/nsh_parse.c:  Loosen up if-then-else-fi syntax to allow
+	  a command to be on the same line as the then and else tokens like:
+	  "if true; then echo true; else echo false; fi".  Much more like bash!
+	  (2014-1-17).
+	* apps/nshlib/Kconfig, README.txt, nsh.h, nsh_command.c, and
+	  nsh_script.c:  Add an option to conditionally compile out support for
+	  loop and for if-then-else-fi sequence (2014-1-17).  
+	* apps/nshlib/nsh.h, nsh_command.c, and nsh_parse.c:  Add a break
+	  command that can be executed with a loop to terminate the loop
+	  immediately (2014-1-17).
+	* apps/system/vi:  Add support for a tiny, VI work-alike editor.  This
+	  is still very much a work-in-progress on initial check-in (2014-1-20).
+	* apps/netutils/uiplib:  Support new definitions and state passing for
+	  network device status. From Maz Holtzberg (2014-1-21).
+	* apps/system/vi:  Tiny VI is basically functional.  All commands seem
+	  to work.  There are still some display artifacts and probably several
+	  untested conditions (2014-1-21).
+
+6.34 2014-xx-xx Gregory Nutt <gnutt@nuttx.org>
+
+	* apps/system/cle:  Add a EMACS-like command line editor.  This CLE,
+	  is really more like readline than the NuttX readline is!  (2014-02-02).
+	* apps/nshlib: Use of the standard tiney readline (about .25KB) is now
+	  an option and can be replaces with the EMACX-like CLE (about 2KB)
+	  (2014-02-02).
+	* Several changes to restore Windows native build (2014-2-7)
+

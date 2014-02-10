@@ -46,16 +46,25 @@
 
 #include <nuttx/config.h>
 
+#include <sys/mount.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <errno.h>
 #include <debug.h>
+
+#include <nuttx/mtd/mtd.h>
+#include <nuttx/fs/nxffs.h>
 
 #include "up_arch.h"
 #include "sam_periphclks.h"
+#include "sam_pio.h"
 #include "sam_nand.h"
 #include "chip/sam_hsmc.h"
+#include "chip/sam_pinmap.h"
 
 #include "sama5d3x-ek.h"
 
-#ifdef CONFIG_SAMA5_BOOT_CS3FLASH
+#ifdef CONFIG_SAMA5_EBICS3_NAND
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -73,7 +82,7 @@
  * Name: board_nandflash_config
  *
  * Description:
- *   If CONFIG_SAMA5_BOOT_CS3FLASH is defined, then NAND FLASH support is
+ *   If CONFIG_SAMA5_EBICS3_NAND is defined, then NAND FLASH support is
  *   enabled.  This function provides the board-specific implementation of
  *   the logic to reprogram the SMC to support NAND FLASH on the specified
  *   CS.
@@ -131,10 +140,92 @@ int board_nandflash_config(int cs)
                HSMC_MODE_BIT_8 | HSMC_MODE_TDFCYCLES(1);
       putreg32(regval, SAM_HSMC_MODE(HSMC_CS3));
 
+      /* Configure NAND PIO pins
+       *
+       * NAND Interface:
+       *
+       *   NCS3/NANDCE - Dedicated pin; no configuration needed
+       *   NANDCLE     - PE21
+       *   NANDALE     - PE22
+       *   NRD/NANDOE  - Dedicated pin; no configuration needed
+       *   NWE/NANDWE  - Dedicated pin; no configuration needed
+       *   NANDRDY     - Dedicated pin; no configuration needed
+       *   M_EBI_D0-7  - Dedicated pins; no configuration needed
+       */
+
+      sam_configpio(PIO_HSMC_NANDALE);
+      sam_configpio(PIO_HSMC_NANDCLE);
+
       return OK;
     }
 
   return -ENODEV;
 }
 
-#endif /* CONFIG_SAMA5_BOOT_CS3FLASH */
+/****************************************************************************
+ * Name: sam_nand_automount
+ *
+ * Description:
+ *   Initialize and configure the NAND on CS3
+ *
+ ****************************************************************************/
+
+#ifdef HAVE_NAND
+int sam_nand_automount(int minor)
+{
+  FAR struct mtd_dev_s *mtd;
+  static bool initialized = false;
+  int ret;
+
+  /* Have we already initialized? */
+
+  if (!initialized)
+    {
+      /* Create and initialize an NAND MATD device */
+
+      mtd = sam_nand_initialize(HSMC_CS3);
+      if (!mtd)
+        {
+          fdbg("ERROR: Failed to create the NAND driver on CS%d\n", HSMC_CS3);
+          return -ENODEV;
+        }
+
+#if defined(CONFIG_SAMA5_NAND_FTL)
+      /* Use the FTL layer to wrap the MTD driver as a block driver */
+
+      ret = ftl_initialize(NAND_MINOR, mtd);
+      if (ret < 0)
+        {
+          fdbg("ERROR: Failed to initialize the FTL layer: %d\n", ret);
+          return ret;
+        }
+
+#elif defined(CONFIG_SAMA5_NAND_NXFFS)
+      /* Initialize to provide NXFFS on the MTD interface */
+
+      ret = nxffs_initialize(mtd);
+      if (ret < 0)
+        {
+          fdbg("ERROR: NXFFS initialization failed: %d\n", ret);
+          return ret;
+        }
+
+      /* Mount the file system at /mnt/nand */
+
+      ret = mount(NULL, "/mnt/nand", "nxffs", 0, NULL);
+      if (ret < 0)
+        {
+          fdbg("ERROR: Failed to mount the NXFFS volume: %d\n", errno);
+          return ret;
+        }
+#endif
+      /* Now we are initialized */
+
+      initialized = true;
+    }
+
+  return OK;
+}
+#endif
+
+#endif /* CONFIG_SAMA5_EBICS3_NAND */

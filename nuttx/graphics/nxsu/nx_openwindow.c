@@ -80,7 +80,7 @@
  *
  * Input Parameters:
  *   handle - The handle returned by nx_connect
- *   cb     - Callbacks used to process windo events
+ *   cb     - Callbacks used to process window events
  *   arg    - User provided value that will be returned with NX callbacks.
  *
  * Return:
@@ -103,18 +103,20 @@ NXWINDOW nx_openwindow(NXHANDLE handle, FAR const struct nx_callback_s *cb,
     }
 #endif
 
-  /* Pre-allocate the window structure */
+  /* Pre-allocate the window structure.  The user-space allocator is used (if
+   * available) for compatibility with the multi-user implementation.
+   */
 
-  wnd = (FAR struct nxbe_window_s *)kzalloc(sizeof(struct nxbe_window_s));
+  wnd = (FAR struct nxbe_window_s *)kuzalloc(sizeof(struct nxbe_window_s));
   if (!wnd)
     {
       errno = ENOMEM;
       return NULL;
     }
 
-  /* Then let nxfe_constructwindow do the rest */
+  /* Then let nx_constructwindow do the rest */
 
-  ret = nxfe_constructwindow(handle, wnd, cb, arg);
+  ret = nx_constructwindow(handle, (NXWINDOW)wnd, cb, arg);
   if (ret < 0)
     {
       /* An error occurred, the window has been freed */
@@ -126,4 +128,3 @@ NXWINDOW nx_openwindow(NXHANDLE handle, FAR const struct nx_callback_s *cb,
 
   return (NXWINDOW)wnd;
 }
-
