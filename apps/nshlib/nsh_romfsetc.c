@@ -95,50 +95,25 @@ int nsh_romfsetc(void)
 {
   int  ret;
 
-  dbg("nsh > romfs_img_len 0x%X \n", romfs_img_len);
-
   /* Create a ROM disk for the /etc filesystem */
-  if(romfs_img_len == 0xFFFFFFFF)
-  {      
-      romfs_img_len = 64 * 1024;
-      dbg("nsh > nsh_romfsetc : romfs_img_len = 0xFFFFFFFF, Reset it to 64 * 1024 (64KB) , %d  :( \n", romfs_img_len);
-  }
 
   ret = romdisk_register(CONFIG_NSH_ROMFSDEVNO, romfs_img,
                          NSECTORS(romfs_img_len), CONFIG_NSH_ROMFSSECTSIZE);
-
-  if (ret < 0)
-  {
-      dbg("nsh > NSECTORS(romfs_img_len) 0x%X :(  \n", NSECTORS(romfs_img_len));
-
-      ret = romdisk_register(CONFIG_NSH_ROMFSDEVNO, romfs_img,
-       ((romfs_img_len + CONFIG_NSH_ROMFSSECTSIZE -1) / CONFIG_NSH_ROMFSSECTSIZE), CONFIG_NSH_ROMFSSECTSIZE);
-  }
-
-  if (ret < 0)
-  {
-      dbg("nsh > (romfs_img_len + CONFIG_NSH_ROMFSSECTSIZE -1) / CONFIG_NSH_ROMFSSECTSIZE) 0x%X :( \n",
-       ((romfs_img_len + CONFIG_NSH_ROMFSSECTSIZE -1) / CONFIG_NSH_ROMFSSECTSIZE));
-
-      ret = romdisk_register(CONFIG_NSH_ROMFSDEVNO, romfs_img,
-       romfs_img_len, CONFIG_NSH_ROMFSSECTSIZE);
-  }
-
   if (ret < 0)
     {
-      dbg("nsh > romdisk_register failed: %d :( \n", -ret);
+      dbg("nsh: romdisk_register failed: %d\n", -ret);
       return ERROR;
     }
 
   /* Mount the file system */
 
-  vdbg("nsh > Mounting ROMFS filesystem at target=%s with source=%s\n",
+  vdbg("Mounting ROMFS filesystem at target=%s with source=%s\n",
        CONFIG_NSH_ROMFSMOUNTPT, MOUNT_DEVNAME);
 
   ret = mount(MOUNT_DEVNAME, CONFIG_NSH_ROMFSMOUNTPT, "romfs", MS_RDONLY, NULL);
   if (ret < 0)
     {
-      dbg("nsh > mount(%s,%s,romfs) failed: %d\n",
+      dbg("nsh: mount(%s,%s,romfs) failed: %d\n",
           MOUNT_DEVNAME, CONFIG_NSH_ROMFSMOUNTPT, errno);
       return ERROR;
     }
