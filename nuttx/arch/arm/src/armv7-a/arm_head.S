@@ -1,7 +1,7 @@
 /****************************************************************************
  * arch/arm/src/armv7-a/arm_head.S
  *
- *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2013-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,8 +70,6 @@
  */
 
 #ifdef CONFIG_BOOT_RUNFROMFLASH
-#  define DO_SDRAM_INIT 1
-
   /* Check for the identity mapping:  For this configuration, this would be
    * the case where the virtual beginning of FLASH is the same as the physical
    * beginning of FLASH.
@@ -98,7 +96,6 @@
 
 #elif defined(CONFIG_BOOT_COPYTORAM)
 #  error "configuration not implemented
-#  define DO_SDRAM_INIT 1
 
   /* Check for the identity mapping:  For this configuration, this would be
    * the case where the virtual beginning of FLASH is the same as the physical
@@ -193,18 +190,6 @@ __start:
 	mov		r0, #(PSR_MODE_SVC | PSR_I_BIT | PSR_F_BIT)
 	msr		cpsr_c, r0
 
-	/* Initialize DRAM using a macro provided by board-specific logic.
-	 *
-	 * This must be done in two cases:
-	 * 1. CONFIG_BOOT_RUNFROMFLASH.  The system is running from FLASH
-	 * 2. CONFIG_BOOT_COPYTORAM.  The system booted from FLASH but
-	 *    will copy itself to SDRAM.
-	 */
-
-#ifdef DO_SDRAM_INIT
-	config_sdram
-#endif
-
 	/* Clear the 16K level 1 page table */
 
 	ldr		r5, .LCppgtable			/* r5=phys. page table */
@@ -220,6 +205,31 @@ __start:
 	teq		r0, r2
 	bne		.Lpgtableclear
 
+#ifdef ARMV7A_PGTABLE_MAPPING
+	/* If the page table does not lie in the same address space as does the
+	 * mapped RAM in either case.  So we will need to create a special
+	 * mapping for the page table.
+	 *
+	 * Load information needed to map the page table.  After the ldmia, we
+	 * will have
+	 *
+	 *   R1 = The aligned, physical base address of the page table
+	 *   R2 = The aligned, virtual base address of the page table
+	 *   R3 = The MMU flags to use with the .text space mapping
+	 *   R5 = The physical address of the L1 page table (from above)
+	 *
+	 * The value in R1 could have been obtained by simply masking R5.
+	 */
+
+	adr		r0, .LCptinfo			/* Address of page table description */
+	ldmia	r0, {r1, r2, r3}		/* Load the page table description */
+
+	/* A single page is sufficient to map the page table */
+
+	orr		r0, r1, r3				/* OR MMU flags into physical address */
+	str		r0, [r5, r2, lsr #18]	/* Map using the virtual address as an index */
+#endif
+
 	/* Load information needed to map the .text region.  After the ldmia, we
 	 * will have:
 	 *
@@ -233,19 +243,19 @@ __start:
 	adr		r0, .LCtextinfo			/* Address of text info */
 	ldmia	r0, {r1, r2, r3, r4}	/* Load the text description */
 
+#ifndef CONFIG_IDENTITY_TEXTMAP
 	/* Create identity mapping for first MB of the .text section to support
-	 * this startup logic executing out of the physical address space.  This
+	 * this start-up logic executing out of the physical address space.  This
 	 * identity mapping will be removed by .Lvstart (see below).  Of course,
 	 * we would only do this if the physical-virtual mapping is not already
 	 * the identity mapping.
 	 */
 
-#ifndef CONFIG_IDENTITY_TEXTMAP
 	orr		r0, r1, r3				/* OR MMU flags into physical address */
 	str		r0, [r5, r1, lsr #18]	/* Identity mapping */
 #endif
 
-	/* Map the entire .text regtion.  We do this before enabling caches so
+	/* Map the entire .text region.  We do this before enabling caches so
 	 * we know that the data will be in place in the data cache.  We map the
 	 * entire text region because we don't know which parts are needed for
 	 * start-up.
@@ -258,7 +268,7 @@ __start:
 	add		r2, r5, r2, lsr #18		/* R2=Offset page table address */
 
 	/* No loop until each page table entry has been written for the .text
-	 * regtion.
+	 * region.
 	 */
 
 .Lpgtextloop:
@@ -268,21 +278,12 @@ __start:
 	add		r1, r1, #(1024*1024)	/* R1: Increment the physical address */
 	bne		.Lpgtextloop			/* Loop while R4 is non-zero */
 
-#ifdef CONFIG_BOOT_RUNFROMFLASH
+#if defined(CONFIG_BOOT_RUNFROMFLASH) && !defined(CONFIG_BOOT_SDRAM_DATA)
 	/* If we are executing from FLASH, then we will need additional mappings for
-	 * the primay RAM region that holds the .data, .bss, stack, and heap memory.
+	 * the primary RAM region that holds the .data, .bss, stack, and heap memory.
 	 *
 	 *   Here we expect to have:
 	 *   r5 = Address of the base of the L1 table
-	 *
-	 *   REVISIT: We might need this second mapping under certain conditions
-	 *   when executing from RAM too.  When the RAM region is larger than 1MB
-	 *   and the page table is in the high end of RAM, then the single mapping
-	 *   above will not be sufficient.
-	 *
-	 *   REVISIT: If the page table is not located in the primary RAM regions,
-	 *   then we will also need an additional map the page table if the page
-	 *   table resides in internal SRAM.
 	 *
 	 * Load information needed to map the .text region.  After the ldmia, we
 	 * will have:
@@ -309,7 +310,7 @@ __start:
 	add		r1, r1, #(1024*1024)	/* R1: Increment the physical address */
 	bne		.Lpgramloop				/* Loop while R4 is non-zero */
 
-#endif /* CONFIG_BOOT_RUNFROMFLASH */
+#endif /* CONFIG_BOOT_RUNFROMFLASH && !CONFIG_BOOT_SDRAM_DATA */
 #endif /* CONFIG_ARCH_ROMPGTABLE */
 
 	/* The following logic will set up the ARMv7-A for normal operation.
@@ -332,8 +333,11 @@ __start:
 	 */
 
 	mov		r0, #0
-	mcr		CP15_ICIALLUIS(r0)	/* Invalidate entire instruction cache Inner Shareable */
-	mcr		CP15_TLBIALLIS(r0)	/* Invalidate entire Unified TLB Inner Shareable */
+	mcr		CP15_TLBIALL(r0,c7)	/* Invalidate the entire unified TLB */
+	mcr		CP15_TLBIALL(r0,c6)
+	mcr		CP15_TLBIALL(r0,c5)
+	mcr		CP15_BPIALL(r0)		/* Invalidate entire branch prediction array */
+	mcr		CP15_ICIALLU(r0)	/* Invalidate I-cache */
 
 	/* Load the page table address.
 	 *
@@ -341,7 +345,7 @@ __start:
 	 * - Here we assume that the page table address is aligned to at least
 	 *   least a 16KB boundary (bits 0-13 are zero).  No masking is provided
 	 *   to protect against an unaligned page table address.
-	 * - The Cortex-A5 has two page table address registers, TTBR0 and 1.
+	 * - The ARMv7-A has two page table address registers, TTBR0 and 1.
 	 *   Only TTBR0 is used in this implementation but both are initialized.
 	 *
 	 * Here we expect to have:
@@ -349,8 +353,9 @@ __start:
 	 *   r5 = Address of the base of the L1 table
 	 */
 
-	mcr		CP15_TTBR0(r5)
-	mcr		CP15_TTBR1(r5)
+	orr		r1, r5, #(TTBR0_RGN_WBWA | TTBR0_IRGN0)	/* Select cache properties */
+	mcr		CP15_TTBR0(r1)
+	mcr		CP15_TTBR1(r1)
 
 	/* Set the TTB control register (TTBCR) to indicate that we are using
 	 * TTBR0.  r0 still holds the value of zero.
@@ -410,53 +415,58 @@ __start:
 	 *   SCTLR_Z     Bit 11: Program flow prediction control always enabled on A5
 	 */
 
-	orr		r0, r0, #(SCTLR_M /* | SCTLR_Z */)
-	
+	orr		r0, r0, #(SCTLR_M)
+#ifndef CONFIG_ARCH_CORTEXA5
+	orr		r0, r0, #(SCTLR_Z)
+#endif
+
+#ifndef CONFIG_ARCH_LOWVECTORS
 	/* Position vectors to 0xffff0000 if so configured.
 	 *
 	 *   SCTLR_V    Bit 13: High vectors
 	 */
 
-#ifndef CONFIG_ARCH_LOWVECTORS
 	orr		r0, r0, #(SCTLR_V)
 #endif
 
+#if defined(CPU_CACHE_ROUND_ROBIN) && !defined(CONFIG_ARCH_CORTEXA5)
 	/* Round Robin cache replacement
 	 *
 	 *   SCTLR_RR   Bit 14: The Cortex-A5 processor only supports a fixed random
 	 *                      replacement strategy.
 	 */
 
-#ifndef CPU_CACHE_ROUND_ROBIN
+	orr		r0, r0, #(SCTLR_RR)
 #endif
 
+#ifndef CPU_DCACHE_DISABLE
 	/* Dcache enable
 	 *
 	 *   SCTLR_C    Bit 2:  DCache enable
 	 */
 
-#ifndef CPU_DCACHE_DISABLE
 	orr		r0, r0, #(SCTLR_C)
 #endif
 
+#ifndef CPU_ICACHE_DISABLE
 	/* Icache enable
 	 *
 	 *   SCTLR_I    Bit 12: ICache enable
 	 */
 
-#ifndef CPU_ICACHE_DISABLE
 	orr		r0, r0, #(SCTLR_I)
 #endif
 
+#ifdef ALIGNMENT_TRAP
 	/* Alignment abort enable
 	 *
 	 *   SCTLR_A    Bit 1:  Strict alignment enabled
 	 */
 
-#ifdef ALIGNMENT_TRAP
 	orr		r0, r0, #(SCTLR_A)
 #endif
 
+#ifdef CONFIG_AFE_ENABLE
 	/* AP[0:2] Permissions model
 	 *
 	 *   SCTLR_AFE  Bit 29: Full, legacy access permissions behavior (reset value).
@@ -465,21 +475,15 @@ __start:
 	 * control.  When AFE=0, AP[2:0] control access permissions.
 	 */
 
-#ifdef CONFIG_AFE_ENABLE
 	orr		r0, r0, #(SCTLR_AFE)
 #endif
 
 	/* Then write the configured control register */
 
 	mcr		CP15_SCTLR(r0)			/* Write control reg */
-
-	/* Read the Main ID register.  This will be available in R1 after
-	 * MMU trampoline (not currently used)
-	 */
-
-	mrc		CP15_MIDR(r1)			/* Read main id reg */
-	mov		r1, r1					/* Null-avoiding nop */
-	mov		r1, r1					/* Null-avoiding nop */
+	.rept	12						/* Cortex A8 wants lots of NOPs here */
+	nop
+	.endr
 
 	/* And "jump" to .Lvstart in the newly mapped virtual address space */
 
@@ -495,6 +499,23 @@ __start:
 .LCppgtable:
 	.long	PGTABLE_BASE_PADDR		/* Physical start of page table */
 	.size	.LCppgtable, . -.LCppgtable
+
+#ifdef ARMV7A_PGTABLE_MAPPING
+	/* Page table region description.  The order of these fields must not
+	 * change because the values are loaded using ldmia:
+	 *
+	 * 1) The aligned, physical base address of the page table
+	 * 2) The aligned, virtual base address of the page table
+	 * 3) The MMU flags to use with the .text space mapping
+	 */
+
+	.type	.LCptinfo, %object
+.LCptinfo:
+	.long	(PGTABLE_BASE_PADDR & 0xfff00000)	/* Physical base address */
+	.long	(PGTABLE_BASE_VADDR & 0xfff00000)	/* Virtual base address */
+	.long	MMU_MEMFLAGS						/* MMU flags for text section in RAM */
+	.size	.LCptinfo, . -.LCptinfo
+#endif
 
 #ifndef CONFIG_ARCH_ROMPGTABLE
 	/* Text region description.  The order of these fields must not change
@@ -569,52 +590,36 @@ __start:
 
 .Lvstart:
 
+#if !defined(CONFIG_ARCH_ROMPGTABLE) && !defined(CONFIG_IDENTITY_TEXTMAP)
 	/* Remove the temporary mapping (if one was made).  The following assumes
 	 * that the total RAM size is > 1Mb and extends that initial mapping to
 	 * cover additional RAM sections.
 	 */
 
-#if !defined(CONFIG_ARCH_ROMPGTABLE) && !defined(CONFIG_IDENTITY_TEXTMAP)
 	ldr		r5, .LCvpgtable			/* r5=Virtual page table base address */
 	ldr		r3, .LCptextbase		/* r0=Physical base address of .text section */
 	mov		r0, #0					/* flags + base = 0 */
 	str		r3, [r5, r3, lsr #18]	/* identity mapping */
 #endif /* !CONFIG_ARCH_ROMPGTABLE && !CONFIG_IDENTITY_TEXTMAP */
 
-	/* Zero BSS and set up the stack pointer */
+	/* Set up the stack pointer and clear the frame pointer */
 
-	adr		r0, .Linitparms
-	ldmia	r0, {r0, r1, sp}
-
-	/* Clear the frame pointer and .bss */
-
+	ldr		sp, .Lstackpointer
 	mov     fp, #0
 
-.Lbssinit:	
-	cmp		r0, r1				/* Clear up to _bss_end_ */
-	strcc	fp, [r0],#4
-	bcc		.Lbssinit
-
-	/* If the .data section is in a separate, unitialized address space,
-	 * then we will also need to copy the initial values of of the .data
-	 * section from the .text region into that .data region.  This would
-	 * be the case if we are executing from FLASH and the .data section
-	 * lies in a different physical address region OR if we are support
-	 * on-demand paging and the .data section lies in a different virtual
-	 * address region.
+#ifndef CONFIG_BOOT_SDRAM_DATA
+	/* Initialize .bss and .data ONLY if .bss and .data lie in SRAM that is
+	 * ready to use.  Other memory, such as SDRAM, must be initialized before
+	 * it can be used.  up_boot() will perform that memory initialization and
+	 * .bss and .data can be initialized after up_boot() returns.
 	 */
 
-#if defined(CONFIG_BOOT_RUNFROMFLASH)
-	adr		r3, .Ldatainit
-	ldmia	r3, {r0, r1, r2}
-
-1:	ldmia	r0!, {r3 - r10}
-	stmia	r1!, {r3 - r10}
-	cmp		r1, r2
-	blt		1b
+	bl		arm_data_initialize
 #endif
 
-	/* Perform early C-level, platform-specific initialization */
+	/* Perform early C-level, platform-specific initialization.  Logic
+	 * within up_boot() must configure SDRAM and call arm_ram_initailize.
+	 */
 
 	bl		up_boot
 
@@ -626,27 +631,80 @@ __start:
 	adr		r3, .Lstkinit
 	ldmia	r3, {r0, r1, r2}	/* R0 = start of IDLE stack; R1 = Size of tack; R2 = coloration */
 
-2:								/* Top of the loop */
+1:								/* Top of the loop */
 	sub		r1, r1, #1			/* R1 = Number of words remaining */
 	cmp		r1, #0				/* Check (nwords == 0) */
 	str		r2, [r0], #4		/* Save stack color word, increment stack address */
-	bne		2b					/* Bottom of the loop */
-
+	bne		1b					/* Bottom of the loop */
 #endif
 
 	/* Finally branch to the OS entry point */
 
 	mov		lr, #0				/* LR = return address (none) */
 	b		os_start			/* Branch to os_start */
+	.size	.Lvstart, .-.Lvstart
+
+/***************************************************************************
+ * Name: arm_data_initialize
+ ***************************************************************************/
+
+	.global	arm_data_initialize
+	.type	arm_data_initialize, #function
+
+arm_data_initialize:
+
+	/* Zero BSS */
+
+	adr		r0, .Linitparms
+	ldmia	r0, {r0, r1}
+
+	mov     r2, #0
+1:
+	cmp		r0, r1				/* Clear up to _bss_end_ */
+	strcc	r2, [r0], #4
+	bcc		1b
+
+#ifdef CONFIG_BOOT_RUNFROMFLASH
+	/* If the .data section is in a separate, uninitialized address space,
+	 * then we will also need to copy the initial values of of the .data
+	 * section from the .text region into that .data region.  This would
+	 * be the case if we are executing from FLASH and the .data section
+	 * lies in a different physical address region OR if we are support
+	 * on-demand paging and the .data section lies in a different virtual
+	 * address region.
+	 */
+
+	adr		r3, .Ldatainit
+	ldmia	r3, {r0, r1, r2}
+
+2:
+	ldr		r3, [r0], #4
+	str		r3, [r1], #4
+	cmp		r1, r2
+	blt		2b
+#endif
+
+	/* And return to the caller */
+
+	bx		lr
+	.size	arm_data_initialize, . - arm_data_initialize
+
+/***************************************************************************
+ * Text-section constants
+ ***************************************************************************/
 
 	/* Text-section constants:
 	 *
 	 *   _sbss is the start of the BSS region (see ld.script)
-	 *   _ebss is the end of the BSS regsion (see ld.script)
+	 *   _ebss is the end of the BSS region (see ld.script)
 	 *
-	 * The idle task stack starts at the end of BSS and is of size
+	 * The idle task stack usually starts at the end of BSS and is of size
 	 * CONFIG_IDLETHREAD_STACKSIZE.  The heap continues from there until the
 	 * end of memory.  See g_idle_topstack below.
+	 *
+	 * In the case where CONFIG_BOOT_SDRAM_DATA is defined, the IDLE stack is
+	 * in ISRAM, but the heap is in SDRAM beginning at _ebss and extending
+	 * to the end of SDRAM.
 	 */
 
 #ifndef CONFIG_ARCH_ROMPGTABLE
@@ -663,8 +721,15 @@ __start:
 .Linitparms:
 	.long	_sbss
 	.long	_ebss
-	.long	_ebss+CONFIG_IDLETHREAD_STACKSIZE-4
 	.size	.Linitparms, . -.Linitparms
+
+.Lstackpointer:
+#ifdef CONFIG_BOOT_SDRAM_DATA
+	.long	IDLE_STACK_VBASE+CONFIG_IDLETHREAD_STACKSIZE-4
+#else
+	.long	_ebss+CONFIG_IDLETHREAD_STACKSIZE-4
+#endif
+	.size	.Lstackpointer, . -.Lstackpointer
 
 #ifdef CONFIG_BOOT_RUNFROMFLASH
 	.type	.Ldatainit, %object
@@ -678,14 +743,19 @@ __start:
 #ifdef CONFIG_DEBUG_STACK
 	.type	.Lstkinit, %object
 .Lstkinit:
+#ifdef CONFIG_BOOT_SDRAM_DATA
+	.long	IDLE_STACK_VBASE		/* Beginning of the IDLE stack, then words of IDLE stack */
+#else
 	.long	_ebss					/* Beginning of the IDLE stack, then words of IDLE stack */
+#endif
 	.long	(CONFIG_IDLETHREAD_STACKSIZE >> 2)
 	.long	STACK_COLOR				/* Stack coloration word */
 	.size	.Lstkinit, . -.Lstkinit
 #endif
-	.size	.Lvstart, .-.Lvstart
 
-	 /* Data section variables */
+/***************************************************************************
+ * Data section variables
+ ***************************************************************************/
 
 	/* This global variable is unsigned long g_idle_topstack and is
 	 * exported from here only because of its coupling to .Linitparms
@@ -696,7 +766,13 @@ __start:
 	.align	4
 	.globl	g_idle_topstack
 	.type	g_idle_topstack, object
+
 g_idle_topstack:
+
+#ifdef CONFIG_BOOT_SDRAM_DATA
+	.long	IDLE_STACK_VBASE+CONFIG_IDLETHREAD_STACKSIZE
+#else
 	.long	_ebss+CONFIG_IDLETHREAD_STACKSIZE
+#endif
 	.size	g_idle_topstack, .-g_idle_topstack
 	.end

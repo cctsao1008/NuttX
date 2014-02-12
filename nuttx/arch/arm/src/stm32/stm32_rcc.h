@@ -1,7 +1,7 @@
 /************************************************************************************
  * arch/arm/src/stm32/stm32_rcc.h
  *
- *   Copyright (C) 2009, 2011-2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2009, 2011-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.orgr>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ extern "C"
  * and we will need to set the NVIC vector location to this alternative location.
  */
 
-extern uint32_t stm32_vectors[];  /* See stm32_vectors.S */
+extern uint32_t _vectors[];  /* See stm32_vectors.S */
 
 /************************************************************************************
  * Inline Functions
@@ -284,6 +284,16 @@ void stm32_rcc_enablelse(void);
  ****************************************************************************/
 
 void stm32_rcc_enablelsi(void);
+
+/****************************************************************************
+ * Name: stm32_rcc_disablelsi
+ *
+ * Description:
+ *   Disable the Internal Low-Speed (LSI) RC Oscillator.
+ *
+ ****************************************************************************/
+
+void stm32_rcc_disablelsi(void);
 
 #undef EXTERN
 #if defined(__cplusplus)

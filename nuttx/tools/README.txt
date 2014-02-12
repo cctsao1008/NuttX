@@ -204,6 +204,12 @@ mksymtab.c, cvsparser.c, and cvsparser.h
     cat ../syscall/syscall.csv ../lib/lib.csv | sort >tmp.csv
     ./mksymtab.exe tmp.csv tmp.c
 
+mkctags.sh
+----------
+
+  A script for creating ctags from Ken Pettit.  See http://en.wikipedia.org/wiki/Ctags
+  and http://ctags.sourceforge.net/
+
 pic32mx
 -------
 

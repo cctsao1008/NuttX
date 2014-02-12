@@ -1,7 +1,7 @@
 /****************************************************************************
  * libc/time/lib_strftime.c
  *
- *   Copyright (C) 2009, 2011 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2009, 2011, 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -136,9 +136,9 @@ static const char * const g_monthname[12] =
  *
  * Returned Value:
  *   The strftime() function returns the number of characters placed in  the
- *    array s, not including the terminating null byte, provided the string,
- *    including the terminating null byte, fits.  Otherwise,  it returns 0,
- *    and the contents of the array is undefined. 
+ *   array s, not including the terminating null byte, provided the string,
+ *   including the terminating null byte, fits.  Otherwise,  it returns 0,
+ *   and the contents of the array is undefined.
  *
  ****************************************************************************/
 
@@ -177,7 +177,7 @@ size_t strftime(char *s, size_t max, const char *format, const struct tm *tm)
                len = snprintf(dest, chleft, "Day"); /* Not supported */
              }
              break;
-           
+
            /* %h: Equivalent to %b */
 
            case 'h':
@@ -394,5 +394,30 @@ size_t strftime(char *s, size_t max, const char *format, const struct tm *tm)
       chleft -= len;
     }
 
-  return max - chleft;
+  /* We get here because either we have reached the end of the format string
+   * or because there is no more space in the user-provided buffer and the
+   * resulting string has been truncated.
+   *
+   * Is there space remaining in the user-provided buffer for the NUL
+   * terminator?
+   */
+
+  if (chleft > 0)
+    {
+      /* Yes, append terminating NUL byte */
+
+      *dest = '\0';
+
+      /* And return the number of bytes in the resulting string (excluding
+       * the NUL terminator).
+       */
+
+      return max - chleft;
+    }
+
+  /* The string was truncated and/or not properly terminated.  Return
+   * zero.
+   */
+
+  return 0;
 }

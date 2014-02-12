@@ -66,7 +66,7 @@
  * Public Data
  ****************************************************************************/
 
-extern void lm_vectors(void);
+extern void _vectors(void);
 
 /****************************************************************************
  * Private Functions
@@ -100,7 +100,9 @@ extern void lm_vectors(void);
 
 void __start(void)
 {
+#ifdef CONFIG_BOOT_RUNFROMFLASH
   const uint32_t *src;
+#endif
   uint32_t *dest;
 
   /* Configure the uart so that we can get debug output as soon as possible */
@@ -119,7 +121,8 @@ void __start(void)
     }
   showprogress('B');
 
-  /* Move the intialized data section from his temporary holding spot in
+#ifdef CONFIG_BOOT_RUNFROMFLASH
+  /* Move the initialized data section from his temporary holding spot in
    * FLASH into the correct place in SRAM.  The correct place in SRAM is
    * give by _sdata and _edata.  The temporary location is in FLASH at the
    * end of all of the other read-only data (.text, .rodata) at _eronly.
@@ -130,6 +133,7 @@ void __start(void)
       *dest++ = *src++;
     }
   showprogress('C');
+#endif
 
   /* Perform early serial initialization */
 

@@ -38,6 +38,9 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
+
+#include <debug.h>
+
 #include <nuttx/arch.h>
 #include <nuttx/irq.h>
 
@@ -51,8 +54,21 @@
 #ifdef CONFIG_ARCH_RAMVECTORS
 
 /****************************************************************************
- * Definitions
+ * Pre-processor Definitions
  ****************************************************************************/
+/* Debug ********************************************************************/
+/* Non-standard debug that may be enabled just for testing the interrupt
+ * config.  NOTE: that only lldbg types are used so that the output is
+ * immediately available.
+ */
+
+#ifdef CONFIG_DEBUG_IRQ
+#  define intdbg    lldbg
+#  define intvdbg   llvdbg
+#else
+#  define intdbg(x...)
+#  define intvdbg(x...)
+#endif
 
 /****************************************************************************
  * Private Type Declarations
@@ -67,10 +83,15 @@
  * irq_dispatch.  In this case, it is also assumed that the ARM vector
  * table resides in RAM, has the name up_ram_vectors, and has been
  * properly positioned and aligned in memory by the linker script.
+ *
+ * REVISIT: Can this alignment requirement vary from core-to-core?  Yes, it
+ * depends on the number of vectors supported by the MCU. The safest thing
+ * to do is to put the vector table at the beginning of RAM in order toforce
+ * the highest alignment possible.
  */
 
 up_vector_t g_ram_vectors[ARMV7M_VECTAB_SIZE]
-  __attribute__((section(".ram_vectors")));
+  __attribute__ ((section (".ram_vectors"), aligned (128)));
 
 /****************************************************************************
  * Private Variables
@@ -108,8 +129,10 @@ void up_ramvec_initialize(void)
    * protect against NULL pointer references.
    */
 
-  src  = (const CODE up_vector_t *)0;
+  src  = (const CODE up_vector_t *)getreg32(NVIC_VECTAB);
   dest = g_ram_vectors;
+
+  intvdbg("src=%p dest=%p\n", src, dest);
 
   for (i = 0; i < ARMV7M_VECTAB_SIZE; i++)
     {
@@ -119,6 +142,14 @@ void up_ramvec_initialize(void)
   /* Now configure the NVIC to use the new vector table. */
 
   putreg32((uint32_t)g_ram_vectors, NVIC_VECTAB);
+
+  /* The number bits required to align the RAM vector table seem to vary
+   * from part-to-part.  The following assertion will catch the case where
+   * the table alignment is insufficient.
+   */
+
+  intvdbg("NVIC_VECTAB=%08x\n", getreg32(NVIC_VECTAB));
+  DEBUGASSERT(getreg32(NVIC_VECTAB) == (uint32_t)g_ram_vectors);
 }
 
 #endif /* !CONFIG_ARCH_RAMVECTORS */

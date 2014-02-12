@@ -343,7 +343,7 @@ static inline void up_configbaud(void)
 
 static int up_setup(struct uart_dev_s *dev)
 {
-#ifndef CONFIG_SUPPRESS_LPC31_UART_CONFIG
+#ifndef CONFIG_SUPPRESS_UART_CONFIG
   struct up_dev_s *priv = (struct up_dev_s*)dev->priv;
   uint32_t regval;
 
@@ -576,9 +576,11 @@ static int up_interrupt(int irq, void *context)
 
 static int up_ioctl(struct file *filep, int cmd, unsigned long arg)
 {
+#ifdef CONFIG_SERIAL_TIOCSERGSTRUCT
   struct inode      *inode = filep->f_inode;
   struct uart_dev_s *dev   = inode->i_private;
-  int                ret    = OK;
+#endif
+  int                ret   = OK;
 
   switch (cmd)
     {

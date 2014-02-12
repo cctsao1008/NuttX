@@ -1,7 +1,7 @@
 /****************************************************************************
  * include/nuttx/arch.h
  *
- *   Copyright (C) 2007-2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,61 @@
 
 #ifndef __INCLUDE_NUTTX_ARCH_H
 #define __INCLUDE_NUTTX_ARCH_H
+
+/* This header file contains function prototypes for the interfaces between
+ * (1) the nuttx core-code, (2) the microprocessor specific logic that
+ * resides under the arch/ sub-directory, and (3) the board-specific logic
+ * that resides under configs/
+ *
+ * Naming conventions:
+ *
+ * 1. Common Microprocessor Interfaces.
+ *
+ *    Any interface that is common across all microprocessors should be
+ *    prefixed with up_ and prototyped in this header file. These
+ *    definitions provide the common interface between NuttX and the
+ *    architecture-specific implementation in arch/
+ *
+ *    NOTE: up_ is supposed to stand for microprocessor; the u is like the
+ *    Greek letter micron: µ. So it would be µP which is a common shortening
+ *    of the word microprocessor.
+ *
+ * 2. Microprocessor-Specific Interfaces.
+ *
+ *    An interface which is unique to a certain microprocessor should be
+ *    prefixed with the name of the microprocessor, for example stm32_,
+ *    and be prototyped in some header file in the arch/ directories.
+ *
+ *    There is also a arch/<architecture>/include/<chip>/chip.h header file
+ *    that can be used to communicate other microprocessor-specific
+ *    information between the board logic and even application logic.
+ *    Application logic may, for example, need to know specific capabilities
+ *    of the chip.  Prototypes in that chip.h header file should follow the
+ *    microprocessor specific naming convention.
+ *
+ * 3. Common Board Interfaces.
+ *
+ *    Any interface that is common across all boards should be prefixed
+ *    with board_ and should be prototyped in this header file. These
+ *    board_ definitions provide the interface between the board-level
+ *    logic and the architecture-specific logic.
+ *
+ *    There is also a configs/<board>/include/board.h header file that
+ *    can be used to communicate other board-specific information between
+ *    the architecture logic and even application logic.  Any definitions
+ *    which are common between a single architecture and several boards
+ *    should go in this board.h header file; this file is reserved for
+ *    board-related definitions common to all architectures.
+ *
+ * 4. Board-Specific Interfaces.
+ *
+ *    Any interface which is unique to a board should be prefixed with
+ *    the board name, for example stm32f4discovery_. Sometimes the board
+ *    name is too long so stm32_ would be okay too. These should be
+ *    prototyped in configs/<board>/src/<board>.h and should not be used
+ *    outside of that board directory since board-specific definitions
+ *    have no meaning outside of the board directory.
+ */
 
 /****************************************************************************
  * Included Files
@@ -1015,12 +1070,12 @@ ssize_t up_check_stack_remain(void);
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_buttoninit
+ * Name: board_button_initialize
  *
  * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_buttons() may be called to collect the current state of all
- *   buttons or up_irqbutton() may be called to register button interrupt
+ *   board_button_initialize() must be called to initialize button resources.
+ *   After that, board_buttons() may be called to collect the current state of
+ *   all buttons or board_button_irq() may be called to register button interrupt
  *   handlers.
  *
  *   NOTE: This interface may or may not be supported by board-specific
@@ -1030,32 +1085,32 @@ ssize_t up_check_stack_remain(void);
  ****************************************************************************/
 
 #ifdef CONFIG_ARCH_BUTTONS
-void up_buttoninit(void);
+void board_button_initialize(void);
 #endif
 
 /****************************************************************************
- * Name: up_buttons
+ * Name: board_buttons
  *
  * Description:
- *   After up_buttoninit() has been called, up_buttons() may be called to
- *   collect the state of all buttons.  up_buttons() returns an 8-bit bit set
- *   with each bit associated with a button.  A bit set to "1" means that the
- *   button is depressed; a bit set to "0" means that the button is released.
- *   The correspondence of the each button bit and physical buttons is board-
- *   specific.
+ *   After board_button_initialize() has been called, board_buttons() may be
+ *   called to collect the state of all buttons.  board_buttons() returns an
+ *   8-bit bit set with each bit associated with a button.  A bit set to
+ *   "1" means that the button is depressed; a bit set to "0" means that
+ *   the button is released.  The correspondence of the each button bit
+ *   and physical buttons is board-specific.
  *
  *   NOTE: This interface may or may not be supported by board-specific
- *   logic.  If the board supports button interfaces, then CONFIG_ARCH_BUTTONS
- *   will be defined
+ *   logic.  If the board supports button interfaces, then
+ *   CONFIG_ARCH_BUTTONS will be defined
  *
  ****************************************************************************/
 
 #ifdef CONFIG_ARCH_BUTTONS
-uint8_t up_buttons(void);
+uint8_t board_buttons(void);
 #endif
 
 /****************************************************************************
- * Name: up_irqbutton
+ * Name: board_button_irq
  *
  * Description:
  *   This function may be called to register an interrupt handler that will
@@ -1072,7 +1127,7 @@ uint8_t up_buttons(void);
  ****************************************************************************/
 
 #ifdef CONFIG_ARCH_IRQBUTTONS
-xcpt_t up_irqbutton(int id, xcpt_t irqhandler);
+xcpt_t board_button_irq(int id, xcpt_t irqhandler);
 #endif
 
 /************************************************************************************

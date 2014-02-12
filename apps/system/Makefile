@@ -1,7 +1,7 @@
 ############################################################################
 # apps/system/Makefile
 #
-#   Copyright (C) 2011-2013 Gregory Nutt. All rights reserved.
+#   Copyright (C) 2011-2014 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,9 +37,9 @@
 
 # Sub-directories containing system task
 
-SUBDIRS  = cdcacm composite flash_eraseall free i2c install nxplayer
-SUBDIRS += poweroff ramtest ramtron readline sdcard stackmonitor sysinfo
-SUBDIRS += usbmonitor usbmsc zmodem
+SUBDIRS  = cdcacm cle composite flash_eraseall free i2c inifile install
+SUBDIRS += nxplayer poweroff ramtest ramtron readline sdcard stackmonitor
+SUBDIRS += sysinfo usbmonitor usbmsc vi zmodem
 
 # Create the list of installed runtime modules (INSTALLED_DIRS)
 

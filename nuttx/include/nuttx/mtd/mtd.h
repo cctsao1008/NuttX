@@ -67,6 +67,10 @@
 #  define CONFIG_MTD_SUBSECTOR_ERASE 1
 #endif
 
+#if defined(CONFIG_FS_PROCFS) && !defined(CONFIG_FS_PROCFS_EXCLUDE_MTD)
+#define CONFIG_MTD_REGISTRATION   1
+#endif
+
 /****************************************************************************
  * Public Types
  ****************************************************************************/
@@ -79,9 +83,9 @@
 
 struct mtd_geometry_s
 {
-  uint16_t blocksize;     /* Size of one read/write block */
-  uint16_t erasesize;     /* Size of one erase blocks -- must be a multiple
-                           * of blocksize. */
+  uint32_t blocksize :14; /* Size of one read/write block.  Largest: 16KB-1 */
+  uint32_t erasesize :18; /* Size of one erase blocks -- must be a multiple
+                           * of blocksize.  Largest: 512KB-1 */
   size_t neraseblocks;    /* Number of erase blocks */
 };
 
@@ -142,6 +146,20 @@ struct mtd_dev_s
    */
 
   int (*ioctl)(FAR struct mtd_dev_s *dev, int cmd, unsigned long arg);
+
+#ifdef CONFIG_MTD_REGISTRATION
+  /* An assigned MTD number for procfs reporting */
+
+  uint8_t mtdno;
+
+  /* Pointer to the next registered MTD device */
+
+  FAR struct mtd_dev_s  *pnext;
+
+  /* Name of this MTD device */
+
+  FAR const char *name;
+#endif
 };
 
 /****************************************************************************
@@ -184,6 +202,17 @@ extern "C"
 
 FAR struct mtd_dev_s *mtd_partition(FAR struct mtd_dev_s *mtd,
                                     off_t firstblock, off_t nblocks);
+
+/****************************************************************************
+ * Name: mtd_setpartitionname
+ *
+ * Description:
+ *   Sets the name of the specified partition.
+ *
+ ****************************************************************************/
+#ifdef CONFIG_MTD_PARTITION_NAMES
+int mtd_setpartitionname(FAR struct mtd_dev_s *mtd, FAR const char *name);
+#endif
 
 /****************************************************************************
  * Name: ftl_initialize
@@ -297,7 +326,7 @@ FAR struct mtd_dev_s *rammtd_initialize(FAR uint8_t *start, size_t size);
  * Name: sst25_initialize
  *
  * Description:
- *   Initializes the drvier for SPI-based SST25 FLASH
+ *   Initializes the driver for SPI-based SST25 FLASH
  *
  *   Supports SST25VF512, SST25VF010, SST25VF520, SST25VF540, SST25VF080,
  *   and SST25VF016
@@ -305,6 +334,18 @@ FAR struct mtd_dev_s *rammtd_initialize(FAR uint8_t *start, size_t size);
  ****************************************************************************/
 
 FAR struct mtd_dev_s *sst25_initialize(FAR struct spi_dev_s *dev);
+
+/****************************************************************************
+ * Name: sst25xx_initialize
+ *
+ * Description:
+ *   Initializes the driver for SPI-based SST25XX FLASH
+ *
+ *   Supports SST25VF064
+ *
+ ****************************************************************************/
+
+FAR struct mtd_dev_s *sst25xx_initialize(FAR struct spi_dev_s *dev);
 
 /****************************************************************************
  * Name: sst39vf_initialize
@@ -339,6 +380,23 @@ FAR struct mtd_dev_s *w25_initialize(FAR struct spi_dev_s *dev);
  ****************************************************************************/
 
 FAR struct mtd_dev_s *up_flashinitialize(void);
+
+/****************************************************************************
+ * Name: mtd_register
+ *
+ * Description:
+ *   Registers MTD device with the procfs file system.  This assigns a unique
+ *   MTD number and associates the given device name, then  add adds it to 
+ *   the list of registered devices.
+ *
+ * In an embedded system, this all is really unnecessary, but is provided
+ * in the procfs system simply for information purposes (if desired).
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_MTD_REGISTRATION
+int mtd_register(FAR struct mtd_dev_s *mtd, FAR const char *name);
+#endif
 
 #undef EXTERN
 #ifdef __cplusplus

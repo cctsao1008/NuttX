@@ -1,7 +1,7 @@
 ############################################################################
 # sched/Makefile
 #
-#   Copyright (C) 2007-2013 Gregory Nutt. All rights reserved.
+#   Copyright (C) 2007-2014 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,15 @@
 
 -include $(TOPDIR)/Make.defs
 
-ASRCS = 
+ASRCS =
 AOBJS = $(ASRCS:.S=$(OBJEXT))
 
-MISC_SRCS  = os_start.c os_bringup.c errno_getptr.c errno_get.c errno_set.c
-MISC_SRCS += sched_garbage.c sched_getfiles.c sched_getsockets.c sched_getstreams.c
+MISC_SRCS  = os_start.c os_bringup.c errno_getptr.c sched_garbage.c
+MISC_SRCS += sched_getfiles.c sched_getsockets.c sched_getstreams.c
+
+ifeq ($(CONFIG_NUTTX_KERNEL),y)
+MISC_SRCS += errno_get.c errno_set.c
+endif
 
 TSK_SRCS  = prctl.c exit.c getpid.c
 TSK_SRCS += task_create.c task_init.c task_setup.c task_activate.c task_start.c
@@ -71,15 +75,15 @@ SCHED_SRCS += sched_yield.c sched_rrgetinterval.c sched_foreach.c
 SCHED_SRCS += sched_lock.c sched_unlock.c sched_lockcount.c sched_self.c
 
 ifeq ($(CONFIG_SCHED_ATEXIT),y)
-SCHED_SRCS += atexit.c 
+SCHED_SRCS += atexit.c
 endif
 
 ifeq ($(CONFIG_SCHED_ONEXIT),y)
-SCHED_SRCS += on_exit.c 
+SCHED_SRCS += on_exit.c
 endif
 
 ifeq ($(CONFIG_PRIORITY_INHERITANCE),y)
-SCHED_SRCS += sched_reprioritize.c 
+SCHED_SRCS += sched_reprioritize.c
 endif
 
 ifeq ($(CONFIG_SCHED_WAITPID),y)
@@ -96,7 +100,7 @@ GRP_SRCS += task_getgroup.c group_foreachchild.c group_killchildren.c
 ifeq ($(CONFIG_SCHED_HAVE_PARENT),y)
 GRP_SRCS += task_reparent.c
 ifeq ($(CONFIG_SCHED_CHILD_STATUS),y)
-GRP_SRCS += group_childstatus.c 
+GRP_SRCS += group_childstatus.c
 endif
 endif
 
@@ -114,7 +118,7 @@ WDOG_SRCS += wd_gettime.c
 TIME_SRCS = sched_processtimer.c
 
 ifneq ($(CONFIG_DISABLE_SIGNALS),y)
-TIME_SRCS += sleep.c usleep.c
+TIME_SRCS += nanosleep.c
 endif
 
 CLOCK_SRCS  = clock_initialize.c clock_settime.c clock_gettime.c clock_getres.c

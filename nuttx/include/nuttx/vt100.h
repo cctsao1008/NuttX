@@ -86,15 +86,24 @@
 #define VT100_SETSS3         {ASCII_ESC, 'O'}                 /* Set single shift 3 */
 
 #define VT100_MODESOFF       {ASCII_ESC, '[', 'm'}            /* Turn off character attributes */
-#define VT100_MODESOFF_      {ASCII_ESC, '[', '0', 'm'}       /* Turn off character attributes */
+#define VT100_MODESOFF2      {ASCII_ESC, '[', '0', 'm'}       /* Turn off character attributes */
 #define VT100_BOLD           {ASCII_ESC, '[', '1', 'm'}       /* Turn bold mode on */
 #define VT100_LOWINT         {ASCII_ESC, '[', '2', 'm'}       /* Turn low intensity mode on */
 #define VT100_UNDERLINE      {ASCII_ESC, '[', '4', 'm'}       /* Turn underline mode on */
 #define VT100_BLINK          {ASCII_ESC, '[', '5', 'm'}       /* Turn blinking mode on */
 #define VT100_REVERSE        {ASCII_ESC, '[', '7', 'm'}       /* Turn reverse video on */
 #define VT100_INVISIBLE      {ASCII_ESC, '[', '8', 'm'}       /* Turn invisible text mode on */
+#define VT100_BOLDOFF        {ASCII_ESC, '[', '2', '2', 'm'}  /* Turn bold off */
+#define VT100_UNDERLINEOFF   {ASCII_ESC, '[', '2', '4', 'm'}  /* Turn underline off */
+#define VT100_BLINKOFF       {ASCII_ESC, '[', '2', '5', 'm'}  /* Turn blink off */
+#define VT100_REVERSEOFF     {ASCII_ESC, '[', '2', '7', 'm'}  /* Turn reverse video off */
 
 #define VT100_SETWIN(t,b)    {ASCII_ESC, '[', (t), ';', (b), 'r'} /* Set top and bottom line#s of a window */
+
+#define VT100_CURSOROFF      {ASCII_ESC, '[', '?', '2', '5', 'l'} /* Cursor OFF */
+#define VT100_CURSORON       {ASCII_ESC, '[', '?', '2', '5', 'h'} /* Cursor ON */
+#define VT100_CURSOROFF2     {ASCII_ESC, '[', '?', '5', '0', 'l'} /* Cursor OFF */
+#define VT100_CURSORON2      {ASCII_ESC, '[', '?', '5', '0', 'h'} /* Cursor ON */
 
 #define VT100_CURSORUP(n)    {ASCII_ESC, '[', (n), 'A'}       /* Move cursor up n lines */
 #define VT100_CURSORDN(n)    {ASCII_ESC, '[', (n), 'B'}       /* Move cursor down n lines */
@@ -133,12 +142,12 @@
 #define VT100_CLEARBOS       {ASCII_ESC, '[', '1', 'J'}       /* Clear screen from cursor up */
 #define VT100_CLEARSCREEN    {ASCII_ESC, '[', '2', 'J'}       /* Clear entire screen */
 
-#define VT100_DEVSTAT        {ASCII_ESC, '5', 'n'}            /* Device status report */
-#define VT100_TERMOK         {ASCII_ESC, '0', 'n'}            /* Response: terminal is OK */
-#define VT100_TERMNOK        {ASCII_ESC, '3', 'n'}            /* Response: terminal is not OK */
+#define VT100_DEVSTAT        {ASCII_ESC, '[', '5', 'n'}       /* Device status report */
+#define VT100_TERMOK         {ASCII_ESC, '[', '0', 'n'}       /* Response: terminal is OK */
+#define VT100_TERMNOK        {ASCII_ESC, '[', '3', 'n'}       /* Response: terminal is not OK */
 
-#define VT100_GETCURSOR      {ASCII_ESC, '6', 'n'}            /* Get cursor position */
-#define VT100_CURSORPOSAT    {ASCII_ESC, (v), ';', (h), 'R'}  /* Response: cursor is at v,h */
+#define VT100_GETCURSOR      {ASCII_ESC, '[', '6', 'n'}       /* Get cursor position */
+#define VT100_CURSORPOSAT    {ASCII_ESC, '[', (v), ';', (h), 'R'}  /* Response: cursor is at v,h */
 
 #define VT100_IDENT          {ASCII_ESC, '[', 'c'}            /* Identify what terminal type */
 #define VT100_IDENT_         {ASCII_ESC, '[', '0', 'c'}       /* Identify what terminal type */
@@ -182,6 +191,17 @@
 #define VT52_IDENT           {ASCII_ESC, 'Z'}                 /* Identify what the terminal is */
 #define VT52_IDENTRESP       {ASCII_ESC, '/', 'Z'}            /* Correct response to ident */
 
+/* Format strings for VT100 sequences that require numeric arguments */
+
+#define VT100_FMT_SETWIN     "\033[%d;%dr"                    /* Set top and bottom line#s of a window */
+#define VT100_FMT_CURSORUP   "\033[%dA"                       /* Move cursor up n lines */
+#define VT100_FMT_CURSORDN   "\033[%dB"                       /* Move cursor down n lines */
+#define VT100_FMT_CURSORRT   "\033[%dC"                       /* Move cursor right n lines */
+#define VT100_FMT_CURSORLF   "\033[%dD"                       /* Move cursor left n lines */
+#define VT100_FMT_CURSORPOS  "\033[%d;%dH"                    /* Move cursor to screen location v,h */
+#define VT100_FMT_HVPOS      "\033[%d;%df"                    /* Move cursor to screen location v,h */
+#define VT52_FMT_CURSORPOS   "\033%d%d"                       /* Move cursor to v,h location */
+
 /* VT100 Special Key Codes
  *
  * These are sent from the terminal back to the computer when the particular
@@ -195,7 +215,6 @@
 #define VT100_PF2            {ASCII_ESC, 'O', 'Q'}
 #define VT100_PF3            {ASCII_ESC, 'O', 'R'}
 #define VT100_PF4            {ASCII_ESC, 'O', 'S'}
-
 
 /* Arrow keys */
 

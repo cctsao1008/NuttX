@@ -1,5 +1,5 @@
 /****************************************************************************
- * configs/sam4l-xplained/src/sam_buttons.c
+ * configs/sama5d3x-ek/src/sam_buttons.c
  *
  *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -56,6 +56,7 @@
 
 #include <stdint.h>
 
+#include <nuttx/arch.h>
 #include <nuttx/irq.h>
 
 #include <arch/irq.h>
@@ -87,39 +88,39 @@ static xcpt_t g_irquser1;
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_buttoninit
+ * Name: board_button_initialize
  *
  * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_buttons() may be called to collect the current state of all
- *   buttons or up_irqbutton() may be called to register button interrupt
+ *   board_button_initialize() must be called to initialize button resources.  After
+ *   that, board_buttons() may be called to collect the current state of all
+ *   buttons or board_button_irq() may be called to register button interrupt
  *   handlers.
  *
  ****************************************************************************/
 
-void up_buttoninit(void)
+void board_button_initialize(void)
 {
   (void)sam_configpio(PIO_USER1);
 }
 
-/************************************************************************************
- * Name: up_buttons
+/****************************************************************************
+ * Name: board_buttons
  *
  * Description:
- *   After up_buttoninit() has been called, up_buttons() may be called to collect
- *   the state of all buttons.  up_buttons() returns an 8-bit bit set with each bit
- *   associated with a button.  See the BUTTON* definitions above for the meaning of
- *   each bit in the returned value.
+ *   After board_button_initialize() has been called, board_buttons() may be called to
+ *   collect the state of all buttons.  board_buttons() returns an 8-bit bit set
+ *   with each bit associated with a button.  See the BUTTON* definitions
+ *   above for the meaning of each bit in the returned value.
  *
- ************************************************************************************/
+ ****************************************************************************/
 
-uint8_t up_buttons(void)
+uint8_t board_buttons(void)
 {
   return sam_pioread(PIO_USER1) ? 0 : BUTTON_USER1_BIT;
 }
 
 /****************************************************************************
- * Name: up_irqbutton
+ * Name: board_button_irq
  *
  * Description:
  *   This function may be called to register an interrupt handler that will
@@ -129,13 +130,13 @@ uint8_t up_buttons(void)
  *
  * Configuration Notes:
  *   Configuration CONFIG_SAMA5_PIO_IRQ must be selected to enable the
- *   overall PIO IRQ feature and CONFIG_SAMA5_PIOE_IRQ must be enabled to select
- *   PIOs to support interrupts on PIOE.
+ *   overall PIO IRQ feature and CONFIG_SAMA5_PIOE_IRQ must be enabled to
+ *   select PIOs to support interrupts on PIOE.
  *
  ****************************************************************************/
 
 #if defined(CONFIG_SAMA5_PIOE_IRQ) && defined(CONFIG_ARCH_IRQBUTTONS)
-xcpt_t up_irqbutton(int id, xcpt_t irqhandler)
+xcpt_t board_button_irq(int id, xcpt_t irqhandler)
 {
   xcpt_t oldhandler = NULL;
 

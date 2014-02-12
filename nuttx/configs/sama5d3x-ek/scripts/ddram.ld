@@ -1,5 +1,5 @@
 /****************************************************************************
- * configs/ea3131/scripts/ddram.ld
+ * configs/sama5d3x-ek/scripts/ddram.ld
  *
  *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>

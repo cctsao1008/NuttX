@@ -158,12 +158,16 @@ endif
 #                   reliable code generation.
 #
 
+ifeq ($(CONFIG_DEBUG_CUSTOMOPT),y)
+  MAXOPTIMIZATION := $(CONFIG_DEBUG_OPTLEVEL)
+endif
+
 # Atollic toolchain under Windows
 
 ifeq ($(CONFIG_ARMV7M_TOOLCHAIN),ATOLLIC)
   CROSSDEV ?= arm-atollic-eabi-
   ARCROSSDEV ?= arm-atollic-eabi-
-  MAXOPTIMIZATION = -Os
+  MAXOPTIMIZATION ?= -Os
   ifeq ($(CONFIG_ARCH_CORTEXM4),y)
     ifeq ($(CONFIG_ARCH_FPU),y)
       ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
@@ -190,7 +194,7 @@ else
   ARCROSSDEV ?= arm-nuttx-eabi-
   ARCHCPUFLAGS = -mcpu=cortex-m3 -mthumb -mfloat-abi=soft
 endif
-  MAXOPTIMIZATION = -Os
+  MAXOPTIMIZATION ?= -Os
 endif
 
 # Code Red RedSuite under Linux
@@ -198,7 +202,7 @@ endif
 ifeq ($(CONFIG_ARMV7M_TOOLCHAIN),CODEREDL)
   CROSSDEV ?= arm-none-eabi-
   ARCROSSDEV ?= arm-none-eabi-
-  MAXOPTIMIZATION = -Os
+  MAXOPTIMIZATION ?= -Os
   ifeq ($(CONFIG_ARCH_CORTEXM4),y)
     ifeq ($(CONFIG_ARCH_FPU),y)
       ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
@@ -215,7 +219,7 @@ endif
 ifeq ($(CONFIG_ARMV7M_TOOLCHAIN),CODEREDW)
   CROSSDEV ?= arm-none-eabi-
   ARCROSSDEV ?= arm-none-eabi-
-  MAXOPTIMIZATION = -Os
+  MAXOPTIMIZATION ?= -Os
   ifeq ($(CONFIG_ARCH_CORTEXM4),y)
     ifeq ($(CONFIG_ARCH_FPU),y)
       ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
@@ -236,7 +240,7 @@ ifeq ($(CONFIG_ARMV7M_TOOLCHAIN),CODESOURCERYL)
   CROSSDEV ?= arm-none-eabi-
   ARCROSSDEV ?= arm-none-eabi-
   ARCHCPUFLAGS = -mcpu=cortex-m3 -mthumb -mfloat-abi=soft
-  MAXOPTIMIZATION = -O2
+  MAXOPTIMIZATION ?= -O2
 endif
 
 # CodeSourcery under Windows
@@ -244,7 +248,7 @@ endif
 ifeq ($(CONFIG_ARMV7M_TOOLCHAIN),CODESOURCERYW)
   CROSSDEV ?= arm-none-eabi-
   ARCROSSDEV ?= arm-none-eabi-
-  MAXOPTIMIZATION = -Os
+  MAXOPTIMIZATION ?= -Os
   ifeq ($(CONFIG_ARCH_CORTEXM4),y)
     ifeq ($(CONFIG_ARCH_FPU),y)
       ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
@@ -291,7 +295,7 @@ endif
 ifeq ($(CONFIG_ARMV7M_TOOLCHAIN),GNU_EABIL)
   CROSSDEV ?= arm-none-eabi-
   ARCROSSDEV ?= arm-none-eabi-
-  MAXOPTIMIZATION = -Os
+  MAXOPTIMIZATION ?= -Os
   ifeq ($(CONFIG_ARCH_CORTEXM4),y)
     ifeq ($(CONFIG_ARCH_FPU),y)
       ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
@@ -308,7 +312,7 @@ endif
 ifeq ($(CONFIG_ARMV7M_TOOLCHAIN),GNU_EABIW)
   CROSSDEV ?= arm-none-eabi-
   ARCROSSDEV ?= arm-none-eabi-
-  MAXOPTIMIZATION = -Os
+  MAXOPTIMIZATION ?= -Os
   ifeq ($(CONFIG_ARCH_CORTEXM4),y)
     ifeq ($(CONFIG_ARCH_FPU),y)
       ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard

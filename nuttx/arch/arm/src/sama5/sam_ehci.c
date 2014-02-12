@@ -421,7 +421,7 @@ static uint32_t g_framelist[FRAME_LIST_SIZE] __attribute__ ((aligned(4096)));
 #else
 static uint32_t *g_framelist;
 #endif
-#endif
+#endif /* CONFIG_USBHOST_INT_DISABLE */
 
 #ifdef CONFIG_SAMA5_EHCI_PREALLOCATE
 /* Pools of pre-allocated data structures.  These will all be linked into the
@@ -3922,12 +3922,19 @@ static int sam_reset(void)
   uint32_t regval;
   unsigned int timeout;
 
+  /* Make sure that the EHCI is halted:  "When [the Run/Stop] bit is set to 0,
+   * the Host Controller completes the current transaction on the USB and then
+   * halts. The HC Halted bit in the status register indicates when the Hos
+   * Controller has finished the transaction and has entered the stopped state..."
+   */
+
+  sam_putreg(0, &HCOR->usbcmd);
+
   /* "... Software should not set [HCRESET] to a one when the HCHalted bit in
    *  the USBSTS register is a zero. Attempting to reset an actively running
    *   host controller will result in undefined behavior."
    */
 
-  sam_putreg(0, &HCOR->usbcmd);
   timeout = 0;
   do
     {
@@ -3936,7 +3943,7 @@ static int sam_reset(void)
       up_udelay(1);
       timeout++;
 
-      /* Get the current valud of the USBSTS register.  This loop will terminate
+      /* Get the current value of the USBSTS register.  This loop will terminate
        * when either the timeout exceeds one millisecond or when the HCHalted
        * bit is no longer set in the USBSTS register.
        */
@@ -3968,7 +3975,7 @@ static int sam_reset(void)
       up_udelay(5);
       timeout += 5;
 
-      /* Get the current valud of the USBCMD register.  This loop will terminate
+      /* Get the current value of the USBCMD register.  This loop will terminate
        * when either the timeout exceeds one second or when the HCReset
        * bit is no longer set in the USBSTS register.
        */
@@ -3993,7 +4000,7 @@ static int sam_reset(void)
  *
  * Input Parameters:
  *   controller -- If the device supports more than one EHCI interface, then
- *     this identifies which controller is being intialized.  Normally, this
+ *     this identifies which controller is being initialized.  Normally, this
  *     is just zero.
  *
  * Returned Value:
@@ -4039,7 +4046,7 @@ FAR struct usbhost_connection_s *sam_ehci_initialize(int controller)
 #ifdef CONFIG_SAMA5_EHCI_PREALLOCATE
   DEBUGASSERT(((uintptr_t)g_framelist & 0xfff) == 0);
 #endif
-#endif
+#endif /* CONFIG_USBHOST_INT_DISABLE */
 
   /* SAMA5 Configuration *******************************************************/
   /* For High-speed operations, the user has to perform the following:
@@ -4175,7 +4182,7 @@ FAR struct usbhost_connection_s *sam_ehci_initialize(int controller)
     }
 #endif
 
-#ifndef CONFIG_SAMA5_EHCI_PREALLOCATE
+#if !defined(CONFIG_SAMA5_EHCI_PREALLOCATE) && !defined(CONFIG_USBHOST_INT_DISABLE)
   /* Allocate the periodic framelist  */
 
   g_framelist = (uint32_t *)

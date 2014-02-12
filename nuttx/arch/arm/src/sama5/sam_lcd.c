@@ -8,7 +8,7 @@
  *   SAMA5D3 Series Data Sheet
  *   Atmel NoOS sample code.
  *
- * The Atmel sample code has a BSD compatibile license that requires this
+ * The Atmel sample code has a BSD compatible license that requires this
  * copyright notice:
  *
  *   Copyright (c) 2012, Atmel Corporation
@@ -53,7 +53,7 @@
 #include <errno.h>
 #include <debug.h>
 
-#include <nuttx/fb.h>
+#include <nuttx/video/fb.h>
 #include <nuttx/kmalloc.h>
 
 #include <arch/board/board.h>
@@ -2814,7 +2814,6 @@ int up_fbinitialize(void)
 #if defined(CONFIG_SAMA5_LCDC_OVR1) && defined(CONFIG_SAMA5_LCDC_HEO)
   uint32_t regval;
 #endif
-  int ret;
 
   gvdbg("Entry\n");
 

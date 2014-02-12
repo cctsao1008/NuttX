@@ -113,11 +113,11 @@ void up_pb2interrupt(void)
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_buttoninit
+ * Name: board_button_initialize
  ****************************************************************************/
 
 #ifdef CONFIG_ARCH_BUTTONS
-void up_buttoninit(void)
+void board_button_initialize(void)
 {
   uint8_t regval;
 
@@ -164,10 +164,10 @@ void up_buttoninit(void)
 }
 
 /****************************************************************************
- * Name: up_buttons
+ * Name: board_buttons
  ****************************************************************************/
 
-uint8_t up_buttons(void)
+uint8_t board_buttons(void)
 {
   return inp(EZ80_PB_DDR) & 7;
 }

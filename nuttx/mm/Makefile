@@ -1,7 +1,7 @@
 ############################################################################
 # mm/Makefile
 #
-#   Copyright (C) 2007, 2012, 2013 Gregory Nutt. All rights reserved.
+#   Copyright (C) 2007, 2012, 2013-2014 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,9 @@
 ############################################################################
 
 -include $(TOPDIR)/Make.defs
+
+# REVISIT: Backslash causes problems in $(COBJS) target
+DELIM := $(strip /)
 
 # CFLAGS
 
@@ -84,9 +87,11 @@ all: $(BIN)
 
 $(AOBJS): $(BINDIR)$(DELIM)%$(OBJEXT): %.S
 	$(call ASSEMBLE, $<, $@)
+	$(call MOVEOBJ,$(patsubst $(BINDIR)$(DELIM)%$(OBJEXT),%,$@),$(BINDIR))
 
 $(COBJS): $(BINDIR)$(DELIM)%$(OBJEXT): %.c
 	$(call COMPILE, $<, $@)
+	$(call MOVEOBJ,$(patsubst $(BINDIR)$(DELIM)%$(OBJEXT),%,$@),$(BINDIR))
 
 # Memory manager for the flat build
 

@@ -81,8 +81,10 @@ extern "C"
  * Name: nandecc_readpage
  *
  * Description:
- *   Reads the data and/or the spare areas of a page of a NAND FLASH into the
- *   provided buffers.
+ *   Reads the data and/or spare areas of a page of a NAND FLASH chip and
+ *   verifies that the data is valid using the ECC information contained in
+ *   the spare area. If a buffer pointer is NULL, then the corresponding area
+ *   is not saved.
  *
  * Input parameters:
  *   nand  - Upper-half, NAND FLASH interface
@@ -103,14 +105,18 @@ int nandecc_readpage(FAR struct nand_dev_s *nand, off_t block,
  * Name: nandecc_writepage
  *
  * Description:
- *   Writes the data and/or the spare area of a page on a NAND FLASH chip.
+ *   Writes the data and/or spare area of a NAND FLASH page after
+ *   calculating an ECC for the data area and storing it in the spare. If no
+ *   data buffer is provided, the ECC is read from the existing page spare.
+ *   If no spare buffer is provided, the spare area is still written with the
+ *   ECC information calculated on the data buffer.
  *
  * Input parameters:
  *   nand  - Upper-half, NAND FLASH interface
  *   block - Number of the block where the page to write resides.
  *   page  - Number of the page to write inside the given block.
  *   data  - Buffer containing the data to be writting
- *   spare - Buffer conatining the spare data to be written.
+ *   spare - Buffer containing the spare data to be written.
  *
  * Returned value.
  *   OK is returned in success; a negated errno value is returned on failure.
@@ -118,8 +124,8 @@ int nandecc_readpage(FAR struct nand_dev_s *nand, off_t block,
  ****************************************************************************/
 
 int nandecc_writepage(FAR struct nand_dev_s *nand, off_t block,
-                      unsigned int page, FAR const void *data,
-                      FAR const void *spare);
+                      unsigned int page,  FAR const void *data,
+                      FAR void *spare);
 
 #undef EXTERN
 #ifdef __cplusplus

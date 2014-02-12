@@ -12,7 +12,7 @@ NuttX
 License for NuttX in general (authorship of individual files may vary):
 /*************************************************************************
  * 
- *   Copyright (C) 2007-2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -214,22 +214,12 @@ libc/math
   WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
   ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 
-Documents/rss.gif
-^^^^^^^^^^^^^^^^^
+drivers/video/ov2640
+^^^^^^^^^^^^^^^^^^^^
 
-  Licensed under Creative Commons Attribution-Share Alike 2.5 Generic
-  license:
-
-  You are free:
-
-  * to share – to copy, distribute and transmit the work
-  * to remix – to adapt the work
-
-  Under the following conditions:
-
-  * attribution – You must attribute the work in the manner specified
-    by the author or licensor (but not in any way that suggests that
-    they endorse you or your use of the work).
-  * share alike – If you alter, transform, or build upon this work,
-    you may distribute the resulting work only under the same or
-    similar license to this one.
+  WARNING:  Some of the information in the data tables in this file came
+  from other projects with conflicting licenses:  Linux and ArduCAM.  Those
+  both have GPL licenses.  I am not sure if it is proper or not to lift the
+  content of those tables and still retain this BSD license.  I am guessing
+  so, but I am not a copyright attorney so you should use this driver in
+  products at your own risk.

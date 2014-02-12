@@ -1,7 +1,7 @@
 /****************************************************************************
  * fs/nxffs/nxffs_write.c
  *
- *   Copyright (C) 2011 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2011, 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * References: Linux/Documentation/filesystems/romfs.txt
@@ -60,7 +60,7 @@
 /****************************************************************************
  * Public Types
  ****************************************************************************/
- 
+
 /****************************************************************************
  * Private Data
  ****************************************************************************/
@@ -128,6 +128,7 @@ static inline int nxffs_hdrpos(FAR struct nxffs_volume_s *volume,
 
       wrfile->doffset = nxffs_iotell(volume);
     }
+
   return ret;
 }
 
@@ -181,7 +182,7 @@ static inline int nxffs_hdrerased(FAR struct nxffs_volume_s *volume,
   int ret;
 
   /* Find a valid location to save the inode header */
-  
+
   ret = nxffs_wrverify(volume, SIZEOF_NXFFS_DATA_HDR + size);
   if (ret == OK)
     {
@@ -189,6 +190,7 @@ static inline int nxffs_hdrerased(FAR struct nxffs_volume_s *volume,
 
       wrfile->doffset = nxffs_iotell(volume);
     }
+
   return ret;
 }
 
@@ -253,7 +255,7 @@ static inline int nxffs_wralloc(FAR struct nxffs_volume_s *volume,
 
       if (ret != -ENOSPC || packed)
         {
-          fdbg("Failed to find inode header memory: %d\n", -ret);
+          fdbg("ERROR: Failed to find inode header memory: %d\n", -ret);
           return -ENOSPC;
         }
 
@@ -264,7 +266,7 @@ static inline int nxffs_wralloc(FAR struct nxffs_volume_s *volume,
       ret = nxffs_pack(volume);
       if (ret < 0)
         {
-          fdbg("Failed to pack the volume: %d\n", -ret);
+          fdbg("ERROR: Failed to pack the volume: %d\n", -ret);
           return ret;
         }
 
@@ -323,10 +325,11 @@ static inline int nxffs_reverify(FAR struct nxffs_volume_s *volume,
 
       if (crc != wrfile->crc)
         {
-          fdbg("CRC failure\n");
+          fdbg("ERROR: CRC failure\n");
           return -EIO;
         }
     }
+
   return OK;
 }
 
@@ -396,13 +399,13 @@ static inline ssize_t nxffs_wrappend(FAR struct nxffs_volume_s *volume,
       /* And write the partial write block to FLASH -- unless the data
        * block is full.  In that case, the block will be written below.
        */
- 
+
       if (nbytesleft > 0)
         {
           ret = nxffs_wrcache(volume);
           if (ret < 0)
             {
-              fdbg("nxffs_wrcache failed: %d\n", -ret);
+              fdbg("ERROR: nxffs_wrcache failed: %d\n", -ret);
               return ret;
             }
         }
@@ -417,7 +420,7 @@ static inline ssize_t nxffs_wrappend(FAR struct nxffs_volume_s *volume,
       ret = nxffs_wrblkhdr(volume, wrfile);
       if (ret < 0)
         {
-          fdbg("nxffs_wrblkdhr failed: %d\n", -ret);
+          fdbg("ERROR: nxffs_wrblkdhr failed: %d\n", -ret);
           return ret;
         }
     }
@@ -472,7 +475,7 @@ ssize_t nxffs_write(FAR struct file *filep, FAR const char *buffer, size_t bufle
   if (ret != OK)
     {
       ret = -errno;
-      fdbg("sem_wait failed: %d\n", ret);
+      fdbg("ERROR: sem_wait failed: %d\n", ret);
       goto errout;
     }
 
@@ -480,7 +483,7 @@ ssize_t nxffs_write(FAR struct file *filep, FAR const char *buffer, size_t bufle
 
   if ((wrfile->ofile.oflags & O_WROK) == 0)
     {
-      fdbg("File not open for write access\n");
+      fdbg("ERROR: File not open for write access\n");
       ret = -EACCES;
       goto errout_with_semaphore;
     }
@@ -503,7 +506,7 @@ ssize_t nxffs_write(FAR struct file *filep, FAR const char *buffer, size_t bufle
           ret = nxffs_wralloc(volume, wrfile, remaining);
           if (ret < 0)
             {
-              fdbg("Failed to allocate a data block: %d\n", -ret);
+              fdbg("ERROR: Failed to allocate a data block: %d\n", -ret);
               goto errout_with_semaphore;
             }
         }
@@ -517,7 +520,7 @@ ssize_t nxffs_write(FAR struct file *filep, FAR const char *buffer, size_t bufle
       ret = nxffs_reverify(volume, wrfile);
       if (ret < 0)
         {
-          fdbg("Failed to verify FLASH data block: %d\n", -ret);
+          fdbg("ERROR: Failed to verify FLASH data block: %d\n", -ret);
           goto errout_with_semaphore;
         }
 
@@ -528,12 +531,12 @@ ssize_t nxffs_write(FAR struct file *filep, FAR const char *buffer, size_t bufle
       nwritten = nxffs_wrappend(volume, wrfile, &buffer[total], remaining);
       if (nwritten < 0)
         {
-          fdbg("Failed to append to FLASH to a data block: %d\n", -ret);
+          fdbg("ERROR: Failed to append to FLASH to a data block: %d\n", -ret);
           goto errout_with_semaphore;
         }
 
       /* Decrement the number of bytes remaining to be written */
- 
+
       total += nwritten;
     }
 
@@ -615,12 +618,12 @@ int nxffs_wrreserve(FAR struct nxffs_volume_s *volume, size_t size)
       /* We will need to skip to the next block.  But first, check if we are
        * already at the final block.
        */
- 
+
       if (volume->ioblock + 1 >= volume->nblocks)
         {
           /* Return -ENOSPC to indicate that the volume is full */
 
-          fdbg("No space in last block\n");
+          fdbg("ERROR: No space in last block\n");
           return -ENOSPC;
         }
 
@@ -632,9 +635,10 @@ int nxffs_wrreserve(FAR struct nxffs_volume_s *volume, size_t size)
       ret = nxffs_validblock(volume, &volume->ioblock);
       if (ret < 0)
         {
-          fdbg("No more valid blocks\n");
+          fdbg("ERROR: No more valid blocks\n");
           return ret;
         }
+
       volume->iooffset = SIZEOF_NXFFS_BLOCK_HDR;
     }
 
@@ -698,63 +702,75 @@ int nxffs_wrverify(FAR struct nxffs_volume_s *volume, size_t size)
   while (volume->ioblock < volume->nblocks)
     {
       /* Make sure that the block is in memory */
- 
+
       ret = nxffs_rdcache(volume, volume->ioblock);
       if (ret < 0)
         {
-          fdbg("Failed to read block %d: %d\n", volume->ioblock, -ret);
-          return ret;
+          /* Ignore the error... just skip to the next block.  This should
+           * never happen with normal FLASH, but could occur with NAND if
+           * the block has uncorrectable bit errors.
+           */
+
+          fdbg("ERROR: Failed to read block %d: %d\n",
+               volume->ioblock, -ret);
         }
 
       /* Search to the very end of this block if we have to */
 
-      iooffset = volume->iooffset;
-      nerased  = 0;
-
-      for (i = volume->iooffset; i < volume->geo.blocksize; i++)
+      else
         {
-          /* Is this byte erased? */
+          iooffset = volume->iooffset;
+          nerased  = 0;
 
-          if (volume->cache[i] == CONFIG_NXFFS_ERASEDSTATE)
+          for (i = volume->iooffset; i < volume->geo.blocksize; i++)
             {
-              /* Yes.. increment the count of contiguous, erased bytes */
+              /* Is this byte erased? */
 
-              nerased++;
-
-              /* Is the whole header memory erased? */
-
-              if (nerased >= size)
+              if (volume->cache[i] == CONFIG_NXFFS_ERASEDSTATE)
                 {
-                   /* Yes.. this this is where we will put the object */
+                  /* Yes.. increment the count of contiguous, erased bytes */
 
-                   off_t offset = volume->ioblock * volume->geo.blocksize + iooffset;
+                  nerased++;
 
-                   /* Update the free flash offset and return success */
+                  /* Is the whole header memory erased? */
 
-                   volume->froffset = offset + size;
-                   return OK;
+                  if (nerased >= size)
+                    {
+                       /* Yes.. this this is where we will put the object */
+
+                       off_t offset =
+                         volume->ioblock * volume->geo.blocksize + iooffset;
+
+                       /* Update the free flash offset and return success */
+
+                       volume->froffset = offset + size;
+                       return OK;
+                    }
                 }
-            }
 
-          /* This byte is not erased!  (It should be unless the block is bad) */
+              /* This byte is not erased!  (It should be unless the block is
+               * bad)
+               */
 
-          else
-            {
-              nerased  = 0;
-              iooffset = i + 1;
+              else
+                {
+                  nerased  = 0;
+                  iooffset = i + 1;
+                }
             }
         }
 
-      /* If we get here, then we have looked at every byte in the block
-       * and did not find any sequence of erased bytes long enough to hold
-       * the object.  Skip to the next, valid block.
+      /* If we get here, then either (1) this block is not read-able, or
+       * (2) we have looked at every byte in the block and did not find
+       * any sequence of erased bytes long enough to hold the object.
+       * Skip to the next, valid block.
        */
 
       volume->ioblock++;
       ret = nxffs_validblock(volume, &volume->ioblock);
       if (ret < 0)
         {
-          fdbg("No more valid blocks\n");
+          fdbg("ERROR: No more valid blocks\n");
           return ret;
         }
 
@@ -766,7 +782,7 @@ int nxffs_wrverify(FAR struct nxffs_volume_s *volume, size_t size)
    * the object.
    */
 
-  fdbg("Not enough memory left to hold the file header\n");
+  fdbg("ERROR: Not enough memory left to hold the file header\n");
   return -ENOSPC;
 }
 
@@ -812,7 +828,7 @@ int nxffs_wrblkhdr(FAR struct nxffs_volume_s *volume,
   ret = nxffs_wrcache(volume);
   if (ret < 0)
     {
-      fdbg("nxffs_wrcache failed: %d\n", -ret);
+      fdbg("ERROR: nxffs_wrcache failed: %d\n", -ret);
       goto errout;
     }
 
@@ -850,4 +866,3 @@ errout:
   wrfile->datlen  = 0;
   return ret;
 }
-

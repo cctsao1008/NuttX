@@ -1,7 +1,7 @@
 ############################################################################
 # configs/ez80f910200zco/dhcpd/Make.defs
 #
-#   Copyright (C) 2009, 2012 Gregory Nutt. All rights reserved.
+#   Copyright (C) 2009, 2012-2013 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -118,9 +118,15 @@ AFLAGS = $(ARCHASMCPUFLAGS) $(ARCHASMINCLUDES) $(ARCHASMLIST) $(ARCHASMWARNINGS)
 # Compiler definitions
 
 ifeq ($(CONFIG_DEBUG_SYMBOLS),y)
-  ARCHOPTIMIZATION = -debug -reduceopt
+  ARCHOPTIMIZATION = -debug
 else
-  ARCHOPTIMIZATION = -nodebug -optsize
+  ARCHOPTIMIZATION = -nodebug
+endif
+
+ifeq ($(CONFIG_DEBUG_NOOPT),y)
+  ARCHOPTIMIZATION += -reduceopt
+else
+  ARCHOPTIMIZATION += -optsize
 endif
 
 ARCHCPUFLAGS = -chartype:S -promote -cpu:$(ARCHCPU) -NOgenprintf -NOmodsect \
@@ -180,6 +186,12 @@ define ASSEMBLE
 	$(Q) "$(AS)" $(AFLAGS) ${shell echo $1 | sed -e "s/\//\\/g"}
 endef
 
+define MOVEOBJ
+	$(call MOVEFILE, "$1.obj", "$2$(DELIM)$1.obj")
+	$(call MOVEFILE, "$1.lst", "$2$(DELIM)$1.lst")
+	$(call MOVEFILE, "$1.src", "$2$(DELIM)$1.src")
+endef
+
 define ARCHIVE
 	@echo AR: $2
 	$(Q) for %%G in ($(2)) do ( "$(AR)" $(ARFLAGS) $1=-+%%G )
@@ -207,6 +219,12 @@ endef
 
 define ASSEMBLE
 	$(Q) (wfile=`cygpath -w "$1"`; "$(AS)" $(AFLAGS) $$wfile)
+endef
+
+define MOVEOBJ
+	$(call MOVEFILE, "$1.obj", "$2$(DELIM)$1.obj")
+	$(call MOVEFILE, "$1.lst", "$2$(DELIM)$1.lst")
+	$(call MOVEFILE, "$1.src", "$2$(DELIM)$1.src")
 endef
 
 define ARCHIVE

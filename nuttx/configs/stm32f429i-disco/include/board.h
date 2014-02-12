@@ -220,9 +220,15 @@
 
 /* SPI - There is a MEMS device on SPI1 using these pins: */
 
-#define GPIO_SPI1_MISO GPIO_SPI1_MISO_1
-#define GPIO_SPI1_MOSI GPIO_SPI1_MOSI_1
-#define GPIO_SPI1_SCK  GPIO_SPI1_SCK_1
+#define GPIO_SPI5_MISO GPIO_SPI5_MISO_1
+#define GPIO_SPI5_MOSI GPIO_SPI5_MOSI_1
+#define GPIO_SPI5_SCK  GPIO_SPI5_SCK_1
+
+/* SPI - External SPI flash may be connected on SPI4: */
+
+#define GPIO_SPI4_MISO GPIO_SPI4_MISO_1
+#define GPIO_SPI4_MOSI GPIO_SPI4_MOSI_1
+#define GPIO_SPI4_SCK  GPIO_SPI4_SCK_1
 
 /* Timer Inputs/Outputs (see the README.txt file for options) */
 
@@ -231,6 +237,16 @@
 
 #define GPIO_TIM8_CH1IN  GPIO_TIM8_CH1IN_1
 #define GPIO_TIM8_CH2IN  GPIO_TIM8_CH2IN_1
+
+/* LCD
+ *
+ * The STM32F429I-DISCO board contains an onboard TFT LCD connected to the
+ * LTDC interface of the uC.  The LCD is 240x320 pixels.  Define the parameters
+ * of the LCD and the interface here.
+ */
+
+#define BOARD_LTDC_WIDTH    240
+#define BOARD_LTDC_HEIGHT   320
 
 /************************************************************************************
  * Public Data
@@ -275,37 +291,6 @@ void stm32_boardinitialize(void);
 void stm32_ledinit(void);
 void stm32_setled(int led, bool ledon);
 void stm32_setleds(uint8_t ledset);
-#endif
-
-/************************************************************************************
- * Button support.
- *
- * Description:
- *   up_buttoninit() must be called to initialize button resources.  After
- *   that, up_buttons() may be called to collect the current state of all
- *   buttons or up_irqbutton() may be called to register button interrupt
- *   handlers.
- *
- *   After up_buttoninit() has been called, up_buttons() may be called to
- *   collect the state of all buttons.  up_buttons() returns an 8-bit bit set
- *   with each bit associated with a button.  See the BUTTON_*_BIT
- *   definitions in board.h for the meaning of each bit.
- *
- *   up_irqbutton() may be called to register an interrupt handler that will
- *   be called when a button is depressed or released.  The ID value is a
- *   button enumeration value that uniquely identifies a button resource. See the
- *   BUTTON_* definitions in board.h for the meaning of enumeration
- *   value.  The previous interrupt handler address is returned (so that it may
- *   restored, if so desired).
- *
- ************************************************************************************/
-
-#ifdef CONFIG_ARCH_BUTTONS
-void up_buttoninit(void);
-uint8_t up_buttons(void);
-#ifdef CONFIG_ARCH_IRQBUTTONS
-xcpt_t up_irqbutton(int id, xcpt_t irqhandler);
-#endif
 #endif
 
 #undef EXTERN

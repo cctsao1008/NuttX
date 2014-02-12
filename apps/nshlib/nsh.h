@@ -1,7 +1,7 @@
 /****************************************************************************
  * apps/nshlib/nsh.h
  *
- *   Copyright (C) 2007-2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,15 @@
 #  undef CONFIG_NSH_TELNET
 #  undef CONFIG_NSH_FILE_APPS
 #  undef CONFIG_NSH_TELNET
+#  undef CONFIG_NSH_CMDPARMS
+#endif
+
+/* If CONFIG_NSH_CMDPARMS is selected, then the path to a directory to
+ * hold temporary files must be provided.
+ */
+
+#if defined(CONFIG_NSH_CMDPARMS) && !defined(CONFIG_NSH_TMPDIR)
+#  define CONFIG_NSH_TMPDIR "/tmp"
 #endif
 
 /* Telnetd requires networking support */
@@ -340,6 +349,24 @@
 # endif
 #endif
 
+/* Argument list size
+ *
+ *   argv[0]:      The command name.
+ *   argv[1]:      The beginning of argument (up to CONFIG_NSH_MAXARGUMENTS)
+ *   argv[argc-3]: Possibly '>' or '>>'
+ *   argv[argc-2]: Possibly <file>
+ *   argv[argc-1]: Possibly '&' (if pthreads are enabled)
+ *   argv[argc]:   NULL terminating pointer
+ *
+ * Maximum size is CONFIG_NSH_MAXARGUMENTS+5
+ */
+
+#ifndef CONFIG_NSH_DISABLEBG
+#  define MAX_ARGV_ENTRIES (CONFIG_NSH_MAXARGUMENTS+5)
+#else
+#  define MAX_ARGV_ENTRIES (CONFIG_NSH_MAXARGUMENTS+4)
+#endif
+
 /* strerror() produces much nicer output but is, however, quite large and
  * will only be used if CONFIG_NSH_STRERROR is defined.  Note that the strerror
  * interface must also have been enabled with CONFIG_LIBC_STRERROR.
@@ -427,44 +454,90 @@
  * Public Types
  ****************************************************************************/
 
-enum nsh_parser_e
+#ifndef CONFIG_NSH_DISABLE_ITEF
+/* State when parsing and if-then-else sequence */
+
+enum nsh_itef_e
 {
-   NSH_PARSER_NORMAL = 0,
-   NSH_PARSER_IF,
-   NSH_PARSER_THEN,
-   NSH_PARSER_ELSE
+  NSH_ITEF_NORMAL = 0,         /* Not in an if-then-else sequence */
+  NSH_ITEF_IF,                 /* Just parsed 'if', expect condition */
+  NSH_ITEF_THEN,               /* Just parsed 'then', looking for 'else' or 'fi' */
+  NSH_ITEF_ELSE                /* Just parsed 'else', look for 'fi' */
 };
 
-struct nsh_state_s
+/* All state data for parsing one if-then-else sequence */
+
+struct nsh_itef_s
 {
-  uint8_t   ns_ifcond   : 1; /* Value of command in 'if' statement */
-  uint8_t   ns_disabled : 1; /* TRUE: Unconditionally disabled */
-  uint8_t   ns_unused   : 4;
-  uint8_t   ns_state    : 2; /* Parser state (see enum nsh_parser_e) */
+  uint8_t   ie_ifcond   : 1;   /* Value of command in 'if' statement */
+  uint8_t   ie_disabled : 1;   /* TRUE: Unconditionally disabled */
+  uint8_t   ie_unused   : 4;
+  uint8_t   ie_state    : 2;   /* If-then-else state (see enum nsh_itef_e) */
 };
+#endif
+
+#ifndef CONFIG_NSH_DISABLE_LOOPS
+/* State when parsing and while-do-done or until-do-done sequence */
+
+enum nsh_lp_e
+{
+  NSH_LOOP_NORMAL = 0,         /* Not in a while-do-done or until-do-done sequence */
+  NSH_LOOP_WHILE,              /* Just parsed 'while', expect condition */
+  NSH_LOOP_UNTIL,              /* Just parsed 'until', expect condition */
+  NSH_LOOP_DO                  /* Just parsed 'do', looking for 'done' */
+};
+
+/* All state data for parsing one while-do-done or until-do-done sequence */
+
+struct nsh_loop_s
+{
+  uint8_t   lp_enable   : 1;   /* Loop command processing is enabled */
+  uint8_t   lp_unused   : 5;
+  uint8_t   lp_state    : 2;   /* Loop state (see enume nsh_lp_e) */
+#ifndef CONFIG_NSH_DISABLE_ITEF
+  uint8_t   lp_iendx;          /* Saved if-then-else-fi index */
+#endif
+  long      lp_topoffs;        /* Top of loop file offset */
+};
+#endif
+
+/* These structure provides the overall state of the parser */
 
 struct nsh_parser_s
 {
 #ifndef CONFIG_NSH_DISABLEBG
-  bool    np_bg;       /* true: The last command executed in background */
+  bool     np_bg;       /* true: The last command executed in background */
 #endif
 #if CONFIG_NFILE_STREAMS > 0
-  bool    np_redirect; /* true: Output from the last command was re-directed */
+  bool     np_redirect; /* true: Output from the last command was re-directed */
 #endif
-  bool    np_fail;     /* true: The last command failed */
-#ifndef CONFIG_NSH_DISABLESCRIPT
-  uint8_t np_ndx;      /* Current index into np_st[] */
-#endif
+  bool     np_fail;     /* true: The last command failed */
 #ifndef CONFIG_NSH_DISABLEBG
-  int     np_nice;     /* "nice" value applied to last background cmd */
+  int      np_nice;     /* "nice" value applied to last background cmd */
 #endif
 
-  /* This is a stack of parser state information.  It supports nested
-   * execution of commands that span multiple lines (like if-then-else-fi)
-   */
-
 #ifndef CONFIG_NSH_DISABLESCRIPT
-  struct nsh_state_s np_st[CONFIG_NSH_NESTDEPTH];
+  FILE    *np_stream;   /* Stream of current script */
+#ifndef CONFIG_NSH_DISABLE_LOOPS
+  long     np_foffs;    /* File offset to the beginning of a line */
+#ifndef NSH_DISABLE_SEMICOLON
+  uint16_t np_loffs;    /* Byte offset to the beginning of a command */
+  bool     np_jump;     /* "Jump" to the top of the loop */
+#endif
+  uint8_t  np_lpndx;    /* Current index into np_lpstate[] */
+#endif
+#ifndef CONFIG_NSH_DISABLE_ITEF
+  uint8_t  np_iendx;    /* Current index into np_iestate[] */
+#endif
+
+  /* This is a stack of parser state information. */
+
+#ifndef CONFIG_NSH_DISABLE_ITEF
+  struct nsh_itef_s np_iestate[CONFIG_NSH_NESTDEPTH];
+#endif
+#ifndef CONFIG_NSH_DISABLE_LOOPS
+  struct nsh_loop_s np_lpstate[CONFIG_NSH_NESTDEPTH];
+#endif
 #endif
 };
 
@@ -487,6 +560,7 @@ extern const char g_loginfailure[];
 extern const char g_nshprompt[];
 extern const char g_nshsyntax[];
 extern const char g_fmtargrequired[];
+extern const char g_fmtnomatching[];
 extern const char g_fmtarginvalid[];
 extern const char g_fmtargrange[];
 extern const char g_fmtcmdnotfound[];
@@ -551,6 +625,8 @@ int nsh_parse(FAR struct nsh_vtbl_s *vtbl, char *cmdline);
 
 /* Application interface */
 
+int nsh_command(FAR struct nsh_vtbl_s *vtbl, int argc, char *argv[]);
+
 #ifdef CONFIG_NSH_BUILTIN_APPS
 int nsh_builtin(FAR struct nsh_vtbl_s *vtbl, FAR const char *cmd,
                 FAR char **argv, FAR const char *redirfile, int oflags);
@@ -583,6 +659,9 @@ void nsh_usbtrace(void);
 
 /* Shell command handlers */
 
+#if !defined(CONFIG_NSH_DISABLESCRIPT) && !defined(CONFIG_NSH_DISABLE_LOOPS)
+  int cmd_break(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
+#endif 
 #ifndef CONFIG_NSH_DISABLE_ECHO
   int cmd_echo(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv);
 #endif

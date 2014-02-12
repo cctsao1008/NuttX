@@ -630,7 +630,7 @@
 	  wrong by 64 bytes (Kevin Franzen).
 	* eZ80Acclaim!: Corrected some stack handling errors during interrupt handling
 	   context save and restore (Kevin Franzen).
-	* eZ80Acclaim!: Corrected vector intialization logic (Kevin Franzen).
+	* eZ80Acclaim!: Corrected vector initializeation logic (Kevin Franzen).
 	* eZ80Acclaim!: Corrected overflow problem in the calculation of UART baud rate
 		divisor, the system timer divisor, and the EMAC poll timer.
 	* eZ80Acclaim!: Fixed GPIO pin configuration get serial output
@@ -1465,7 +1465,7 @@
 	  Dean Camera.
 	* examples/nsh: Correct an usage of getopt(): If you stop calling getopt()
 	  before all parameters are parsed, you can leave getopt() in a strange state.
-	* include/nuttx/fb.h: Restore missing RGB type that was accidentally removed
+	* include/nuttx/video/fb.h: Restore missing RGB type that was accidentally removed
 	  when Nokia 6100 support was added.
 	* Rename arch/pjrc-8051 to arch/8051
 	* configs/ne64badge: Add a configuration for the Future Electronics Group
@@ -2172,7 +2172,7 @@
 	  interfaces to read from graphics memory
 	* graphics/nxbe/nxbe_bitmap.c: Fix an error in the error handling that
 	  can cause valid bitmaps to fail to render.
-	* include/nuttx/rgbcolors.h: Fix errors in some 16- and 8-bit color
+	* include/nuttx/video/rgbcolors.h: Fix errors in some 16- and 8-bit color
 	  conversion macros.
 	* tools/incdir.sh: Fix issues when g++ is used as the compiler.  It was
 	  not being recognized and handled properly.
@@ -2192,7 +2192,7 @@
 	  supports using "clusters" of AT24 pages as blocks.  This allows bigger
 	  block sizes and more efficient use of EEPROM when the AT24 is used to
 	  support a file system (such as NXFFS). (Contributed by Hal Glenn).
-	* include/nuttx/rgbcolors.h: More fixes to RGB color conversion
+	* include/nuttx/video/rgbcolors.h: More fixes to RGB color conversion
 	  macros.
 	* arch/arm/src/common/up_createstack.c and up_usestack.c:  For ARM EABI
 	  the stack must be aligned to 8-byte boundaries.  This is necessary for
@@ -3343,7 +3343,7 @@
 	  (submitted by Max Holtzberg).
 	* configs/stm3240g-eval/xmlrpc: An example configuration for the
 	  Embeddable Lightweight XML-RPC Server at apps/examples/xmlrpc.
-	  See http://www.drdobbs.com/web-development/\
+	  See http://www.drdobbs.com/web-development/
 	  an-embeddable-lightweight-xml-rpc-server/184405364 for more info.
 	  Contributed by Max Holtzberg.
 	* configs/*/nxwm/defconfig and sched/task_exithook.c: Fixes for
@@ -4639,7 +4639,7 @@
 6.28 2013-06-14 Gregory Nutt <gnutt@nuttx.org>
 
 	* arch/arm/src/lpc17xx/lpc17_i2c.c:  Interrupts were not being
-	  re-enabled in the I2C intialization function (2013-4-30).
+	  re-enabled in the I2C initializeation function (2013-4-30).
 	* net/sendto.c:  Added skeleton of implementation of send timeouts
 	  for UDP.  However, this functionality really does not make
 	  sense, so it is disabled in the code (2013-4-30).
@@ -5174,7 +5174,7 @@
 	  (2013-7-23).
 	* arch/arm/src/armv7-a/arm_restorefpu.S, arm_savefpu.S, arm_doirq.c,
 	  arm_fullcontextrestore.S, arm_saveusercontext.S:  Add hardware
-	  floating point register save/restore logic for the Cortex-A5\
+	  floating point register save/restore logic for the Cortex-A5
 	  (2013-7-23).
 	* arch/Kconfig:  Attempt at generic external memory configuration is not
 	  flexible enough, especially for the SAMA5.  Move external memory
@@ -5710,8 +5710,8 @@
 	  the interface in this case (2013-10-5).
 	* net/netdev_router.c and net/uip/uip-arp.c:  When the target IP address
 	  does not lie on the device's networker when we have a routing table,
-	  looking the the correct router IP address to use in the ARP request.
-	  In that case, we want the MAC address of the router, not of the the
+	  looking the correct router IP address to use in the ARP request.
+	  In that case, we want the MAC address of the router, not of the
 	  target endpoint (2013-10-5).
 	* net/netdev_rxnotify.c and others: Use the new signature of rxnotify
 	  caused by the routing table.  From Max Holtzberg (2013-10-6).
@@ -5907,7 +5907,7 @@
 	* nuttx/drivers/audio/vs1053.c and nuttx/include/nuttx/audio/audio.h:
 	  Add logic to verify the audio sub-format.  From Ken Pettit (2013-10-28).
 
-6.32 2013-xx-xx Gregory Nutt <gnutt@nuttx.org>
+6.32 2013-12-07 Gregory Nutt <gnutt@nuttx.org>
 
 	* configs/spark:  Spark configuration updated by David Sidrane
 	  (2013-10-30).
@@ -5926,7 +5926,7 @@
 	  error.  From David Sidrane (2013-10-31).
 	* drivers/mtd/mtd_config.c and include/nuttx/configdata.h:  Add a container
 	  for an MTD device that can be used to provide a simple, lightweight
-	  interface to configation data storage that resides on some storage
+	  interface to configuration data storage that resides on some storage
 	  media that is wrapped as an MTD device.  From Ken Pettit (2013-11-1).
 	* configs/mikroe-stm32f4:  Now uses /dev/config for configuration data
 	  storage.  From Ken Pettit (2013-11-1).
@@ -5980,7 +5980,7 @@
 	* configs/sama5d3x-ek:  Add support for the PWM test for the
 	  SAMA5D3x-EK board (2013-11-6).
 	* arch/arm/src/sama5/sam_pwm.c and .h: SAMA5 PWM driver is now
-	  function (2013-11-7).
+	  functional (2013-11-7).
 	* include/nuttx/audio/i2s.h:  First cut at an I2S interface
 	  definition.  This initial definition is sparse will will
 	  probably evolve significantly (2011-11-7).
@@ -5993,7 +5993,7 @@
 	* configs/stm32f429i-disco:  Support for the STM32F429I-Discovery
 	  board from Ken Pettit (2013-11-7).
 	* arch/arm/src/stm32/stm32_usbdev.c:  The long outstanding bug
-	  involviing the handling of OUT SETUP commands has been fixed in
+	  involving the handling of OUT SETUP commands has been fixed in
 	  the STM32 F1 USB device driver by David Sidrane (2013-11-7).
 	* configs/spark/composite/cdc-acm.inf:  Windows CDC/ACM driver
 	  provided by David Sidrane (2013-11-7).
@@ -6028,10 +6028,10 @@
 	* arch/arm/src/sama5/sam_ssc.c and Kconfig:  Add configurable support
 	  for SSC loopback mode (2013-11-10).
 	* include/nuttx/audio/i2s.h, arch/arm/src/sama5/sam_ssc.c, and
-	  drivers/audio/i2schar.c:  Improvied I2S interface design:  Simplified
+	  drivers/audio/i2schar.c:  Improved I2S interface design:  Simplified
 	  audio buffer queuing (2013-11-10).
 	* arch/arm/src/sam34 and arch/arm/include/sam34:  Basic support for
-	  the Atmal SAM4E family.  From Mitko (2013-11-11).
+	  the Atmel SAM4E family.  From Mitko (2013-11-11).
 	* libc/audio/lib_buffer.c:  Remove unused apb_prepare() function
 	  (2013-11-11).
 	* arch/arm/src/stm32:  Added header files and driver framework for the
@@ -6062,10 +6062,10 @@
 	  that will provide raw access to NAND (2013-11-15).
 	* configs/sama5d3x-ek/src/sam_nandflash.c:  Provides board-specific
 	  memory controller initialize for NAND flash (2013-11-15).
-	* include/nuttx/mtd/mtd.h:  Move include/nutt/mtd.h to
+	* include/nuttx/mtd/mtd.h:  Move include/nuttx/mtd.h to
 	  include/nuttx/mtd/mtd.h where it will, hopefully, soon be joined by
 	  other MTD-related header files (2013-11-15).
-	* drivers/mtd/mtd_onfi.c and include/nuttx/mtd/onfi.h:  Add sharedi
+	* drivers/mtd/mtd_onfi.c and include/nuttx/mtd/onfi.h:  Add shared
 	  NAND routines for use with ONFI compatible NAND FLASH devices
 	  (2013-11-15).
 	* configs/ea3131/src/up_usbhost.c:  Board-specific USB host support
@@ -6081,4 +6081,495 @@
 	  NAND support (2013-11-17).
 	* drivers/mtd/mtd_nandscheme.c:  More NAND support (2013-11-17).
 	* include/nuttx/mtd/nand_ecc.h: More NAND (2013-11-17).
+	* drivers/mtd/hamming.c and mtd_nandecc.c and
+	  include/nuttx/mtd/hamming.h:  Beginning of NAND software ECC
+	  calculations. (2013-11-18).
+	* configs/olimex-lpc-h3131:  Add support for the Olimex LPC-H3131
+	* board.  Does not yet boot (2013-11-18).
+	* arch/arm/src/lpc31xx/lpc31_ehci.c:  Add USB host trace support
+	  (2013-11-19).
+	* configs/olimex-lpc-h3131/include/board.h, src/lpc31_boot.c,
+	  lpc31_leds.c, lpc31_usbhost.c, and lpc_h3131.h:  Add GPIO 
+	  support for LED1/2 and for USB power enable and overcurrent
+	  detection (2013-11-19).
+	* configs/olimex-lpc-h3131/nsh/defconfig:  Drop loops-per-msec
+	  count for the Olimex-LPC-H3131.  It seems to be about 25% as
+	  fast as the Embedded Artists EA3131 at the same clocking.
+	  (2013-11-19).
+	* arch/arm/src/arm/up_cache.S and cache.h:  More cache management
+	  functions (2013-11-20).
+	* configs/olimex-lpc-h3131/src/Makefile:  Add SDRAM support.
+	  Untested and probably needs some fine tuining (2013-11-21)
+	* fs/smartfs/README.txt:  Add README for SMARTFS file system.  From
+	  Ken Pettit (2013-11-23)
+	* tools/mkctags.sh:  A script for creating ctags from Ken Pettit
+	  (2013-11-23)
+	* configs/sama5d3x-ek/src/sam_nand.c:  Add support for "auto-mounting"
+	  NAND MTD block driver or NXFFS file system (2013-11-25).
+	* include/mtd/mtd.h:  Packed the geometry structure so that it can
+	  support larger erase block sizes without increasing the size of
+	  the geometry structure (2013-11-27).
+	* drivers/mtd/sst25xx.c:  Add another SST25 SerialFlash driver.  This
+	  one differs from sst25.c because it supports larger SST25 parts:  In
+	  the larger parts support page write instead of byte/word writes like
+	  the smaller parts.  From Ken Pettit (2013-11-28).
+	* drivers/mtd/smart.c: Fixes a minor bug with SMART partition number
+	  reporting (that would only be seen if both partition support and
+	  multi-root directory support are enabled at the same time).  From Ken
+	  Pettit (2013-11-28).
+	* arch/arm/src/stm32/chip/stm32f40xxx_gpio.h: Add support for GPIOK and
+	  GPIOJ.  From Ken Pettit (2013-11-28).
+	* configs/stm32f429i-disco/extflash, Kconfig, include/board.h,
+	  src/stm32f429i-disco-internal.h, up_nsh.c, and up_spi.h:  Add a
+	  configuration and board support for an external SST25 FLASH.  From Ken
+	  Pettit (2013-11-28).
+	* fs/fs_inode.c: The inode semaphore must be re-entrant.  Here is the
+	  re-entering path that I found:  (1) USB host connects to FLASH drive
+	  and creates /dev/sda, (2) /dev/sda is mounted, (3) FLASH drive is
+	  removed but /dev/sda is not destroyed because there is still a
+	  reference on the device because of the mount, (4) umount() is called,
+	  taking the inode semaphore, now the driver tries to destroy the block
+	  driver by calling unregister_blockdriver().  But (5)
+	  unregister_blockdriver() also takes the inode semaphore causing a
+	  deadlock if the inode semaphore is not re-entrant. (2013-11-28).
+	* configs/viewtool-stm32f107:  Add board support for the ViewTool
+	  STM32F103/F107 board with the STM32F107VCT6 installed.  Initial
+	  check-in is the unverified board-support framework only
+	  (2013-11-30).
+	* configs/viewtool-stm32f107/src/stm32_buttons.c and stm32_leds.c:
+	  Add support for LEDs an buttons on the ViewTools STM32F107 board
+	  (2013-11-30).
+	* fs/nxffs/nxffs_initialize.c:  First of probably several changes for
+	  NAND FLASH.  NAND can report read errors because of bad ECC.  Logic
+	  in NXFFS must account for it and not just throw in the towel every
+	  time a read fails (2013-11-30).
+	* drivers/mtd/mtd_nand* and arch/arm/src/sama5/sam_nand.c:  NAND
+	  accesses now work (at least with software ECC and now DMA).  Still
+	  lots of testing to be done (2013-11-30).
+	* fs/nxffs/nxffs_dump.c: Do not abort on a read error.  Just not
+	  the error and continue.  Otherwise, we would not be able to dump
+	  NAND FLASH (2013-11-30).
+	* fs/nxffs:  All read error logic has been revisited and modified in
+	  most places.  If we are using NAND, then read errors probably mean
+	  that the block that was read contains uncorrectable bit errors.  In
+	  this case, we cannot just give up and abort the operations.  Rather,
+	  we need to treat read error like normal bad blocks in order to work
+	  with NAND (2013-12-2).
+	* fs/nxffs/Kconfig and nxffs_initialize.c:  Make the start up scan of
+	  the media option. It just takes to long! (2013-12-02).
+	* drivers/mtd/mtd_nand.c: Fix a typo in calculation of page number
+	  (2013-12-02).
+	* drivers/mtd/README.txt:  New README file (2013-12-04).
+	* arch/arm/src/lm/lm_start.c:  Don't initialize .data if not running
+	  from FLASH (2013-12-05).
+	* fs/fat/fs_configfat.c: Fix a typo in the FAT16 formatting logic.
+	  Was this ever able to format a FAT16 volume? (2013-12-05).
+	* drivers/mtd/mtd_nand.c:  Check if block number is within range at
+	  the top of the loop not the bottom.  Otherwise, we will do a bogus
+	  transfer with the out-of-range block before we test it (2013-12-05).
 
+6.33 2014-01-30 Gregory Nutt <gnutt@nuttx.org>
+
+	* arch/arm/include/a1x and src/a1x:  Directory structure to support
+	  the Allwinner A10.  Not much there on the initial check-in
+	  (2013-12-7).
+	* configs/pcduino-a10:  Directory structure for the pcDuino board.  This
+	  board is based on the Allwinner A10 (2013-12-7).
+	* arch/arm/src/a1x/a1x_boot.c and chip/a1x_intc.h:  More A10 logic
+	  (2013-12-8).
+	* arch/arm/src/a1x/a1x_irq.c:  A10 interrupt handling logic (partial)
+	  (2013-12-8).
+	* drivers/video/ov2640.c: An OV2640 camera driver that will be used to
+	  verify the SAMA5D3x-EK ISI peripheral (2013-1209).
+	* sama5d3x-ek/ov2640 and src/sam_ov2640.c.  Board logic to test the SAMA5D3
+	  ISI peripheral usign the OV2640 camera (2013-12-9).
+	* arch/arm/src/a1x/chip/a1x_uart.h:  A10 UART register definition
+	  header file (2013-12-9).
+	* include/nuttx/video/fb.h:  Move fb.h to include/nuttx/video/
+	  (2013-12-10).
+	* include/nuttx/video/rgbcolors.h:  Move rgbcolors.h to include/nuttx/video.
+	  (2013-12-10).
+	* include/nuttx/fs/smart.h:  Move smart.h to include/fs/smart.h
+	  (2013-12-10).
+	* include/nuttx/fs/ramdisk.h:  Move ramdisk.h to include/fs/ramdisk.h
+	  (2013-12-10).
+	* arch/arm/src/a1x/chip/a1x_pio.h and a10_piocfg.h:  PIO register
+	  defintion header files (2013-12-10).
+	* arch/arm/src/a1x/a1x_pio.c and .h:  Support for PIO configuration
+	  (2013-12-11).
+	* libc/misc/lib_match.c:  Pattern matching logic extended to handle
+	  matches to sets of characters and ranges of character values.  From
+	  Ken Pettit (2013-12-12).
+	* fs/procfs, drivers/mtd, fs/smartfs, includes/nuttx/fs, .. to many
+	  files to list:  Extensive changes by Ken Pettit to extend procfs/
+	  functionality.  Includes some incomplete changes related to
+	  SmartFS (2013-12-12).
+	* configs/stm32f429i-disco: Add support for procfs/ MTD part names.
+	  From Ken Pettit (2013-12-12)
+	* arch/arm/src/a1x/chip/a1x_timer.h:  Timer register bit definitions
+	  (incomplete on initial check-in) (2013-12-12).
+	* lbc/time/lib_strftime.c: Need null-termination on the string
+	  generated by strftime().  From Max Holtzberg (2013-12-12).
+	* sched/nanosleep.c and include/time.h:  Add nanosleep() (2013-12-12).
+	* libc/unistd/lib_sleep.c and lib_usleep.c.  Move sleep() and
+	  usleep() from sched/sleep.c and usleep.c to libc/unistd.  These
+	  functions now just call nanosleep(). (2013-12-13).
+	* syscall/ and include/sys/syscall.h:  Remove sleep and usleep
+	  system calls.  Add nanosleep system call (2013-12-13).
+	* arch/arm/src/a1x/a1x_timerisr.c:  Timer interrupt handler for the
+	  A10 (2013-12-13).
+	* arch/arm/src/a1x/a1x_config.h:  Header file to keep track of A10
+	  configuration decisions (2013-12-13).
+	* arch/arm/src/a1x/a1x_lowputc.c, a1x_serial.c, and a1x_serila.h:
+	  Beginning of an A10 serial driver.  From Alan Carvalho de Assis
+	  (2013-12-13).
+	* fs/procfs/procfs_utils.c:  Move some re-usable functions out of
+	  fs_procfsproc.c into a utility file (2013-12-14).
+	* fs/procfs/fs_procfsuptime.c:  Supports /proc/uptime (2013-12-14).
+	* graphics/nxconsole/nxcon_font.c:  Fix a typo that causes a compile
+	  error when CONFIG_NXCONSOLE_BPP < 8.  From Librae (2013-12-15).
+	* fs/procfs/fs_procfsproc.c:  procfs now shows information about
+	  the group that each thread belongs:  Like parents, group member,
+	  open file, and open sockets (2013-12-15).
+	* fs/procfs/fs_procfsproc.c:  Now shows task stack information
+	  (2013-12-15).
+	* arch/arm/src/armv7-a/cp15.h:  Review A9 TRM and updated CP15
+	  register definitions accordinglyg (2013-12-16).
+	* Makefile.unix: Now has supports qconfig and gconfig targets.
+	  These tools will use the Qt and GTK versions of the kconfig-
+	  frontends configuration tools (if you built them) (2013-12-16)
+	* arch/arm/src/armv7-a/arm_head.h:  Fix some errors in the cache
+	  invalidation logic (only seem to matter for Cortex-A8) (21-3-12-19).
+	* Kconfig and all Make.defs files:  Add CONFIG_DEBUG_NOOPT.  Now
+	  you can independently enable/disable debug symbols and optimization
+	  (2013-12-20).
+	* configs/README.txt and Documentation/NuttxPortingGuide.html:
+	  Remove documentation of NuttX configuration variables.  Since
+	  converting to the kconfig-frontend tools, the NuttX configuration
+	  is now documented in the Kconfig files and summarized in the
+	  autogenerated Documentation/NuttXConfigVariables.html file.
+	  This old configuration variable documentation is now a liability
+	  and, hence, was removed (2013-12-20).
+	* arch/Kconfig, arch/arm/Kconfig, arch/arm/include/x/chip.h, and
+	  and arch/arm/src/x/x_irq.c where x={kinetis, lm, lpc17xx, lpc43xx,
+	  sam34, or stm32}:  Beginning of support for nested, high priority
+	  interrupts.  Lots more still needs to be done (2013-12-21).
+	* arch/arm/src/armv7-m/up_exception.S and arch/arm/src/x/x_vectors.S:
+	  where  x={kinetis, lm, lpc17xx, lpc43xx, sam34, or stm32}: completes
+	  the basic implementation of nested, high priority interreupts.
+	  Still untested and need documentation (2013-12-21).
+	* configs/stm3210e-eval/buttons: Converted to use kconfig-frontends
+	  tools (untested) (2013-12-22).
+	* configs/Kconfig, configs/viewtool-stm32f107/include/board-stm32f103vct6.h,
+	  and /board-stm32f107vct6.h:  The viewtool board can now be configured
+	  to support either the STM32F103VCT6 or the STM32F107VCT6 (2013-12-22).
+	* configs/Kconfig, README.txt, viewtool-stm32f107/highpri, Kconfig,
+	  README.txt, and src/stm32_highpri.c:  This is the initial framework
+	  for a test of the high priority, nested interrupt logic.  Still
+	  incomplete and does not yet run (2013-12-22).
+	* arch/arm/src/armv7-m/ram_vectors.h and up_ramvec_initialize.c: 
+	  Correct alignment of the RAM vector table (2013-12-22).
+	* Kconfig: Support configuration of interrupt controller debug output
+	  (2013-12-22).
+	* configs/viewtool-stm32f107/scripts:  Need to do some special things
+	  in linking of the common vectors are used (2013-12-22).
+	* arch/arm/include/*/irq*.h:  Add definition NR_VECTORS so that the RAM
+	  vector logic can know how many vectors there are.  NR_IRQS is often
+	  not equal to NR_VECTORS (2013-12-23).
+	* arch/arm/src/*_vectors.S:  Standardize the name of the vector table
+	  and the name of the common vector handling logic so that the MCU-
+	  independent logic and work with these (2013-12-23).
+	* configs/viewtool-stm32f107/scripts: Move the RAM vector tables to the
+	  beginning of SRAM.  It seems to require this alignment.  Also, we
+	  don't need different scripts for the CMNVECTOR case now that the vector
+	  table has a common name.
+	* arch/arm/src: armv-7/up_exception.S and xxx/xxx_vectors.S where
+	  xxx={kinetis, lm, lpc17xx, sam34, and stm32}:  Modified register usage
+	  when saving the context on the stack:  In order to handler nested
+	  interrupts, the stack pointer must be used so that when it is
+	  decremented, the contents on the stack are protected from the nested
+	  interrupt handling (2013-12-23).
+	* arch/Kconfig: The CONFIG_ARCH_INT_DISABLEALL feature is disabled (i.e.,
+	  depends on EXPERIMENTAL).  That is because the current implementation
+	  will not work because interrupts get disabled in the interrupt handler
+	  too, defeating the nesting of interrupts.  The fix is easy: It just
+	  needs more levels of priority of disabling interrupts vs interrupt
+	  handling (2013-12-23).
+	* configs/viewtool-stm32f107/src/stm32_highpri.c:  Improved debug output
+	  (2013-12-23).
+	* drivers/lcd/memlcd.c and include/nuttx/lcd/memlcd.h:  Support for the
+	  Sharp Memory LCD from Librae (2013-12-23).
+	* configs/maple/nx and src/:  Add support for a custom Sharp Memory
+	  LCD on the Maple board.  From Librae (2013-12-23).
+	* configs/viewtool-stm32f107/netnsh:  Add a NSH configuration that
+	  supports networking with the DP83848C module installed (2013-12-25).
+	* configs/viewtool-stm32f107/src/stm32_nsh.c, stm32_mmcsd.c, stm32_usb.c,
+	  and stm32_usbmsc.c:  Lay out basic framework for USB and SD card
+	  support.  Code is incomplete and has been neither built nor tested
+	  (2013-12-25).
+	* nuttx/arch/arm/src/stm32/Kconfig, chip/stm32f103vc_pinmap.h,
+	  stm32f105vb_pinmap.h, and stm32f107vc_pinmap.h:  Fix configuration and
+	  pin definition that would prevent building USB for the connectivity and
+	  performance lines (2013-12-25).
+	* stm32l15xxx_pinmap.h: Fix a typo in USB pin definitions (2013-12-25).
+	* configs/viewtool-stm32f107:  Fix building of USB for F103 and F107.
+	  F103 has device only; F107 has OTG FS (2013-12-25).
+	* arch/arm/src/stm32/stm32f10xxx_rcc.c and chip/stm32f10xxx_rcc.h:  Add
+	  clocking support for STM32F107 USB OTG FS (which does not work)
+	  (2013-12-26).
+	* configs/viewtool-stm32f107:  Updates to USB for F103 and USB OTG FS
+	  for F107 (2013-12-16).
+	* arch/arm/src/stm32/chip/stm32f3xxxx_pinmap.h:  Fix pin definition names
+	  for SPI2 MOSI and MISO. Noted by Brian Webb (2013-12-27).
+	* graphics/nxmu, nxsu, and nxglib and libc/nx, nxmu, and nxglib:  Massive
+	  reshuffling of files with (hopefully) no logic changes.   This
+	  reshuffling is necessary if we ever want to build graphics applications
+	  as kernel builds.  There is still more today (NXTK and NXFONTS need to
+	  be moved to libc as well) (2013-12-27).
+	* Move libc/nx, nxmu, and nxglib to a new library, libnx.  The NX
+	  graphics is not properly a part of libc (2013-12-28).
+	* Move graphics/nxfonts to libnx/nxfonts (2013-12-28).
+	* Move graphics/nxtk to libnx/nxtk (2013-12-28).
+	* syscalls: Need to add sem_timedwait() (2013-12-28)
+	* Move more files from graphics/nxmu to libnx/nxmu (2013-12-29).
+	* graphics/nxmu/nx_start.c: NX server start-up wrapper function to
+	  simplify starting the NX server from within the RTOS (2013-12-29).
+	* configs/stm3240g-eval/kernel and configs/stm3240g-eval/scripts:  Port
+	  kernel build logic from the STM32F4Discovery to the STM3240G-EVAL.
+	  This will eventually support testing of the kernel mode NX server
+	  (2013-12-29).
+	* configs/stm3240g-eval/nxwm:  Converted to use the kconfig-frontend
+	  tools (2013-12-29).
+	* configs/stm3240g-eval/knxwm:  Add a kernel mode NxWM build
+	  configuration (not yet verified) (2013-12-29).
+	* Moved configs/stm3240g-eval/src/up_cxxinitialize.c to
+	  apps/platform/stm3240g-eval/up_cxxinitialize.c:  Now it is available
+	  in user-space in the kernel mode build (2013-12-29).
+	* graphics/nxbe, nxsu, libnx/nxmu, and nxtk:  Need to be consistent with
+	  which allocator is used in the different configurations.  Always uses
+	  the user-space allocator because that one is required in certain
+	  configurations (2013-12-30).
+	* include/nuttx/kthread.h:  Move kernel thread definitions out of
+	  os_internal.h so that the rest of the OS can start kernel threads as
+	  well (2013-12-30).
+	* configs/sim/mount/defconfig:  Converted to use kconfig-frontends
+	  tools (2013-21-31).
+	* configs/z16f2800100zcog/nsh:  Add a Z16F NSH configuration.  Does not
+	  yet work (2014-1-1).
+	* arch/arm/src/stm32/stm32_serial.c: Single-wire UART support from
+	  Thomas Grubler (2014-1-2).
+	* tools/configure.c and mkdeps.c:  Fixes for Windows build issues
+	  from Max Holtzberg (2014-1-4).
+	* configs/olimex-stm32-p107/nsh/Make.defs:  Add native Windows build
+	  support for the Olimex STM32 P107.  From Max Holtzberg (2014-1-4).
+	* Makefile.win:  Changes for native Windows build: fix creation of
+	  a .version file if one does not exist.  Make sure that the APPDIR
+	  environment variable is set before configuring.  From Max Holtzberg
+	  (2014-1-4).
+	* configs/viewtool-stm32f107/src/stm32_ssd1289.c:  Add support for
+	  Viewtool SSD1289-based LCD (untested on initial checkin)  (2013-1-5).
+	* arch/arm/include/syscall.h and armv7-a/syscall.h:  Add the syscall.h
+	  header file needed for the Cortex-A architecture (2014-1-5).
+	* arch/arm/src/a1x/a1x_serial.c:  Remove bad flow control logic.  Add
+	  missing interrupt handling logic for UART4-7 (2014-1-6).
+	* nuttx/tools/mkconfig.c: Cast size to unsigned in calculation of
+	  CONFIG_RAM_END to avoid complains about integer overflow (2013-1-6).
+	* nuttx/tools/mkconfig.c: Back out the last change, this causes
+	  problems for assembly language.  How to prevent the integer over-
+	  flow warnings? (2014-1-6).
+	* arch/arm/src/a1x/a1x_serial.c: Handle BUSY interrupt (2014-1-6).
+	* arch/arm/src/armv7-a/arm_head.S and arm_pghead.S:  Add more nop's
+	  after enabling the MMU.  The cortex-a8 seems to need these
+	  (2014-1-7).
+	* arch/arm/src/a1x/a1x_serial.c: Correct handling of the BUSY
+	  interrupt (2014-1-7).
+	* include/sys/types.h:  Add a bogus rsize_t type (2014-1-7).
+	* libc/stdio/lib_gets_s.c:  Add a quick'n'dirty implementation of
+	  gets_s() which replaces gets() in C11 (2014-1-7).
+	* libc/stdio/lib_fopen.c:  Add support for new C11 exclusive open
+	  ("x") (2014-1-7)
+	* include/threads.h:  First crude cut at a C11 threads.h header
+	  file (just maps to pthreads) (2014-1-7).
+	* libc/stdio/lib_libfgets.c:  Common implementation supports all
+	  of the slightly different requirements of gets(), gets_s(), and
+	  fgets() (2014-1-7).
+	* arch/arm/include/stm32/chip.h and chip/stm32f103ze_pinmap.h:
+	  various fixes for STM32F103ZE SPI3.  From Steve Redler IV
+	  (2014-1-7).
+	* graphics/nxsu/Make.defs:  Typo that crept into build in recent
+	  NX reorganization.  Found by Steve Redler IV (2014-1-7).
+	* graphics/nxsu/:  Another typo from the
+	  recent NX reorganization from Steve Redler IV (2014-1-7).
+	* graphics/nxbe/nxbe_closewindow.c, nx_close.c, nx_constructwindow.c,
+	  nx_open.c, and nx_openwindow.c:  Needs to use kuzalloc and kufree,
+	  not umm_zalloc and umm_free.  Additional typo in nx_constructwindow.c
+	  (wnd should be hwnd). Also noted by Steve Redler IV (2014-1-7).
+	* configs/viewtool-stm32f107/src/stm32_touchscreen.c (and other
+	  files):  Add support for the XPT2046 touchscreen controller on
+	  the Viewtool LCD module connected to the Viewtool STM32F103
+	  board (2014-1-9).
+	* libc/strings/lib_stpcpy.c:  Add stpcpy() (2014-1-9).
+	* arch/arm/src/a1x/a1x_lowputc.c and a1x_serial.c:  Mystery
+	  finally solved:  The A10 serial clock is the OSC24M clock.
+	  Thanks to Alan Carvalho de Assis (2014-1-10)
+	* binfmt/binfmt_loadmodule.c: Fix a memory leak (2013-1-11).
+	* configs/stm3vldiscovery: Support for the STM32VL-Discovery board.
+	  Contributed by Alan Carvalho de Assis (2014-1-12).
+	* net/net_close.c, net/Kconfig, include/nuttx/net/net.h, and
+	  include/sys/socket.h: Add support for the SO_LINGER socket option.
+	  Extended from logic provided by Jason Jiang.  Enabled with
+	  CONFIG_NET_SOLINGER.  At this point, it has only been verified that
+	  the changes does not seem to do any harm (2014-1-13).
+	* net/connect.c and net/uip/uip_callback.c: prevent tcp_connect
+	  callback from being double freed.  From Max Holtzberg (2014-1-13).
+	* net/Kconfig and include/nuttx/net/uip/uipopt.h: Add configuration
+	  support for forthcoming TCP write buffering (2014-1-13).
+	* net/net_send_buffered.c, net_send_unbuffered.c, and
+	  uip/uip_tcpwrbuffer.c:  First set of changes to bring in Jason
+	  Jiang's TCP write buffering logic.  Still not complete but
+	  apparently harmless if not selected. (2014-1-13).
+	* All of Jason Jiang's TCP write buffering logic is checked in.
+	  Unfortunately, it does not yet work (2013-1-14).
+	* configs/px4fmu-v2_upstream:  Configuration for testing simple
+	  configurations on the PX4FMU v2.  This version is incomplete
+	  for the PX4 application and is not a replacement for the version
+	  in the PX4 GIT repository.
+	* fs/fat/fs_fat32.c: A correction to FAT cluster allocation from
+	  Tridge via Lorenz Meier (2014-1-14).
+	* net/net_clone.c:  If CONFIG_NET_TCP_WRITE_BUFFERS is selected,
+	  then the socket-related write buffering information must copied
+	  with the other cloned socket data (2014-1-14).
+	* net/net_close.c:  If CONFIG_NET_TCP_WRITE_BUFFERS is selected,
+	  then it is necessary to free the write buffer callback structure
+	  when the socket is closed (2014-1-14).
+	* fs/fat/fs_fat32.c:  Fix some root directory logic that was
+	  conditionally done only for FAT 32.  Apparently this needs to
+	  done for all FAT types.  From Tridge via Lorenz Meier
+	  (2014-1-14).
+	* arch/arm/src/armv6-m/up_doirq.c and armv7-m/up_doirq.c and all
+	  implementations of up_maskack_irq() for all Cortex-M architectures:  Do
+	  not disable and enable the IRQ on each interrupt.  Because (1)
+	  interrupts are already disabled on interrupt entry, (2) this
+	  interferes with controlling the IRQ interrupt setting from interrupt
+	  handlers, and (3) up_disable_irq() does not work anyway so that this
+	  has never done anything (2014-1-15).
+	* All implementations of up_disable_irq() for all Cortex-M3 and M4
+	  architectures:  To enable an interrupt on the Cortex-M3/4 CPU, you
+	  need to set a bit in the ISER register.  To disable the interrupt, you
+	  need to set a bit in the ICER register.  Existing logic was trying to
+	  disable interrupts by clearing the bit in the ISER register.  That will
+	  not work; writing a '0' to the ISER register has no effect.  That
+	  means that up_disable_irq() was doing nothing!  It turns out that that
+	  is not really important because up_disable_irq() is not really used
+	  for that purpose.  But some spurious STM32 ADC interrupts have been
+	  reported to me and this turned out to be the cause in that case.  My
+	  concern now that up_disable_irq() works is that there may now be
+	  unmasked bugs that leave devices in the disabled state?  Thanks to
+	  Manuel Stühn for the tip(2014-1-15).
+	* libc: Move strtol(), strtoll, strtoul(), strtoull(), and strtod() from
+	  libc/string to libc/stdlib where they belong (2014-1-16).
+	* configs/Kconfig:  Board configuration sub-directory can now be
+	  specified.  The default need not be used.  This is really only
+	  useful when CONFIG_ARCH_BOARD_CUSTOM is selected and there is no
+	  meaningful default sub-directory (2014-1-16).
+	* configs/Kconfig:  Backed out the previous change for two reasons:
+	  (1) it has a bad side effect in that the sub-directory setting
+	  no longer tracks the board setting, and (2) you still can't
+	  source the Kconfig file from the custom board directory (2014-1-16).
+	* Makefile.unix, Makefile.win, and configs/Kconfig:  After thinking a
+	  little harder, I re-implemented the backed-out custom configuration
+	  feature.  The new version does not have bad side-effect (1) (but still
+	  has bad side-effect (2)) (2014-1-16).
+	* arch/x86/Kconfig and configs/qemu-i486/nsh/Make.defs and
+	  ostest/Make.defs:  Add a configuration option to select the -m32
+	  compiler option when building for a 32-bit target on a native 64-bit
+	  compiler (2014-1-18).
+	* include/ctype.h: Typo in macro name: iscntrl, not iscontrol (2104-1-17)
+	* libc/unistd/lib_getopt.c:  If there are no arguments (argc == 1), then
+	  getopt() will leave the optind variable in an undefined state (2014-1-20).
+	* configs/olimex-stm32-p107:  Fails to build if SPI3 for UEXT is not
+	  remapped.  From Max Holtzberg (2014-1-21).
+	* Several network related files:  Changes from Max Holtzberg to improve
+	  how network status is reported.  New controls to manage carrier
+	  detect.  (2014-1-21).
+	* configs/16z:  Add basic support for the 16z board. The 16z board is
+	  based on the ZiLOG ZNEOZ16F2811AL20EG part.  See
+	  https://github.com/toyaga/16z for further information (2014-1-22),
+	* tools/Config.mk: 'cypath' must be called if we are using a Windows
+	  native toolchain with the Cygwin 'make' to convert paths to proper
+	  Windows paths.  From Richard Cochran (2014-1-23).
+	* /arch/arm/src/Makefile: dependency directory list is now computed
+	  from the VPATH.  From Richard Cochran (2014-1-23).
+	* arch/arm/src/efm32 and include/efm32:  Basic support for the EFM3
+	  processor family from Richard Cochran (2014-1-23).
+	* configs/efm32-dk3650:  This is Energy Micro's development kit for
+	  the Leopard Gecko MCU, which is an ARM Cortex-M3 device.  From Richard
+	  Cochran (2014-1-23).
+	* arch/arm/src/armv7-m/up_memcpy.S: Assembler changes with the gcc-47
+	  distribution from ARM mean that we need to be explicit about branch
+	  sizes; one or more of the wide branch opcodes results in bad table
+	  branching.  From Mike Smith (2014-1-23).
+	* Many files: renamed up_buttoninit() to board_button_initialize to
+	  better conform to the naming standard.  Now ONLY prototypes in
+	  include/nuttx/arch.h (2014-1024).
+	* Rename up_buttons() to board_buttons() for the same reason (2014-
+	  1-14).
+	* Rename up_irqbutton() to board_button_irq() (2014-1-24).
+	* Rename up_ledinit() to board_led_intialize() (2014-1-24).
+	* Rename up_ledon() to board_led_on() and up_ledoff() to board_led_off()
+	  (2014-1-24).
+	* arch/x86/src/qemu-i486/gemu_head.S:  Patch from Matt Campbell
+	  to fix 'Error: .size expression for idle_stack does not evaluate to
+	  a constant" (2014-1-25).
+	* arch/arm/include/efm32, arch/arm/src/efm32, and configs/efm32-dk360:
+	  Removed all EFM32 support.  Not yet ready to be fielded (2014-1-27).
+	* arch/arm/src/armv7-a/arm_head.S, sama5/sam_boot.c, and several other
+	  files:  Now supports execution from NOR FLASH with .data and .bss in
+	  SDRAM.  This was not possible prior to this because .bss and .data
+	  were initialized before SDRAM was configured.  This logic is still
+	  kind buggy. (2014-1-28).
+	* arch/arm/src/armv7-a/arm_head.S and arm_pghead.S:  Back off to a
+	  somewhat less efficient loop for initializing .data and .bss.  The
+	  original, efficient logic violated the ARM C ABI.  It was okay when
+	  called from boot logic, but not when called from C logic.  This fixes
+	  bugginess reported on 2014-1-28. (2014-1-29).
+
+6.34 2014-xx-xx Gregory Nutt <gnutt@nuttx.org>
+
+	* arch/arm/src/lm/lm_serial.c:  Fix cut'n'paste error that prevented
+	  UARTS2-7 from being used with the LM4F120 Launchpad (2014-02-03).
+	* configs/stm32f4discovery/src: Almost everything renamed to confgorm
+	  to the ever-evolving naming standard (2014-02-03).
+	* arch/arm/src/a1x/a1x_serial.c:  Had the same cut'n'paster error
+	  that the LM4f120 Launchpad had (2013-02-03).
+	* Documentation/NuttXCCodingStandard.html:  Add a coding standards
+	  document.  Very boring stuff (2014-2-6).
+	* Several changes to restore the native Windows build (2014-2-7).
+	* arch/arm/src/lpc17xx/lpc17_usbhost.c: Fix an compilation error
+	  that crept intot he LPC17xx USB host driver.  What happened here?
+	  (2014-2-9).
+	* drivers/usbhost/usbhost_hidmouse.c and other files:  Add support
+	  for a HID boot mouse device.  It compiles but is otherwise
+	  completely untested on initial check-in (2014-2-9).
+	* configs/olimex-lpc1766stk/src/lpc17_hidmouse.c and hidmouse: Add
+	  support of a test of the USB HID mouse (2014-2-9).
+	* drivers/usbhost/usbhost_hidmouse.c: The driver appears to be
+	  functional.  But there are usability issues:  How do you use the
+	  mouse with no cursor?  The HID mouse currently emulates a touchscreen
+	  driver.  That would work in the long run for several reasons (see the
+	  top-level TODO list for details) (2014-2-9).
+	* include/nuttx/input/mouse.h and drivers/usbhost/usbhost_hidmouse.c:
+	  Defined a mouse interface that is very similar to a touchscreen
+	  interface, but allows reporting of all mouse buttons.  Also, unlike
+	  touchscreen drivers, mouse drivers need to report positional data
+	  with no button is pressed so that the mouse position can drive a
+	  cursor (2014-2-10).
+	* drivers/usbhost/usbhost_hidmouse.c, include/nuttx/input/mouse.h, and
+	  include/nuttx/usb/hid.h:  Add support for a mouse wheel (2014-2-10).
+	* drivers/lcd/mio283qt9a.c and include/nuttx/lcd/mio283qt9a.h:  Support
+	  for the MIO283QT9A LCD.  From Toby Duckworth (2014-2-10).
+	* configs/mikroe-stm32f4/src/up_mio283qt9a.c: The Mikroe STM32F4 can
+	  now support the newer MIO283QT9A LCD. From Toby Duckworth (2014-2-10).
+	* MANY files changes based on complaints from the tool CppCheck.  Several
+	  latent bugs were fixed (and most likely some new typos were introduced)
+	  (2014-2-10).

@@ -22,7 +22,7 @@ LCD Header files
       Structures and APIs needed to work with LCD drivers are provided in
       this header file.  This header file also depends on some of the same
       definitions used for the frame buffer driver as privided in
-      include/nuttx/fb.h.
+      include/nuttx/video/fb.h.
 
   struct lcd_dev_s
 
@@ -107,6 +107,12 @@ Re-usable LCD drivers reside in the drivers/lcd directory:
 
   st7567.c.  LCD Display Module, ST7567, Univision Technology Inc. Used
     with the LPCXpresso and Embedded Artists base board.
+
+  memlcd.c.  Sharp Memory LCD Suite, LS013B7DH01, LS013B7DH03, etc.
+    There are some more different models, they are basically controlled
+    by similar logics, thus this driver can be extended.  Example usage:
+
+      configs/maple
 
   OLEDs:
   -----
@@ -201,6 +207,10 @@ that makes then less re-usable:
   R61505U
 
     configs/hymini-stm32v/src/up_r61505u.c
+
+  Sharp Memory LCD:
+
+    configs/maple/src/up_lcd.c
 
   OLEDs:
 

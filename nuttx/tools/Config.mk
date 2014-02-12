@@ -2,7 +2,7 @@
 # Config.mk
 # Global build rules and macros.
 #
-#   Copyright (C) 2011 Gregory Nutt. All rights reserved.
+#   Copyright (C) 2011, 2013-2014 Gregory Nutt. All rights reserved.
 #   Author: Richard Cochran
 #           Gregory Nutt <gnutt@nuttx.org>
 #
@@ -152,6 +152,17 @@ define ASSEMBLE
 	$(Q) $(CC) -c $(AFLAGS) $1 -o $2
 endef
 
+# MOVEOBJ - Default macro to move an object file to the correct location
+# Example: $(call MOVEOBJ, prefix, directory)
+#
+# This is only used in directories that keep object files in sub-directories.
+# Certain compilers (ZDS-II) always place the resulting files in the the
+# directory where the compiler was invoked with not option to generate objects
+# in a different location.
+
+define MOVEOBJ
+endef
+
 # ARCHIVE - Add a list of files to an archive
 # Example: $(call ARCHIVE, archive-file, "file1 file2 file3 ...")
 #
@@ -204,6 +215,18 @@ define DELDIR
 endef
 endif
 
+# MOVEFILE - Move one file
+
+ifeq ($(CONFIG_WINDOWS_NATIVE),y)
+define MOVEFILE
+	$(Q) if exist $1 (move /Y $1 $2)
+endef
+else
+define MOVEFILE
+	$(Q) mv -f $1 $2
+endef
+endif
+
 # CLEAN - Default clean target
 
 ifeq ($(CONFIG_WINDOWS_NATIVE),y)
@@ -218,4 +241,3 @@ define CLEAN
 	$(Q) rm -f *$(OBJEXT) *$(LIBEXT) *~ .*.swp
 endef
 endif
- 

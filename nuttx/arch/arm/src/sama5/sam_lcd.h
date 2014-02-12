@@ -46,7 +46,7 @@
 
 #include <nuttx/nx/nxglib.h>
 
-#include "chip/sam_lcd.h"
+#include "chip/sam_lcdc.h"
 
 #ifdef CONFIG_SAMA5_LCDC
 
@@ -80,7 +80,7 @@
  * Public Functions
  ************************************************************************************/
 /* The SAMA5 LCD driver uses the common framebuffer interfaces declared in
- * include/nuttx/fb.h.
+ * include/nuttx/video/fb.h.
  */
 
 /************************************************************************************

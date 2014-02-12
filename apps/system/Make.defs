@@ -2,7 +2,7 @@
 # apps/system/Make.defs
 # Adds selected applications to apps/ build
 #
-#   Copyright (C) 2012-2013 Gregory Nutt. All rights reserved.
+#   Copyright (C) 2012-2014 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,10 @@ endif
 
 ifeq ($(CONFIG_SYSTEM_I2CTOOL),y)
 CONFIGURED_APPS += system/i2c
+endif
+
+ifeq ($(CONFIG_SYSTEM_INIFILE),y)
+CONFIGURED_APPS += system/inifile
 endif
 
 ifeq ($(CONFIG_SYSTEM_INSTALL),y)
@@ -96,6 +100,14 @@ endif
 
 ifeq ($(CONFIG_SYSTEM_USBMSC),y)
 CONFIGURED_APPS += system/usbmsc
+endif
+
+ifeq ($(CONFIG_SYSTEM_CLE),y)
+CONFIGURED_APPS += system/cle
+endif
+
+ifeq ($(CONFIG_SYSTEM_VI),y)
+CONFIGURED_APPS += system/vi
 endif
 
 ifeq ($(CONFIG_SYSTEM_ZMODEM),y)
