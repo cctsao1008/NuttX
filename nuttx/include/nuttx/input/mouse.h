@@ -1,8 +1,7 @@
 /************************************************************************************
- * configs/mikroe_stm32f4/src/up_boot.c
- * arch/arm/src/board/up_boot.c
+ * include/nuttx/input/mouse.h
  *
- *   Copyright (C) 2011-2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,76 +33,73 @@
  *
  ************************************************************************************/
 
+/* The mouse driver exports a standard character driver interface. By
+ * convention, the mouse driver is registers as an input device at
+ * /dev/mouseN where N uniquely identifies the driver instance.
+ *
+ * This header file documents the generic interface that all NuttX
+ * mouse devices must conform.  It adds standards and conventions on
+ * top of the standard character driver interface.
+ */
+
+#ifndef __INCLUDE_NUTTX_INPUT_MOUSE_H
+#define __INCLUDE_NUTTX_INPUT_MOUSE_H
+
 /************************************************************************************
  * Included Files
  ************************************************************************************/
 
 #include <nuttx/config.h>
 
-#include <debug.h>
+/************************************************************************************
+ * Pre-Processor Definitions
+ ************************************************************************************/
+/* These definitions provide the meaning of all of the bits that may be
+ * reported in the struct mouse_report_s buttons.
+ */
 
-#include <arch/board/board.h>
-
-#include "up_arch.h"
-#include "mikroe-stm32f4-internal.h"
+#define MOUSE_BUTTON_1       (1 << 0) /* True: Left mouse button pressed */
+#define MOUSE_BUTTON_2       (1 << 1) /* True: Right mouse button pressed */
+#define MOUSE_BUTTON_3       (1 << 2) /* True: Middle mouse button pressed */
 
 /************************************************************************************
- * Definitions
+ * Public Types
  ************************************************************************************/
 
-/************************************************************************************
- * Private Functions
- ************************************************************************************/
+/* This structure contains information about the current mouse button states and
+ * mouse position.  Positional units are device specific and determined by mouse
+ * configuration settings.
+ */
 
-/************************************************************************************
- * Public Functions
- ************************************************************************************/
-
-/************************************************************************************
- * Name: stm32_boardinitialize
- *
- * Description:
- *   All STM32 architectures must provide the following entry point.  This entry point
- *   is called early in the intitialization -- after all memory has been configured
- *   and mapped but before any devices have been initialized.
- *
- ************************************************************************************/
-
-void stm32_boardinitialize(void)
+struct mouse_report_s
 {
-  /* First reset the VS1053 since it tends to produce noise out of power on reset */
+  uint8_t  buttons;  /* See TOUCH_* definitions above */
+  int16_t  x;        /* X coordinate of the mouse position */
+  int16_t  y;        /* Y coordinate of the mouse position */
+#ifdef CONFIG_MOUSE_WHEEL
+  int16_t  wheel;    /* Mouse wheel position */
+#endif
+};
 
-#ifdef CONFIG_VS1053
-  (void)stm32_configgpio(GPIO_VS1053_RST);
+/************************************************************************************
+ * Public Data
+ ************************************************************************************/
+
+#ifdef __cplusplus
+#define EXTERN extern "C"
+extern "C"
+{
+#else
+#define EXTERN extern
 #endif
 
-  /* Configure GPIOs for controlling the LCD */
+/************************************************************************************
+ * Public Function Prototypes
+ ************************************************************************************/
 
-#if defined(CONFIG_LCD_MIO283QT2) || defined(CONFIG_LCD_MIO283QT9A)
-  stm32_lcdinitialize();
-#endif
-
-  /* Configure SPI chip selects if 1) SPI is not disabled, and 2) the weak function
-   * stm32_spiinitialize() has been brought into the link.
-   */
-
-#if defined(CONFIG_STM32_SPI1) || defined(CONFIG_STM32_SPI2) || defined(CONFIG_STM32_SPI3)
-  if (stm32_spiinitialize)
-    {
-      stm32_spiinitialize();
-    }
-#endif
-
-  /* Initialize USB if the 1) OTG FS controller is in the configuration and 2)
-   * disabled, and 3) the weak function stm32_usbinitialize() has been brought
-   * into the build. Presumeably either CONFIG_USBDEV or CONFIG_USBHOST is also
-   * selected.
-   */
-
-#ifdef CONFIG_STM32_OTGFS
-  if (stm32_usbinitialize)
-    {
-      stm32_usbinitialize();
-    }
-#endif
+#undef EXTERN
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* __INCLUDE_NUTTX_INPUT_MOUSE_H */

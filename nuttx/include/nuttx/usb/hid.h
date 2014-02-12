@@ -288,6 +288,7 @@
 #define USBHID_MOUSEIN_BUTTON1            (1 << 0)
 #define USBHID_MOUSEIN_BUTTON2            (1 << 1)
 #define USBHID_MOUSEIN_BUTTON3            (1 << 2)
+#define USBHID_MOUSEIN_BUTTON_MASK        (7)
 
 /* Joystick input report (4 bytes) (HID D.1) */
 
@@ -661,6 +662,9 @@ struct usbhid_mousereport_s
   uint8_t xdisp;     /* X displacement */
   uint8_t ydisp;     /* y displacement */
                      /* Device specific additional bytes may follow */
+#ifdef CONFIG_MOUSE_WHEEL
+  uint8_t wdisp;     /* Wheel displacement */
+#endif
 };
 
 /* Joystick input report (1 bytes) (HID D.1) */

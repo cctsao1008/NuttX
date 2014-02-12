@@ -181,9 +181,6 @@
 
 int nsh_archinitialize(void)
 {
-#if defined(HAVE_USBHOST) || defined(HAVE_USBMONITOR)
-  int ret;
-#endif
 #ifdef CONFIG_STM32_SPI3
   FAR struct spi_dev_s *spi;
   FAR struct mtd_dev_s *mtd;
@@ -356,7 +353,7 @@ int nsh_archinitialize(void)
     }
 #endif
 
-#ifdef CONFIG_LCD_MIO283QT2
+#if defined(CONFIG_LCD_MIO283QT2) || defined(CONFIG_LCD_MIO283QT9A)
   /* Configure the TFT LCD module */
 
   message("nsh_archinitialize: Initializing TFT LCD module\n");
