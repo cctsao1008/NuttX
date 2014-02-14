@@ -438,7 +438,7 @@ static int open_serial(void)
 /****************************************************************************
  * Name: echo_serial
  ****************************************************************************/
-#if !defined(CONFIG_NSH_BUILTIN_APPS) && !defined(CONFIG_DISABLE_SIGNALS)
+
 static int echo_serial(void)
 {
   ssize_t bytesread;
@@ -811,7 +811,7 @@ errout:
 #endif
   composite_uninitialize(g_composite.cmphandle);
   final_memory_usage("Final memory usage");
-  return EXIT_SUCCESS;
+  return 1;
 }
 
 /****************************************************************************
@@ -847,6 +847,6 @@ int disconn_main(int argc, char *argv[])
    /* Dump debug memory usage */
 
    final_memory_usage("Final memory usage");
-   return EXIT_SUCCESS;
+   return 0;
 }
 #endif

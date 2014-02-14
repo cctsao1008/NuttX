@@ -47,7 +47,7 @@
  * Private Definitions
  **************************************************************************/
  
-#if !((defined __CYGWIN__) || (defined __APPLE__))
+#ifdef __CYGWIN__
 # define SYMBOL(s) _##s
 #else
 # define SYMBOL(s) s
@@ -79,7 +79,7 @@
 
 	.text
 	.globl	SYMBOL(up_setjmp)
-#if !((defined __CYGWIN__) || (defined __APPLE__))
+#ifndef __CYGWIN__
 	.type	SYMBOL(up_setjmp), @function
 #endif
 SYMBOL(up_setjmp):
@@ -110,11 +110,11 @@ SYMBOL(up_setjmp):
 
 	xorl	%eax, %eax
 	ret
-#if !((defined __CYGWIN__) || (defined __APPLE__))
+#ifndef __CYGWIN__
 	.size	SYMBOL(up_setjmp), . - SYMBOL(up_setjmp)
 #endif
 	.globl	SYMBOL(up_longjmp)
-#if !((defined __CYGWIN__) || (defined __APPLE__))
+#ifndef __CYGWIN__
 	.type	SYMBOL(up_longjmp), @function
 #endif
 SYMBOL(up_longjmp):
@@ -135,8 +135,8 @@ SYMBOL(up_longjmp):
 
 	/* Jump to saved PC.  */
 
-	jmp	*(%edx)
-#if !((defined __CYGWIN__) || (defined __APPLE__))
+	jmp		*%edx
+#ifndef __CYGWIN__
 	.size SYMBOL(up_longjmp), . - SYMBOL(up_longjmp)
 #endif
 

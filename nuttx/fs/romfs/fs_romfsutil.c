@@ -935,6 +935,7 @@ int romfs_datastart(struct romfs_mountpt_s *rm, uint32_t offset,
                     uint32_t *start)
 {
   int16_t ndx;
+  uint16_t namelen;
   int     ret;
 
   /* Traverse hardlinks as necesssary to get to the real file header */

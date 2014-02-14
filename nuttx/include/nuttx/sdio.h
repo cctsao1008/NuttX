@@ -107,7 +107,7 @@
                                * -Addressed Command, R2 response 31:16=RCA */
 #  define MMCSD_CMDIDX10  10  /* SEND_CID: Asks card to send its card identification (CID)
                                * -Addressed Command, R2 response 31:16=RCA */
-#  define MMC_CMDIDX11    11  /* READ_DAT_UNTIL_STOP   
+#  define MMC_CMDIDX11    11  /* READ_DAT_UNTIL_STOP
                                * -Addressed data transfer command, R1 response 31:0=DADR */
 #  define MMCSD_CMDIDX12  12  /* STOP_TRANSMISSION: Forces the card to stop transmission
                                * -Addressed Command, R1b response */

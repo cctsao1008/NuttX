@@ -433,7 +433,6 @@ static void do_dependency(const char *file, char separator)
       exit(EXIT_FAILURE);
     }
 
-#if 0
   /* Copy " -MT " */
 
   if (g_objpath)
@@ -471,7 +470,6 @@ static void do_dependency(const char *file, char separator)
       strcat(g_command, tmp);
       free(dupname);
     }
-#endif
 
   strcat(g_command, moption);
 
