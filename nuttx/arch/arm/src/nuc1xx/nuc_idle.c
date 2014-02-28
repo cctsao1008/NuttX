@@ -1,5 +1,5 @@
 /****************************************************************************
- *  arch/arm/src/stm32/nuc_idle.c
+ *  arch/arm/src/nuc1xx/nuc_idle.c
  *
  *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>

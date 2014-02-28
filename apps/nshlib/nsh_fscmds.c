@@ -502,6 +502,17 @@ static int cat_common(FAR struct nsh_vtbl_s *vtbl, FAR const char *cmd,
         }
     }
 
+   /* Make sure that the following NSH prompt appears on a new line.  If the
+    * file ends in a newline, then this will print an extra blank line
+    * before the prompt, but that is preferable to the case where there is
+    * no newline and the NSH prompt appears on the same line as the cat'ed
+    * file.
+    */
+
+   nsh_output(vtbl, "\n");
+
+   /* Close the input file and return the result */
+
    (void)close(fd);
    return ret;
 }
@@ -995,7 +1006,7 @@ int cmd_ls(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
  * Name: cmd_mkdir
  ****************************************************************************/
 
-#if !defined(CONFIG_DISABLE_MOUNTPOINT) && CONFIG_NFILE_DESCRIPTORS > 0 && defined(CONFIG_FS_WRITABLE)
+#ifdef NSH_HAVE_DIROPTS
 #ifndef CONFIG_NSH_DISABLE_MKDIR
 int cmd_mkdir(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
 {
@@ -1136,7 +1147,7 @@ int cmd_mkfifo(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
  * Name: cmd_mkrd
  ****************************************************************************/
 
-#if !defined(CONFIG_DISABLE_MOUNTPOINT) && CONFIG_NFILE_DESCRIPTORS > 0 && defined(CONFIG_FS_WRITABLE)
+#ifdef NSH_HAVE_WRITABLE_MOUNTPOINT
 #ifndef CONFIG_NSH_DISABLE_MKRD
 int cmd_mkrd(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
 {
@@ -1298,7 +1309,7 @@ int cmd_mksmartfs(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
  * Name: cmd_mv
  ****************************************************************************/
 
-#if !defined(CONFIG_DISABLE_MOUNTPOINT) && CONFIG_NFILE_DESCRIPTORS > 0 && defined(CONFIG_FS_WRITABLE)
+#ifdef NSH_HAVE_DIROPTS
 #ifndef CONFIG_NSH_DISABLE_MV
 int cmd_mv(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
 {
@@ -1342,7 +1353,7 @@ int cmd_mv(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
  * Name: cmd_rm
  ****************************************************************************/
 
-#if !defined(CONFIG_DISABLE_MOUNTPOINT) && CONFIG_NFILE_DESCRIPTORS > 0 && defined(CONFIG_FS_WRITABLE)
+#ifdef NSH_HAVE_DIROPTS
 #ifndef CONFIG_NSH_DISABLE_RM
 int cmd_rm(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
 {
@@ -1369,7 +1380,7 @@ int cmd_rm(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
  * Name: cmd_rmdir
  ****************************************************************************/
 
-#if !defined(CONFIG_DISABLE_MOUNTPOINT) && CONFIG_NFILE_DESCRIPTORS > 0 && defined(CONFIG_FS_WRITABLE)
+#ifdef NSH_HAVE_DIROPTS
 #ifndef CONFIG_NSH_DISABLE_RMDIR
 int cmd_rmdir(FAR struct nsh_vtbl_s *vtbl, int argc, char **argv)
 {

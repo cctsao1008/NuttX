@@ -6089,7 +6089,7 @@
 	* arch/arm/src/lpc31xx/lpc31_ehci.c:  Add USB host trace support
 	  (2013-11-19).
 	* configs/olimex-lpc-h3131/include/board.h, src/lpc31_boot.c,
-	  lpc31_leds.c, lpc31_usbhost.c, and lpc_h3131.h:  Add GPIO 
+	  lpc31_leds.c, lpc31_usbhost.c, and lpc_h3131.h:  Add GPIO
 	  support for LED1/2 and for USB power enable and overcurrent
 	  detection (2013-11-19).
 	* configs/olimex-lpc-h3131/nsh/defconfig:  Drop loops-per-msec
@@ -6267,7 +6267,7 @@
 	  README.txt, and src/stm32_highpri.c:  This is the initial framework
 	  for a test of the high priority, nested interrupt logic.  Still
 	  incomplete and does not yet run (2013-12-22).
-	* arch/arm/src/armv7-m/ram_vectors.h and up_ramvec_initialize.c: 
+	* arch/arm/src/armv7-m/ram_vectors.h and up_ramvec_initialize.c:
 	  Correct alignment of the RAM vector table (2013-12-22).
 	* Kconfig: Support configuration of interrupt controller debug output
 	  (2013-12-22).
@@ -6573,3 +6573,119 @@
 	* MANY files changes based on complaints from the tool CppCheck.  Several
 	  latent bugs were fixed (and most likely some new typos were introduced)
 	  (2014-2-10).
+	* arch/arm/include/samd and src/samd:  Basic framework to support Atmel
+	  SAMD20 Cortex-M0+ chips.  Initial check-in is incomplete; this is a
+	  work in progress (2014-2-12).
+	* configs/samd20-xplained:  Framework to support the Amtel SAMD20
+	  Xplained Pro.  Initial check is just an unverified, rough port of
+	  the SAM4L Xplained Pro configuration (2014-2-12).
+	* arch/arm/src/stm32/stm32_serial.c:  Fix cloned type:  FLOWCONTROL
+	  vs FLOWCONROL (2014-2-14).
+	* net/uip/uip_tcptimer.c: Back out a small part of the 6.33 write
+	  buffering changed.  David G says that this causes problems in
+	  connecting to a server (2014-2-15).
+	* The basic SAMD20 Xplained Pro port is complete but still untested
+	  (2014-2-16).
+	* sched/task_terminate.c:  Always returns an error because the
+	  return value was not being set correctly.  From Gosha (2014-2-18).
+	* stm32f429i-disco/ostest-fpu:  OS test for FPU-enabled system from
+	  David Alessio (2014-2-18).
+	* Other misc changes to support FPU on STM32F429 Discovery from
+	  David Alession (2014-2-18)
+	* stm32f429i-disco/src:  Files renamed to make more consistent
+	  with current board file naming conventions (2014-2-18).
+	* stm32 SPI: Disable SPI before changing CR1 register.  From David
+	  Sidrane (2014-2-18).
+	* stm32 TIM: Set CCMR when selecting timer channerl.  From David
+	  Sidrane (2014-2-18).
+	* configs/spark: Board configuration updated by David Sidrane
+	  (2014-2-19).
+	* libc/stdio/lib_sscanf.c:  Bug fixes from David Sidrane (2014-2-18).
+	* nuttx/drivers/wireless/cc3000 and nuttx/include/nuttx/wireless/cc3000:
+	  Numerous updates to the CC3000 driver from David Sidrane (2014-2-18).
+	* nuttx/configs/stm3240g-eval/webserver: Converted to use the
+	  kconfig-frontends tools by Alan Carvalho de Assis (2014-2-18).
+	* configs/mbed:  All mbed configurations have been converted to use
+	  the kconfig-frontends tools (unverified) (2014-2-18).
+	* fs/fs_opendir.c, fs_readdir.c, et al: Modified so that errors
+	  will not be reported if you attempt to list a empty pseudo-directory
+	  (2014-2-19).
+	* fs/fs_rmdir.c: 'rmdir' can now be used to remove empty directories in
+	  the pseudo-filesystem such as might be left after umounting a
+	  file system (2014-2-19).
+	* fs/fs_mkdir.c: 'mkdir' can now be used to create empty directories in
+	  the pseudo-filesystem (2014-2-19).
+	* drivers/lcd/mio283qt9a.c: Bug fix from Toby Duckwork (2014-2-19).
+	* fs/fs_rename.c: 'rename' can now be used to rename nodes in the
+	  pseudo-filesystem (2014-2-19).
+	* arch/arm/src/samd/sam_sercom.c:  Move some common SERCOM logic
+	  from the USART-specific files to a share-able file where it can
+	  also be used by SPI and I2C drivers (2014-2-19).
+	* arch/arm/src/samd/sam_spi.c:  Add framework for a SAMD SPI driver.
+	  The initial check-in is a crude port of the SAMA5 SPI driver with
+	  a lot of missing logic (2014-2-19).
+	* arch/arm/src/lm/lm_lowputc.c and lm_serial.c:  Several errors
+	  are unmasked with UARTs > UART2 are enabled.  From gosha (2014-2-19).
+	* arch/arm/src/samd/sam_spi.c:  The SPI driver is code complete,
+	  but untested (2014-2-20).
+	* configs/olimex-lpc1766stck/ftpc:  Configuration convert to use
+	  the kconfig-frontends tools by Alan Carvalho de Assis (2014-2-20).
+	* fs/fs_mkdir.c: 'unlink' can now be used to remove things from the
+	  pseudo-filesystem.  A new configuration option as been added:
+	  CONFIG_DISABLE_PSEUDOFS_OPERATIONS that effectively can be set
+	  back out these recent changes in rmdir, mkdir, unlink, and rename
+	  for operations on the pseudo-filesystem (2014-2-20).
+	* Kconfig:  Add an option to select default values for configuration
+	  variables based upon whether you want a smaller footprint or more
+	  features.  CONFIG_DEFAULT_SMALL is used in sched/Kconfig and
+	  fs/Kconfig and in apps/.  It turns out this this is not very useful
+	  if you are modifying existing configurations because then the
+	  defaults do not apply (2014-2-20).
+	* arch/arm/src/sam34/chip/sam4e_vectors.h:  Add vector definitions
+	  for the SAM4E (2014-2-21).
+	* arch/arm/src/sam34/chip/sam4e_memorymap.h:  Add SAM4E memory map
+	  (2014-2-21).
+	* arch/arm/src/sam34/sam4e_gpio.h, sam4e_periphclks.h, and chip/sam4e_pio.h:
+	  Add PIO support for the SAM4E (2014-2-21).
+	* configs/stm3220g-eval/nsh/defconfig: Converted to use kconfig-frontends
+	  by Alan Carvalho de Assis (2014-2-10)
+	* configs/*/defconfig: Comment out all CONFIG_APPS_DIR settings.  These
+	  should not be set in the default configurations because we don't know
+	  where the apps/ directly will reside until configuration time (2014-2-21).
+	* arch/arm/src/sam34/chip/sam4e_pinmap.h:  SAM4E pin multiplexing
+	  definitions (2014-2-21).
+	* sched/sched_processtimer.c and fs/procfs/fs_procfscpuload.c:  Add
+	  logic to measure and calculate the CPU load percentage.  From David
+	  Alessio (2014-2-22).
+	* sched/sched_processtimer.c, sched_cpuload.c, fs/procfs/fs_procfscpuload.c,
+	  and fs_procfscpuload.c:  CPU load logic extended to keep counts on each
+	  thread.  The per-thread CPU is now reported in the procfs under
+	  <pid>/loadavg (2014-2-23).
+	* include/stddef.h:  ptrdiff_t is defined twice in stddef.h and also in
+	  sys/types.h.  stdef.h is the correct location for the definition, but
+	  it includes sys/types.h so, at least for now, the definition will be
+	  retained in sys/types.h (2014-2-25).
+	* net/net_close.c:  Fix one place where the connection reference count
+	  was not being decremented.  This is really a cosmetic change BUT
+	  when CONFIG_DEBUG_NET is enable, it will cause assertions (2014-2-25).
+	* arch/arm/src/sama5/sam_adc.h:  Fix typos in the SAMA5 ADC register
+	  definition header file (2014-2-26).
+	* arch/arm/src/sam34:  The port to the SAM4E is code complete (2014-2-16).
+	* include/cxx: Fix some bad idempotence defintions in header files
+	  (2014-2-27).
+	* sched/sched_cpuload.c:  Change calulation of the total count when the
+	  time constant related delay elapsed.  The total count is now always
+	  guaranteed to add up to 100% (excepting only truncation errors)
+	  (2014-2-27).
+	* fs/procfs/fs_procfscpuload.c and fs_procfsproc.c:  Remove the newline
+	  at the end of the percentage so that the returned strings can be
+	  printed on the same line as other values (2014-2-27).
+	* sched/Kconfig, sched_cpuload.c, and nuttx/sched/sched_processtimer.c:
+	  An asynchronous, "external" clock may now be used to drive the CPU
+	  load calculations for more accurate load measurements when needed
+	  (2014-2-27).
+	* configs/*/defconfig:  If CONFIG_NSH_LIBRARY=y then set CONFIG_NSH_READLINE=y
+	  otherwise the CLE will be selected by default the next time that
+	  make menuconfig is used (2014-2-28).
+	* include/cxx/cstdbool:  Ignore _Bool8 if CONFIG_C99_BOOL8=y. (2014-2-28).
+ 

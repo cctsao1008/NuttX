@@ -12,7 +12,7 @@ CONFIG_NUTTX_NEWCONFIG=y
 #
 # Build Configuration
 #
-CONFIG_APPS_DIR="../apps"
+# CONFIG_APPS_DIR="../apps"
 # CONFIG_BUILD_2PASS is not set
 
 #
@@ -526,6 +526,8 @@ CONFIG_EXAMPLES_NSH=y
 # NSH Library
 #
 CONFIG_NSH_LIBRARY=y
+CONFIG_NSH_READLINE=y
+# CONFIG_NSH_CLE is not set
 CONFIG_NSH_BUILTIN_APPS=y
 
 #

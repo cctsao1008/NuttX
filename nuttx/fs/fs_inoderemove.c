@@ -63,83 +63,103 @@
  ****************************************************************************/
 
 /****************************************************************************
- * Name: inode_unlink
- ****************************************************************************/
-
-static void inode_unlink(struct inode *node,
-                         struct inode *peer,
-                         struct inode *parent)
-{
-  /* If peer is non-null, then remove the node from the right of
-   * of that peer node.
-   */
-
-  if (peer)
-    {
-      peer->i_peer = node->i_peer;
-    }
-
-  /* If parent is non-null, then remove the node from head of
-   * of the list of children.
-   */
-
-  else if (parent)
-    {
-      parent->i_child = node->i_peer;
-    }
-
-  /* Otherwise, we must be removing the root inode. */
-
-  else
-    {
-       root_inode = node->i_peer;
-    }
-
-  node->i_peer    = NULL;
-}
-
-/****************************************************************************
  * Public Functions
  ****************************************************************************/
+
+/****************************************************************************
+ * Name: inode_unlink
+ *
+ * Description:
+ *   Given a path, remove a the node from the in-memory, inode tree that the
+ *   path refers to.  This is normally done in preparation to removing or
+ *   moving an inode.
+ *
+ * Assumptions/Limitations:
+ *   The caller must hold the inode semaphore
+ *
+ ****************************************************************************/
+
+FAR struct inode *inode_unlink(FAR const char *path)
+{
+  const char       *name = path;
+  FAR struct inode *node;
+  FAR struct inode *peer;
+  FAR struct inode *parent;
+
+  /* Verify parameters.  Ignore null paths and relative paths */
+
+  if (!path || *path == '\0' || path[0] != '/')
+    {
+      return NULL;
+    }
+
+  /* Find the node to unlink */
+
+  node = inode_search(&name, &peer, &parent, (const char **)NULL);
+  if (node)
+    {
+      /* If peer is non-null, then remove the node from the right of
+       * of that peer node.
+       */
+
+      if (peer)
+        {
+          peer->i_peer = node->i_peer;
+        }
+
+      /* If parent is non-null, then remove the node from head of
+       * of the list of children.
+       */
+
+      else if (parent)
+        {
+          parent->i_child = node->i_peer;
+        }
+
+      /* Otherwise, we must be removing the root inode. */
+
+      else
+        {
+           root_inode = node->i_peer;
+        }
+
+      node->i_peer = NULL;
+    }
+
+  return node;
+}
 
 /****************************************************************************
  * Name: inode_remove
  *
  * Description:
- *   Remove a node from the in-memory, inode tree
+ *   Given a path, remove a the node from the in-memory, inode tree that the
+ *   path refers to and free all resources related to the inode.  If the
+ *   inode is in-use, then it will be unlinked, but will not be freed until
+ *   the last reference to the inode is released.
  *
- *   NOTE: Caller must hold the inode semaphore
+ * Assumptions/Limitations:
+ *   The caller must hold the inode semaphore
  *
  ****************************************************************************/
 
 int inode_remove(FAR const char *path)
 {
-  const char       *name = path;
   FAR struct inode *node;
-  FAR struct inode *left;
-  FAR struct inode *parent;
 
-  if (!*path || path[0] != '/')
-    {
-      return -EINVAL;
-    }
+  /* Find the inode and unlink it from the in-memory inode tree */
 
-  /* Find the node to delete */
-
-  node = inode_search(&name, &left, &parent, (const char **)NULL);
+  node = inode_unlink(path);
   if (node)
     {
-      /* Found it, now remove it from the tree */
-
-      inode_unlink(node, left, parent);
-
-      /* We cannot delete it if there reference to the inode */
+      /* Found it! But we cannot delete the inode if there are references
+       * to it
+       */
 
       if (node->i_crefs)
         {
-          /* In that case, we will mark it deleted, when the FS
-           * releases the inode, we will then, finally delete
-           * the subtree.
+          /* In that case, we will mark it deleted, when the filesystem
+           * releases the inode, we will then, finally delete the subtree
            */
 
            node->i_flags |= FSNODEFLAG_DELETED;
@@ -155,7 +175,7 @@ int inode_remove(FAR const char *path)
         }
     }
 
-  /* The node does not exist or it has references */
+  /* The node does not exist */
 
   return -ENOENT;
 }

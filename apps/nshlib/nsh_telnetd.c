@@ -131,8 +131,8 @@ int nsh_telnetlogin(struct console_stdio_s *pstate)
       fflush(pstate->cn_outstream);
       if (fgets(pstate->cn_line, CONFIG_NSH_LINELEN, INSTREAM(pstate)) != NULL)
         {
-          strcpy(username, pstate->cn_line);
-          username[strlen(pstate->cn_line) - 1] = 0;
+          strncpy(username, pstate->cn_line, sizeof(username));
+          username[sizeof(username) - 1] = 0;
         }
 
       /* Ask for the login password */
@@ -144,8 +144,8 @@ int nsh_telnetlogin(struct console_stdio_s *pstate)
         {
           /* Verify the username and password */
 
-          strcpy(password,pstate->cn_line);
-          password[strlen(pstate->cn_line) - 1] = 0;
+          strncpy(password, pstate->cn_line, sizeof(password));
+          password[sizeof(password) - 1] = 0;
 
           if (strcmp(password, CONFIG_NSH_TELNET_PASSWORD) == 0 &&
               strcmp(username, CONFIG_NSH_TELNET_USERNAME) == 0)

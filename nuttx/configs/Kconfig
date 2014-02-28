@@ -250,14 +250,6 @@ config ARCH_BOARD_LPC4330_XPLORER
 		NXG Technologoies LPC4330 Xplorer board.  This board is based on the
 		LPC4330FET100.  The Code Red toolchain is used by default.
 
-config ARCH_BOARD_M68332EVB
-	bool "Motoroloa M68332EVB"
-	depends on ARCH_M68332
-	---help---
-		This is a work in progress for the venerable m68322evb board from
-		Motorola. This OS is also built with the arm-nuttx-elf toolchain.  STATUS:
-		This port was never completed.
-
 config ARCH_BOARD_MBED
 	bool "mbed LCP1768"
 	depends on ARCH_CHIP_LPC1768
@@ -551,6 +543,17 @@ config ARCH_BOARD_SAMA5D3X_EK
 	select ARCH_HAVE_IRQBUTTONS
 	---help---
 		The port of NuttX to the Atmel SAMA5D3x-EK development board (where x=1,3,4, or 5).
+
+config ARCH_BOARD_SAMD20_XPLAINED
+	bool "Atmel SAMD20-Xplained Pro development board"
+	depends on ARCH_CHIP_SAMD20J18
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		The port of NuttX to the Atmel SAMD20-Xplained Pro development board.
+		This board features the ATSAMD20J18A MCU (Cortex-M0+ with 256KB of FLASH
+		and 32KB of SRAM).
 
 config ARCH_BOARD_SAM3UEK
 	bool "Atmel SAM3U-EK development board"
@@ -906,7 +909,6 @@ config ARCH_BOARD
 	default "lm4f120-launchpad"   if ARCH_BOARD_LM4F120_LAUNCHPAD
 	default "lpc4330-xplorer"     if ARCH_BOARD_LPC4330_XPLORER
 	default "lpcxpresso-lpc1768"  if ARCH_BOARD_LPCXPRESSO
-	default "m68322evb"           if ARCH_BOARD_M68332EVB
 	default "maple"               if ARCH_BOARD_MAPLE
 	default "mbed"                if ARCH_BOARD_MBED
 	default "mcu123-lpc214x"      if ARCH_BOARD_MCU123
@@ -935,6 +937,7 @@ config ARCH_BOARD
 	default "qemu-i486"           if ARCH_BOARD_QEMU_I486
 	default "rgmp"                if ARCH_BOARD_RGMP
 	default "sama5d3x-ek"         if ARCH_BOARD_SAMA5D3X_EK
+	default "samd20-xplained"     if ARCH_BOARD_SAMD20_XPLAINED
 	default "sam3u-ek"            if ARCH_BOARD_SAM3UEK
 	default "sam4l-xplained"      if ARCH_BOARD_SAM4L_XPLAINED
 	default "sam4s-xplained"      if ARCH_BOARD_SAM4S_XPLAINED
@@ -1098,9 +1101,6 @@ endif
 if ARCH_BOARD_LPCXPRESSO
 source "configs/lpcxpresso-lpc1768/Kconfig"
 endif
-if ARCH_BOARD_M68332EVB
-source "configs/m68332evb/Kconfig"
-endif
 if ARCH_BOARD_MAPLE
 source "configs/maple/Kconfig"
 endif
@@ -1184,6 +1184,9 @@ source "configs/rgmp/Kconfig"
 endif
 if ARCH_BOARD_SAMA5D3X_EK
 source "configs/sama5d3x-ek/Kconfig"
+endif
+if ARCH_BOARD_SAMD20_XPLAINED
+source "configs/samd20-xplained/Kconfig"
 endif
 if ARCH_BOARD_SAM3UEK
 source "configs/sam3u-ek/Kconfig"

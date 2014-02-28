@@ -1,7 +1,7 @@
 /****************************************************************************
  * fs/fs_mkdir.c
  *
- *   Copyright (C) 2007, 2008 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007, 2008, 2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,26 @@
 #include "fs_internal.h"
 
 /****************************************************************************
- * Definitions
+ * Pre-processor Definitions
  ****************************************************************************/
+
+#undef FS_HAVE_WRITABLE_MOUNTPOINT
+#if !defined(CONFIG_DISABLE_MOUNTPOINT) && defined(CONFIG_FS_WRITABLE) && \
+    CONFIG_NFILE_STREAMS > 0
+#  define FS_HAVE_WRITABLE_MOUNTPOINT 1
+#endif
+
+#undef FS_HAVE_PSEUDOFS_OPERATIONS
+#if !defined(CONFIG_DISABLE_PSEUDOFS_OPERATIONS) && CONFIG_NFILE_STREAMS > 0
+#  define FS_HAVE_PSEUDOFS_OPERATIONS 1
+#endif
+
+#undef FS_HAVE_MKDIR
+#if defined(FS_HAVE_WRITABLE_MOUNTPOINT) || defined(FS_HAVE_PSEUDOFS_OPERATIONS)
+#  define FS_HAVE_MKDIR 1
+#endif
+
+#ifdef FS_HAVE_MKDIR
 
 /****************************************************************************
  * Private Variables
@@ -76,55 +94,95 @@ int mkdir(const char *pathname, mode_t mode)
 {
   FAR struct inode *inode;
   const char       *relpath = NULL;
+  int               errcode;
   int               ret;
 
-  /* Get an inode for this file */
+  /* Find the inode that includes this path */
 
   inode = inode_find(pathname, &relpath);
-  if (!inode)
+  if (inode)
     {
-      /* There is no mountpoint that includes in this path */
+      /* An inode was found that includes this path and possibly refers to a
+       * mountpoint.
+       */
 
-      ret = ENOENT;
-      goto errout;
-    }
+#ifndef CONFIG_DISABLE_MOUNTPOINT
+      /* Check if the inode is a valid mountpoint. */
 
-  /* Verify that the inode is a valid mountpoint. */
-
-  if (!INODE_IS_MOUNTPT(inode) || !inode->u.i_mops)
-    {
-      ret = ENXIO;
-      goto errout_with_inode;
-    }
-
-  /* Perform the mkdir operation using the relative path
-   * at the mountpoint.
-   */
-
-  if (inode->u.i_mops->mkdir)
-    {
-      ret = inode->u.i_mops->mkdir(inode, relpath, mode);
-      if (ret < 0)
+      if (!INODE_IS_MOUNTPT(inode) || !inode->u.i_mops)
         {
-          ret = -ret;
+          /* The inode is not a mountpoint */
+
+          errcode = ENXIO;
           goto errout_with_inode;
         }
-    }
-  else
-    { 
-      ret = ENOSYS;
+
+      /* Perform the mkdir operation using the relative path
+       * at the mountpoint.
+       */
+
+      if (inode->u.i_mops->mkdir)
+        {
+          ret = inode->u.i_mops->mkdir(inode, relpath, mode);
+          if (ret < 0)
+            {
+              errcode = -ret;
+              goto errout_with_inode;
+            }
+        }
+      else
+        {
+          errcode = ENOSYS;
+          goto errout_with_inode;
+        }
+
+      /* Release our reference on the inode */
+
+      inode_release(inode);
+#else
+      /* But mountpoints are not supported in this configuration */
+
+      errcode = EEXIST;
       goto errout_with_inode;
+#endif
     }
+
+#ifndef CONFIG_DISABLE_PSEUDOFS_OPERATIONS
+  /* No inode exists that contains this path.  Create a new inode in the
+   * pseudo-filesystem at this location.
+   */
+
+  else
+    {
+      /* Create an inode in the pseudo-filesystem at this path */
+
+      inode_semtake();
+      ret = inode_reserve(pathname, &inode);
+      inode_semgive();
+
+      if (ret < 0)
+        {
+          errcode = -ret;
+          goto errout;
+        }
+    }
+#else
+  else
+    {
+      errcode = ENXIO;
+      goto errout;
+    }
+#endif
 
   /* Directory successfully created */
 
-  inode_release(inode);
   return OK;
 
  errout_with_inode:
   inode_release(inode);
  errout:
-  set_errno(ret);
+  set_errno(errcode);
   return ERROR;
 }
 
+#endif /* FS_HAVE_MKDIR */

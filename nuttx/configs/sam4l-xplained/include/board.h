@@ -196,7 +196,7 @@
 /* LED definitions ******************************************************************/
 /* There are three LEDs on board the SAM4L Xplained Pro board:  The EDBG
  * controls two of the LEDs, a power LED and a status LED.  There is only
- * one user controllable LED, a yellow LED labeled LED0 near the SAM4L USB
+ * one user controllable LED, a yellow LED labelled LED0 near the SAM4L USB
  * connector.
  *
  * This LED is controlled by PC07 and LED0 can be activated by driving the
@@ -214,7 +214,7 @@
 
 /* When CONFIG_ARCH_LEDS is defined in the NuttX configuration, NuttX will
  * control LED0 as defined below.  Thus if LED0 is statically on, NuttX has
- * successfully booted and is, apparently, running normmally.  If LED0 is
+ * successfully booted and is, apparently, running normally.  If LED0 is
  * flashing at approximately 2Hz, then a fatal error has been detected and the
  * system has halted.
  */
@@ -245,7 +245,7 @@
  *   PC24 SW0
  */
 
-/* The STM32F4 Discovery supports one button: */
+/* The SAM4l Xplained Pro supports one button: */
 
 #define BUTTON_SW0         0
 #define NUM_BUTTONS        1
@@ -309,7 +309,7 @@ extern "C" {
  *
  * Description:
  *   All SAM3U architectures must provide the following entry point.  This entry point
- *   is called early in the intitialization -- after all memory has been configured
+ *   is called early in the initialization -- after all memory has been configured
  *   and mapped but before any devices have been initialized.
  *
  ************************************************************************************/

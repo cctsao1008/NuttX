@@ -1,7 +1,7 @@
 /************************************************************************
  * sched/sched_processtimer.c
  *
- *   Copyright (C) 2007, 2009 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007, 2009, 2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 
 #include <nuttx/config.h>
 #include <nuttx/compiler.h>
+#include <time.h>
 
 #if CONFIG_RR_INTERVAL > 0
 # include <sched.h>
@@ -50,15 +51,19 @@
 #include "clock_internal.h"
 
 /************************************************************************
- * Definitions
+ * Pre-processor Definitions
  ************************************************************************/
+ 
+#ifndef CONFIG_SCHED_CPULOAD_TIMECONSTANT
+#  define CONFIG_SCHED_CPULOAD_TIMECONSTANT 2
+#endif
 
 /************************************************************************
  * Private Type Declarations
  ************************************************************************/
 
 /************************************************************************
- * Global Variables
+ * Public Variables
  ************************************************************************/
 
 /************************************************************************
@@ -69,16 +74,29 @@
  * Private Functions
  ************************************************************************/
 
-static void sched_process_timeslice(void)
-{
+/************************************************************************
+ * Name:  sched_process_timeslice
+ *
+ * Description:
+ *   Check if the currently executing task has exceeded its time slice.
+ *
+ * Inputs:
+ *   None
+ *
+ * Return Value:
+ *   None
+ *
+ ************************************************************************/
+
 #if CONFIG_RR_INTERVAL > 0
-  struct tcb_s *rtcb;
+static inline void sched_process_timeslice(void)
+{
+  FAR struct tcb_s *rtcb  = (FAR struct tcb_s*)g_readytorun.head;
 
   /* Check if the currently executing task uses round robin
    * scheduling.
    */
 
-  rtcb = (struct tcb_s*)g_readytorun.head;
   if ((rtcb->flags & TCB_FLAG_ROUND_ROBIN) != 0)
     {
       /* Yes, check if decrementing the timeslice counter
@@ -127,8 +145,10 @@ static void sched_process_timeslice(void)
           rtcb->timeslice--;
         }
     }
-#endif
 }
+#else
+#  define sched_process_timeslice()
+#endif
 
 /************************************************************************
  * Public Functions
@@ -162,14 +182,27 @@ static void sched_process_timeslice(void)
 
 void sched_process_timer(void)
 {
+#ifndef CONFIG_DISABLE_CLOCK
   /* Increment the system time (if in the link) */
 
-#ifndef CONFIG_DISABLE_CLOCK
 #ifdef CONFIG_HAVE_WEAKFUNCTIONS
   if (clock_timer != NULL)
 #endif
     {
       clock_timer();
+    }
+#endif
+
+#if defined(CONFIG_SCHED_CPULOAD) && !defined(CONFIG_SCHED_CPULOAD_EXTCLK)
+  /* Perform CPU load measurements (before any timer-initiated context switches
+   * can occur)
+   */
+
+#ifdef CONFIG_HAVE_WEAKFUNCTIONS
+  if (sched_process_cpuload != NULL)
+#endif
+    {
+      sched_process_cpuload();
     }
 #endif
 
