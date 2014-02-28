@@ -40,13 +40,13 @@ GNU Toolchain Options
   the CodeSourcery or devkitARM toolchain, you simply need add one of the
   following configuration options to your .config (or defconfig) file:
 
-    CONFIG_LPC17_CODESOURCERYW=y   : CodeSourcery under Windows
-    CONFIG_LPC17_CODESOURCERYL=y   : CodeSourcery under Linux
-    CONFIG_LPC17_DEVKITARM=y       : devkitARM under Windows
-    CONFIG_LPC17_BUILDROOT=y       : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y   : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y   : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y       : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y       : NuttX buildroot under Linux or Cygwin (default)
 
-  If you are not using CONFIG_LPC17_BUILDROOT, then you may also have to modify
-  the PATH in the setenv.h file if your make cannot find the tools.
+  If you are not using CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT, then you may also
+  have to modify the PATH in the setenv.h file if your make cannot find the tools.
 
   NOTE: the CodeSourcery (for Windows)and devkitARM are Windows native toolchains.
   The CodeSourcey (for Linux) and NuttX buildroot toolchains are Cygwin and/or
@@ -408,51 +408,76 @@ mbed Configuration Options
 USB Host Configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The mbed board can be easily modified to support a USB host interface
-(Remember to add 2 resistors of 15K to D+ and D- pins).  The hidkbd
-configuration assumes that this change has been made.
+  The mbed board can be easily modified to support a USB host interface
+  (Remember to add 2 resistors of 15K to D+ and D- pins).  The hidkbd
+  configuration assumes that this change has been made.
 
-The NuttShell (NSH) mbed can also be modified in order to support USB
-host operations.  To make these modifications, do the following:
+  The NuttShell (NSH) mbed can also be modified in order to support USB
+  host operations.  To make these modifications, do the following:
 
-1. First configure to build the NSH configuration from the top-level
-   NuttX directory:
+  1. First configure to build the NSH configuration from the top-level
+     NuttX directory:
 
-   cd tools
-   ./configure mbed/nsh
-   cd ..
+     cd tools
+     ./configure mbed/nsh
+     cd ..
 
-2. Then edit the top-level .config file to enable USB host.  Make the
-   following changes:
+  2. Then edit the top-level .config file to enable USB host.  Make the
+     following changes using 'make menuconfig':
 
-   CONFIG_LPC17_USBHOST=y
-   CONFIG_USBHOST=y
-   CONFIG_SCHED_WORKQUEUE=y
+     System Type -> LPC17xx Peripheral Support
+       CONFIG_LPC17_USBHOST=y        : USB host controller driver support
 
-When this change is made, NSH should be extended to support USB flash
-devices.  When a FLASH device is inserted, you should see a device
-appear in the /dev (pseudo) directory.  The device name should be
-like /dev/sda, /dev/sdb, etc.  The USB mass storage device, is present
-it can be mounted from the NSH command line like:
+     Device Drivers -> USB Host Driver Support
+       CONFIG_USBHOST=y              : USB host support
+       CONFIG_USBHOST_ISCO_DISABLE=y : Not needed
+       CONFIG_USBHOST_MSC=y          : Mass storage class support
 
-   ls /dev
-   mount -t vfat /dev/sda /mnt/flash
+     Library Routines
+       CONFIG_SCHED_WORKQUEUE=y      : Enable worker thread
 
-Files on the connect USB flash device should then be accessible under
-the mountpoint /mnt/flash.
+  When this change is made, NSH should be extended to support USB flash
+  devices.  When a FLASH device is inserted, you should see a device
+  appear in the /dev (pseudo) directory.  The device name should be
+  like /dev/sda, /dev/sdb, etc.  The USB mass storage device, is present
+  it can be mounted from the NSH command line like:
+
+     ls /dev
+     mount -t vfat /dev/sda /mnt/flash
+
+  Files on the connect USB flash device should then be accessible under
+  the mountpoint /mnt/flash.
 
 Configurations
 ^^^^^^^^^^^^^^
 
-Each mbed configuration is maintained in a sub-directory and can be selected
-as follow:
+  General
+  -------
+
+  Each mbed configuration is maintained in a sub-directory and can be selected
+  as follow:
 
     cd tools
     ./configure.sh mbed/<subdir>
     cd -
     . ./setenv.sh
 
-Where <subdir> is one of the following:
+  Where <subdir> is one of the mbed subdirectories described in the
+  following paragraph.
+
+  NOTES:
+
+  1. These configurations use the mconf-based configuration tool.  To
+    change any of these configurations using that tool, you should:
+
+    a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+       and misc/tools/
+
+    b. Execute 'make menuconfig' in nuttx/ in order to start the
+       reconfiguration process.
+
+  Configuration Sub-directories
+  -----------------------------
 
   hidkbd:
     This configuration directory, performs a simple test of the USB host

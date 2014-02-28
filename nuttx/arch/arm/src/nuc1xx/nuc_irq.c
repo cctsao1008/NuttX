@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/arm/src/stm32/nuc_irq.c
+ * arch/arm/src/nuc1xx/nuc_irq.c
  *
  *   Copyright (C) 2009-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -352,7 +352,7 @@ int up_prioritize_irq(int irq, int priority)
               irq == NUC_IRQ_PENDSV ||
               irq == NUC_IRQ_SYSTICK ||
              (irq >= NUC_IRQ_INTERRUPT && irq < NR_IRQS));
-  DEBUGASSERT(priority >= NVIC_SYSH_DISABLE_PRIORITY &&
+  DEBUGASSERT(priority >= NVIC_SYSH_PRIORITY_MAX &&
               priority <= NVIC_SYSH_PRIORITY_MIN);
 
   /* Check for external interrupt */

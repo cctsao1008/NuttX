@@ -301,7 +301,7 @@ NuttX EABI "buildroot" Toolchain
   1. You must have already configured Nuttx in <some-dir>/nuttx.
 
      cd tools
-     ./configure.shsam4l-xplained/<sub-dir>
+     ./configure.sh sam4l-xplained/<sub-dir>
 
   2. Download the latest buildroot package into <some-dir>
 
@@ -602,7 +602,7 @@ Configurations
   can be selected as follow:
 
     cd tools
-    ./configure.shsam4l-xplained/<subdir>
+    ./configure.sh sam4l-xplained/<subdir>
     cd -
     . ./setenv.sh
 

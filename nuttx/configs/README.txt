@@ -288,11 +288,6 @@ configs/lpc4330-xplorer
   NuttX port to the LPC4330-Xplorer board from NGX Technologies featuring
   the NXP LPC4330FET100 MCU
 
-configs/m68322evb
-  This is a work in progress for the venerable m68322evb board from
-  Motorola. This OS is also built with the arm-nuttx-elf toolchain*.  STATUS:
-  This port was never completed.
-
 configs/maple
   NuttX support for the LeafLab's Maple and Maple Mini boards. These boards
   are based on the STM32F103RBT6 chip for the standard version and on the
@@ -481,6 +476,11 @@ configs/sama5d3x-ek
 
   There is also the SAMA5D3FAE-EK bundle includes everything:  The base
   board, all four CPU modules, and the LCD.
+
+configs/samd20-xplained
+  The port of NuttX to the Atmel SAMD20-Xplained Pro development board.  This
+  board features the ATSAMD20J18A MCU (Cortex-M0+ with 256KB of FLASH and
+  32KB of SRAM).
 
 configs/sam3u-ek
   The port of NuttX to the Atmel SAM3U-EK development board.

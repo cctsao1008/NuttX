@@ -1,7 +1,7 @@
 /****************************************************************************
  * include/nuttx/clock.h
  *
- *   Copyright (C) 2007-2009, 2011-2012 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2007-2009, 2011-2012, 2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@
 #include <nuttx/compiler.h>
 
 /****************************************************************************
- * Pro-processor Definitions
+ * Pre-processor Definitions
  ****************************************************************************/
 /* Configuration ************************************************************/
 /* Efficient, direct access to OS global timer variables will be supported
@@ -122,7 +122,20 @@
 #define TICK2SEC(tick)        (((tick)+(TICK_PER_SEC/2))/TICK_PER_SEC)   /* Rounds */
 
 /****************************************************************************
- * Global Data
+ * Public Types
+ ****************************************************************************/
+/* This structure is used to report CPU usage for a particular thread */
+
+#ifdef CONFIG_SCHED_CPULOAD
+struct cpuload_s
+{
+  volatile uint32_t total;   /* Total number of clock ticks */
+  volatile uint32_t active;  /* Number of ticks while this thread was active */
+};
+#endif
+
+/****************************************************************************
+ * Public Data
  ****************************************************************************/
 
 #if !defined(CONFIG_DISABLE_CLOCK)
@@ -150,12 +163,13 @@ extern volatile uint32_t g_system_timer;
 #endif
 
 /****************************************************************************
- * Global Function Prototypes
+ * Public Function Prototypes
  ****************************************************************************/
 
 #ifdef __cplusplus
 #define EXTERN extern "C"
-extern "C" {
+extern "C"
+{
 #else
 #define EXTERN extern
 #endif
@@ -189,7 +203,7 @@ extern "C" {
  ****************************************************************************/
 
 #ifdef CONFIG_RTC
-EXTERN void clock_synchronize(void);
+void clock_synchronize(void);
 #endif
 
 /****************************************************************************
@@ -215,7 +229,7 @@ EXTERN void clock_synchronize(void);
 #  ifdef CONFIG_SYSTEM_TIME64
 #    define clock_systimer()  (uint32_t)(clock_systimer64() & 0x00000000ffffffff)
 #  else
-EXTERN uint32_t clock_systimer(void);
+uint32_t clock_systimer(void);
 #  endif
 #endif
 
@@ -239,7 +253,30 @@ EXTERN uint32_t clock_systimer(void);
  ****************************************************************************/
 
 #if !__HAVE_KERNEL_GLOBALS && defined(CONFIG_SYSTEM_TIME64)
-EXTERN uint64_t clock_systimer64(void);
+uint64_t clock_systimer64(void);
+#endif
+
+/****************************************************************************
+ * Function:  clock_cpuload
+ *
+ * Description:
+ *   Return load measurement data for the select PID.
+ *
+ * Parameters:
+ *   pid - The task ID of the thread of interest.  pid == 0 is the IDLE thread.
+ *   cpuload - The location to return the CPU load
+ *
+ * Return Value:
+ *   OK (0) on success; a negated errno value on failure.  The only reason
+ *   that this function can fail is if 'pid' no longer refers to a valid
+ *   thread.
+ *
+ * Assumptions:
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_SCHED_CPULOAD
+int clock_cpuload(int pid, FAR struct cpuload_s *cpuload);
 #endif
 
 #undef EXTERN

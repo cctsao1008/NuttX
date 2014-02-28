@@ -1,7 +1,7 @@
 /****************************************************************************************
  * arch/arm/include/sam34/sam4e_irq.h
  *
- *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
+ *   Copyright (C) 2013-2014 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@
 #define SAM_PID_RTT            (3)  /* Real Time Timer */
 #define SAM_PID_WDT            (4)  /* Watchdog Timer */
 #define SAM_PID_PMC            (5)  /* Power Management Controller */
-#define SAM_PID_EEFC           (6)  /* Enhanced Embedded Flash Controller */
+#define SAM_PID_EEFC0          (6)  /* Enhanced Embedded Flash Controller */
 #define SAM_PID_UART0          (7)  /* Universal Asynchronous Receiver Transmitter 0 */
 #define SAM_PID_SMC            (8)  /* Static Memory Controller */
 #define SAM_PID_PIOA           (9)  /* Parallel I/O Controller A */
@@ -90,9 +90,11 @@
 #define SAM_PID_CAN0          (37)  /* CAN0 */
 #define SAM_PID_CAN1          (38)  /* CAN1 */
 #define SAM_PID_AES           (39)  /* AES */
+                                    /* 40-43: Reserved
 #define SAM_PID_EMAC          (44)  /* EMAC */
 #define SAM_PID_UART1         (45)  /* UART */
-#define NR_PIDS               (46)   /* Number of peripheral identifiers */
+                                    /* 46: Reserved */
+#define NR_PIDS               (47)  /* Number of peripheral identifiers */
 
 /* External interrupts (priority levels >= 256*/
 
@@ -102,10 +104,11 @@
 #define SAM_IRQ_RTT           (SAM_IRQ_EXTINT+SAM_PID_RTT)    /* Real Time Timer */
 #define SAM_IRQ_WDT           (SAM_IRQ_EXTINT+SAM_PID_WDT)    /* Watchdog Timer */
 #define SAM_IRQ_PMC           (SAM_IRQ_EXTINT+SAM_PID_PMC)    /* Power Management Controller */
-#define SAM_IRQ_EEFC          (SAM_IRQ_EXTINT+SAM_PID_EEFC)   /* Enhanced Embedded Flash Controller */
+#define SAM_IRQ_EEFC0         (SAM_IRQ_EXTINT+SAM_PID_EEFC0)  /* Enhanced Embedded Flash Controller */
 #define SAM_IRQ_UART0         (SAM_IRQ_EXTINT+SAM_PID_UART0)  /* Universal Asynchronous Receiver Transmitter 0 */
 #define SAM_IRQ_PIOA          (SAM_IRQ_EXTINT+SAM_PID_PIOA)   /* Parallel I/O Controller A */
 #define SAM_IRQ_PIOB          (SAM_IRQ_EXTINT+SAM_PID_PIOB)   /* Parallel I/O Controller B */
+
 #define SAM_IRQ_PIOC          (SAM_IRQ_EXTINT+SAM_PID_PIOC)   /* Parallel I/O Controller C */
 #define SAM_IRQ_PIOD          (SAM_IRQ_EXTINT+SAM_PID_PIOD)   /* Parallel I/O Controller D */
 #define SAM_IRQ_PIOE          (SAM_IRQ_EXTINT+SAM_PID_PIOE)   /* Parallel I/O Controller E */
@@ -136,7 +139,8 @@
 #define SAM_IRQ_CAN1          (SAM_IRQ_EXTINT+SAM_PID_CAN1)   /* CAN1 */
 #define SAM_IRQ_AES           (SAM_IRQ_EXTINT+SAM_PID_AES)    /* AES */
 #define SAM_IRQ_EMAC          (SAM_IRQ_EXTINT+SAM_PID_EMAC)   /* EMAC */
-#define SAM_IRQ_UART1         (SAM_IRQ_EXTINT+SAM_PID_UART1)  /* UART */
+#define SAM_IRQ_UART1         (SAM_IRQ_EXTINT+SAM_PID_UART1)  /* UART1 */
+
 #define SAM_IRQ_NEXTINT       NR_PIDS                         /* Total number of external interrupt numbers */
 #define SAM_IRQ_NIRQS         (SAM_IRQ_EXTINT+NR_PIDS)        /* The number of real IRQs */
 

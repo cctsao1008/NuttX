@@ -1,5 +1,5 @@
 /****************************************************************************
- * config/shenzhou/src/sam_mmcsd.c
+ * config/sam4l-xplained/src/sam_mmcsd.c
  *
  *   Copyright (C) 2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
