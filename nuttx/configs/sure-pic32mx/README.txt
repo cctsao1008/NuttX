@@ -659,27 +659,6 @@ Configuration sub-directories
 
 Where <subdir> is one of the following:
 
-  ostest:
-  =======
-    Description.
-    ------------
-    This configuration directory, performs a simple OS test using
-    apps/examples/ostest.
-
-    Notes.
-    -----
-    1. By default, this configuration uses an older Microchip C32 toolchain
-       for Windows (the newer ones seem to be incompatible) and builds under
-       Cygwin (or probably MSYS).  That
-       can easily be reconfigured, of course.
-
-       Build Setup:
-         CONFIG_HOST_WINDOWS=y                     : Builds under Windows
-         CONFIG_WINDOWS_CYGWIN=y                   : Using Cygwin
-
-       System Type:
-         CONFIG_MIPS32_TOOLCHAIN_MICROCHIPW_LITE=y : Older C32 toolchain
-
   nsh:
   ====
     Description.
@@ -712,8 +691,8 @@ Where <subdir> is one of the following:
        System Type -> PIC32MX Peripheral Support:
           CONFIG_PIC32MX_USBDEV=y   : Enable PIC32 USB device support
 
-      examples/usbterm - This option can be enabled by uncommenting
-      the following line in the appconfig file:
+      examples/usbterm - This option can be enabled by adding the following
+      to the NuttX configuration file:
 
         Application Configuration->Examples:
           CONFIG_EXAMPLES_USBTERM=y : Selects /apps/examples/usbterm
@@ -725,7 +704,7 @@ Where <subdir> is one of the following:
           CONFIG_CDCACM=y           : or the CDC/ACM serial driver (not both)
 
       system/cdcacm -  The system/cdcacm program can be included as an
-      function by uncommenting the following line in the appconfig file:
+      function by dding the following to the NuttX configuration file:
 
         Application Configuration->Examples:
           CONFIG_SYSTEM_CDCACM=y  : Select apps/system/cdcacm
@@ -735,9 +714,10 @@ Where <subdir> is one of the following:
         Drivers->USB Device Driver Support
           CONFIG_CDCACM=y           : Enable the CDCACM device
 
-      system/usbmsc - There are some hooks in the appconfig file
-      to enable the USB mass storage class (MSC)device.  However, this device
-      cannot work until support for the SD card is also incorporated.
+      system/usbmsc - To enable the USB mass storage class (MSC)device,
+      you would need to add the following to the NuttX configuration file.
+      However, this device cannot work until support for the SD card is
+      also incorporated.
 
         Drivers->USB Device Driver Support
           CONFIG_USBMSC=y           : Enables the USB MSC class

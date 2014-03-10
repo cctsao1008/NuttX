@@ -43,7 +43,7 @@ GNU Toolchain Options
   1. The CodeSourcery GNU toolchain,
   2. The Atollic Toolchain,
   3. The devkitARM GNU toolchain,
-  4. Raisonance GNU toolchain, 
+  4. Raisonance GNU toolchain,
   5. The NuttX buildroot Toolchain (see below), or
   6. Any generic arm-none-eabi GNU toolchain.
 
@@ -53,13 +53,12 @@ GNU Toolchain Options
   add one of the following configuration options to your .config (or defconfig)
   file:
 
-    CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
-    CONFIG_STM32_CODESOURCERYL=y  : CodeSourcery under Linux
-    CONFIG_STM32_ATOLLIC_LITE=y   : The free, "Lite" version of Atollic toolchain under Windows
-    CONFIG_STM32_ATOLLIC_PRO=y    : The paid, "Pro" version of Atollic toolchain under Windows
-    CONFIG_STM32_DEVKITARM=y      : devkitARM under Windows
-    CONFIG_STM32_RAISONANCE=y     : Raisonance RIDE7 under Windows
-    CONFIG_STM32_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y  : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y  : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_ATOLLIC=y        : The Atollic toolchain under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y      : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_RAISONANCE=y     : Raisonance RIDE7 under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
     CONFIG_ARMV7M_TOOLCHAIN_GNU_EABIL : Generic arm-none-eabi toolchain
 
   If you change the default toolchain, then you may also have to modify the PATH in
@@ -262,7 +261,7 @@ NXFLAT Toolchain
   tools -- just the NXFLAT tools.  The buildroot with the NXFLAT tools can
   be downloaded from the NuttX SourceForge download site
   (https://sourceforge.net/projects/nuttx/files/).
- 
+
   This GNU toolchain builds and executes in the Linux or Cygwin environment.
 
   1. You must have already configured Nuttx in <some-dir>/nuttx.
@@ -752,13 +751,13 @@ STM3220G-EVAL-specific Configuration Options
   STM32 USB OTG FS Host Driver Support
 
   Pre-requisites
- 
+
    CONFIG_USBHOST      - Enable general USB host support
    CONFIG_STM32_OTGFS  - Enable the STM32 USB OTG FS block
    CONFIG_STM32_SYSCFG - Needed
- 
+
   Options:
- 
+
    CONFIG_STM32_OTGFS_RXFIFO_SIZE - Size of the RX FIFO in 32-bit words.
      Default 128 (512 bytes)
    CONFIG_STM32_OTGFS_NPTXFIFO_SIZE - Size of the non-periodic Tx FIFO
@@ -791,11 +790,27 @@ Where <subdir> is one of the following:
 
     This builds the DCHP server using the apps/examples/dhcpd application
     (for execution from FLASH.) See apps/examples/README.txt for information
-    about the dhcpd example.  The server address is 10.0.0.1 and it serves
-    IP addresses in the range 10.0.0.2 through 10.0.0.17 (all of which, of
-    course, are configurable).
+    about the dhcpd example.
 
-    CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
+    NOTES:
+
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. The server address is 10.0.0.1 and it serves IP addresses in the range
+       10.0.0.2 through 10.0.0.17 (all of which, of course, are configurable).
+
+    3. Default build environment (also easily reconfigured):
+
+      CONFIG_HOST_WINDOWS=y
+      CONFIG_WINDOWS_CYGWIN=y
+      CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y
 
   nettest:
   -------
@@ -810,25 +825,54 @@ Where <subdir> is one of the following:
     CONFIG_EXAMPLES_NETTEST_DRIPADDR=(10<<24|0<<16|0<<8|1) : Host side is IP: 10.0.0.1
     CONFIG_EXAMPLES_NETTEST_CLIENTIP=(10<<24|0<<16|0<<8|1) : Server address used by which ever is client.
 
+    NOTES:
+
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configuration using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. Default build environment:
+
+        CONFIG_HOST_WINDOWS=y                    : Windows
+        CONFIG_WINDOWS_CYGWIN=y                  : Under Cygwin
+        CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y  : CodeSourcery under Windows
+
+       Than can, of course, be easily changes by reconfiguring per Note 1.
+
   nsh:
   ---
     Configures the NuttShell (nsh) located at apps/examples/nsh.  The
     Configuration enables both the serial and telnet NSH interfaces.
 
-    CONFIG_STM32_CODESOURCERYW=y                  : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y       : CodeSourcery under Windows
     CONFIG_NSH_DHCPC=n                            : DHCP is disabled
     CONFIG_NSH_IPADDR=(192<<24|168<<16|13<<8|161) : Target IP address 192.168.8.161
     CONFIG_NSH_DRIPADDR=(192<<24|168<<16|13<<8|1) : Host IP address 192.168.8.1
 
     NOTES:
-    1. This example assumes that a network is connected.  During its
+
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. This example assumes that a network is connected.  During its
        initialization, it will try to negotiate the link speed.  If you have
        no network connected when you reset the board, there will be a long
        delay (maybe 30 seconds?) before anything happens.  That is the timeout
        before the networking finally gives up and decides that no network is
        available.
 
-    2. This example supports the ADC test (apps/examples/adc) but this must
+    3. This example supports the ADC test (apps/examples/adc) but this must
        be manually enabled by selecting:
 
        CONFIG_ADC=y             : Enable the generic ADC infrastructure
@@ -844,7 +888,7 @@ Where <subdir> is one of the following:
 
        CONFIG_DEBUG_ANALOG
 
-    3. This example supports the PWM test (apps/examples/pwm) but this must
+    4. This example supports the PWM test (apps/examples/pwm) but this must
        be manually enabled by selecting eeither
 
        CONFIG_PWM=y                : Enable the generic PWM infrastructure
@@ -873,7 +917,7 @@ Where <subdir> is one of the following:
 
        CONFIG_DEBUG_PWM
 
-    4. This example supports the CAN loopback test (apps/examples/can) but this
+    5. This example supports the CAN loopback test (apps/examples/can) but this
        must be manually enabled by selecting:
 
        CONFIG_CAN=y             : Enable the generic CAN infrastructure
@@ -888,25 +932,23 @@ Where <subdir> is one of the following:
        CONFIG_DEBUG_CAN
        CONFIG_CAN_REGDEBUG
 
-    5. This example can support an FTP client.  In order to build in FTP client
-       support simply uncomment the following lines in the appconfig file (before
-       configuring) or in the apps/.config file (after configuring):
+    6. This example can support an FTP client.  In order to build in FTP client
+       support simply reconfigure NuttX, adding:
 
-       #CONFIGURED_APPS += netutils/ftpc
-       #CONFIGURED_APPS += examples/ftpc
+       CONFIG_NETUTILS_FTPC=y
+       CONFIG_EXAMPLES_FTPC=y
 
-    6. This example can support an FTP server.  In order to build in FTP server
-       support simply uncomment the following lines in the appconfig file (before
-       configuring) or in the apps/.config file (after configuring):
+    7. This example can support an FTP server.  In order to build in FTP server
+       support simply add the following lines in the NuttX configuration file:
 
-       #CONFIGURED_APPS += netutils/ftpd
-       #CONFIGURED_APPS += examples/ftpd
+       CONFIG_NETUTILS_FTPD=y
+       CONFIG_EXAMPLES_FTPD=y
 
        And enable poll() support in the NuttX configuration file:
 
        CONFIG_DISABLE_POLL=n
 
-    7. This example supports the watchdog timer test (apps/examples/watchdog)
+    8. This example supports the watchdog timer test (apps/examples/watchdog)
        but this must be manually enabled by selecting:
 
        CONFIG_WATCHDOG=y         : Enables watchdog timer driver support
@@ -922,46 +964,45 @@ Where <subdir> is one of the following:
 
        The IWDG timer has a range of about 35 seconds and should not be an issue.
 
-    7. Adding LCD and graphics support:
+    9. Adding LCD and graphics support:
 
-       appconfig (apps/.config):  Enable the application configurations that you
-       want to use.  Asexamples:
+       Enable the application configurations that you want to use.  As examples:
 
-       CONFIGURED_APPS += examples/nx       : Pick one or more
-       CONFIGURED_APPS += examples/nxhello  :
-       CONFIGURED_APPS += examples/nximage  :
-       CONFIGURED_APPS += examples/nxlines  :
+       CONFIG_EXAMPLES_NX=y      : Pick one or more
+       CONFIG_EXAMPLES_NXHELLO=y :
+       CONFIG_EXAMPLES_NXIMAGE=y :
+       CONFIG_EXAMPLES_NXLINES=y :
 
        defconfig (nuttx/.config):
 
-       CONFIG_STM32_FSMC=y                  : FSMC support is required for the LCD
-       CONFIG_NX=y                          : Enable graphics suppport
-       CONFIG_MM_REGIONS=2                  : When FSMC is enabled, so is the on-board SRAM memory region
+       CONFIG_STM32_FSMC=y       : FSMC support is required for the LCD
+       CONFIG_NX=y               : Enable graphics suppport
+       CONFIG_MM_REGIONS=2       : When FSMC is enabled, so is the on-board SRAM memory region
 
-    8. USB OTG FS Device or Host Support
- 
-       CONFIG_USBDEV          - Enable USB device support, OR
-       CONFIG_USBHOST         - Enable USB host support (but not both)
+    10. USB OTG FS Device or Host Support
 
-       CONFIG_STM32_OTGFS     - Enable the STM32 USB OTG FS block
-       CONFIG_STM32_SYSCFG    - Needed for all USB OTF FS support
+       CONFIG_USBDEV             : Enable USB device support, OR
+       CONFIG_USBHOST            : Enable USB host support (but not both)
 
-       CONFIG_SCHED_WORKQUEUE - Worker thread support is required for the mass
-                                storage class (both host and device).
-       CONFIG_NSH_ARCHINIT    - Architecture specific USB initialization
-                                is needed
+       CONFIG_STM32_OTGFS        : Enable the STM32 USB OTG FS block
+       CONFIG_STM32_SYSCFG       : Needed for all USB OTF FS support
 
-    9. This configuration requires that jumper JP22 be set to enable RS-232 operation.
+       CONFIG_SCHED_WORKQUEUE    : Worker thread support is required for the mass
+                                   storage class (both host and device).
+       CONFIG_NSH_ARCHINIT       : Architecture specific USB initialization
+                                   is needed
+
+    11. This configuration requires that jumper JP22 be set to enable RS-232 operation.
 
   nsh2:
   -----
 
-    This is an alternaitve NSH configuration.  One limitation of the STM3220G-EVAL
+    This is an alternative NSH configuration.  One limitation of the STM3220G-EVAL
     board is that you cannot have both a UART-based NSH console and SDIO support.
     The nsh2 differs from the nsh configuration in the following ways:
 
     -CONFIG_STM32_USART3=y      : USART3 is disabled
-    + CONFIG_STM32_USART3=n
+    +CONFIG_STM32_USART3=n
 
     -CONFIG_STM32_SDIO=n        : SDIO is enabled
     +CONFIG_STM32_SDIO=y
@@ -988,20 +1029,30 @@ Where <subdir> is one of the following:
     curious.
 
     NOTES:
-    1. See the notes for the nsh configuration.  Most also apply to the nsh2
+
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. See the notes for the nsh configuration.  Most also apply to the nsh2
        configuration.
 
-    2. RS-232 is disabled, but Telnet is still available for use as a console.
+    3. RS-232 is disabled, but Telnet is still available for use as a console.
        Since RS-232 and SDIO use the same pins (one controlled by JP22), RS232
        and SDIO cannot be used concurrently.
 
-    3. This configuration requires that jumper JP22 be set to enable SDIO
+    4. This configuration requires that jumper JP22 be set to enable SDIO
        operation.  To enable MicroSD Card, which shares same I/Os with RS-232,
        JP22 is not fitted.
 
-    4. In order to use SDIO without overruns, DMA must be used.
+    5. In order to use SDIO without overruns, DMA must be used.
 
-    5. Another SDIO/DMA issue.  This one is probably a software bug.  This is
+    6. Another SDIO/DMA issue.  This one is probably a software bug.  This is
        the bug as stated in the TODO list:
 
        "If you use a large I/O buffer to access the file system, then the
@@ -1012,7 +1063,7 @@ Where <subdir> is one of the following:
        For this reason, CONFIG_MMCSD_MULTIBLOCK_DISABLE=y appears in the defconfig
        file.
 
-    6. Another DMA-related concern.  I see this statement in the reference
+    7. Another DMA-related concern.  I see this statement in the reference
        manual:  "The burst configuration has to be selected in order to respect
        the AHB protocol, where bursts must not cross the 1 KB address boundary
        because the minimum address space that can be allocated to a single slave
@@ -1040,7 +1091,7 @@ Where <subdir> is one of the following:
     Here is the quick summary of the build steps (Assuming that all of
     the required packages are available in a directory ~/nuttx-code):
 
-    1. Intall the nxwm configuration
+    1. Install the nxwm configuration
 
        $ cd ~/nuttx-code/nuttx/tools
        $ ./configure.sh stm3220g-eval/nxwm
@@ -1078,7 +1129,7 @@ Where <subdir> is one of the following:
        $ make
 
     NOTES:
- 
+
     1. This configuration uses the mconf-based configuration tool.  To
        change this configuration using that tool, you should:
 
@@ -1092,14 +1143,6 @@ Where <subdir> is one of the following:
        a Windows machine using the CodeSourcery Windows toolchain.
        That configuration can be easy changed as described in Note 1.
 
-  ostest:
-  ------
-    This configuration directory, performs a simple OS test using
-    examples/ostest.  By default, this project assumes that you are
-    using the DFU bootloader.
-
-    CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
-
   telnetd:
   --------
 
@@ -1109,3 +1152,20 @@ Where <subdir> is one of the following:
     use NSH, then you don't care about this.  This test is good for
     testing the Telnet daemon only because it works in a simpler
     environment than does the nsh configuration.
+
+    NOTES:
+
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    3. Default build environment (easily reconfigured):
+
+      CONFIG_HOST_WINDOWS=y
+      CONFIG_WINDOWS_CYGWIN=y
+      CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y

@@ -61,7 +61,7 @@ CSRCS += stm32_usb.c
 endif
 
 ifeq ($(CONFIG_PWM),y)
-CSRCS += stm32_psm.c
+CSRCS += stm32_pwm.c
 endif
 
 ifeq ($(CONFIG_QENCODER),y)
@@ -76,7 +76,7 @@ ifeq ($(CONFIG_NSH_LIBRARY),y)
 CSRCS += stm32_nsh.c
 endif
 
-ifeq ($(CONFIG_PM_CUSTOMINIT),y)
+ifeq ($(CONFIG_ARCH_CUSTOM_PMINIT),y)
 CSRCS += stm32_pm.c
 endif
 
@@ -84,7 +84,7 @@ ifeq ($(CONFIG_PM_BUTTONS),y)
 CSRCS += stm32_pm_buttons.c 
 endif
 
-ifeq ($(CONFIG_IDLE_CUSTOM),y)
+ifeq ($(CONFIG_ARCH_IDLE_CUSTOM),y)
 CSRCS += stm32_idle.c
 endif
 

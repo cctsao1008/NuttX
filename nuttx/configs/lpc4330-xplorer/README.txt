@@ -148,15 +148,14 @@ GNU Toolchain Options
   the CodeSourcery or devkitARM toolchain, you simply need add one of the
   following configuration options to your .config (or defconfig) file:
 
-    CONFIG_LPC43_CODEREDW=y       : Code Red "RedSuite" under Windows
-    CONFIG_LPC43_CODESOURCERYW=y  : CodeSourcery under Windows
-    CONFIG_LPC43_CODESOURCERYL=y  : CodeSourcery under Linux
-    CONFIG_LPC43_ATOLLIC_LITE=y   : The free, "Lite" version of Atollic toolchain under Windows
-    CONFIG_LPC43_ATOLLIC_PRO=y    : The paid, "Pro" version of Atollic toolchain under Windows
-    CONFIG_LPC43_DEVKITARM=y      : devkitARM under Windows
-    CONFIG_LPC43_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODEREDW=y       : Code Red "RedSuite" under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y  : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y  : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_ATOLLIC=y        : The Atollic toolchain under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y      : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
 
-  If you are not using CONFIG_LPC43_BUILDROOT, then you may also have to modify
+  If you are not using CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT, then you may also have to modify
   the PATH in the setenv.h file if your make cannot find the tools.
 
   NOTE: the Code Red, CodeSourcery (for Windows), Atollic and devkitARM toolchains
@@ -425,15 +424,15 @@ Code Red IDE/Tools
   By default, the configurations here assume that you are executing directly
   from SRAM.
 
-    CONFIG_LPC43_BOOT_SRAM=y       : Executing in SRAM
-    CONFIG_LPC43_CODEREDW=y        : Code Red under Windows
+    CONFIG_LPC43_BOOT_SRAM=y           : Executing in SRAM
+    CONFIG_ARMV7M_TOOLCHAIN_CODEREDW=y : Code Red under Windows
 
   To execute from SPIFI, you would need to set:
 
-    CONFIG_LPC43_BOOT_SPIFI=y      : Executing from SPIFI
-    CONFIG_RAM_SIZE=(128*1024)    : SRAM Bank0 size
-    CONFIG_RAM_START=0x10000000   : SRAM Bank0 base address
-    CONFIG_SPIFI_OFFSET=(512*1024) : SPIFI file system offset
+    CONFIG_LPC43_BOOT_SPIFI=y          : Executing from SPIFI
+    CONFIG_RAM_SIZE=(128*1024)         : SRAM Bank0 size
+    CONFIG_RAM_START=0x10000000        : SRAM Bank0 base address
+    CONFIG_SPIFI_OFFSET=(512*1024)     : SPIFI file system offset
 
   To boot the LPC4330-Xplorer from SPIFI the DIP switches should be 1-OFF,
   2-ON, 3-ON, 4-ON (LOW LOW LOW HIGH in Table 19, MSB to LSB).
@@ -616,29 +615,14 @@ must be defined in *all* LPC43xx configuration files.
 CFLAGS
 ------
 
-Only the Atollic toolchain has built-in support for the Cortex-M4 FPU.  You will see
+Only the recent toolchains have built-in support for the Cortex-M4 FPU.  You will see
 the following lines in each Make.defs file:
 
-  ifeq ($(CONFIG_LPC43_ATOLLIC_LITE),y)
-    # Atollic toolchain under Windows
-    ...
   ifeq ($(CONFIG_ARCH_FPU),y)
     ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
   else
     ARCHCPUFLAGS = -mcpu=cortex-m3 -mthumb -mfloat-abi=soft
   endif
-  endif
-
-If you are using a toolchain other than the Atollic toolchain, then to use the FPU
-you will also have to modify the CFLAGS to enable compiler support for the ARMv7-M
-FPU.  As of this writing, there are not many GCC toolchains that will support the
-ARMv7-M FPU.
-
-As a minimum you will need to add CFLAG options to (1) enable hardware floating point
-code generation, and to (2) select the FPU implementation.  You might try the same
-options as used with the Atollic toolchain in the Make.defs file:
-
-  ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 
 Configuration Changes
 ---------------------
@@ -646,22 +630,20 @@ Configuration Changes
 Below are all of the configuration changes that I had to make to configs/stm3240g-eval/nsh2
 in order to successfully build NuttX using the Atollic toolchain WITH FPU support:
 
-  -CONFIG_ARCH_FPU=n              : Enable FPU support
+  -CONFIG_ARCH_FPU=n                       : Enable FPU support
   +CONFIG_ARCH_FPU=y
 
-  -CONFIG_LPC43_CODESOURCERYW=y   : Disable the CodeSourcery toolchain
-  +CONFIG_LPC43_CODESOURCERYW=n
+  -CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y : Disable the CodeSourcery toolchain
+  +CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=n
 
-  -CONFIG_LPC43_ATOLLIC_LITE=n    : Enable *one* the Atollic toolchains
-   CONFIG_LPC43_ATOLLIC_PRO=n
-  -CONFIG_LPC43_ATOLLIC_LITE=y    : The "Lite" version, OR
-   CONFIG_LPC43_ATOLLIC_PRO=y     : The "Pro" version (not both)
+  -CONFIG_ARMV7M_TOOLCHAIN_ATOLLIC=n       : Enable the Atollic toolchains
+  +CONFIG_ARMV7M_TOOLCHAIN_ATOLLIC=y       :
 
-  -CONFIG_INTELHEX_BINARY=y       : Suppress generation FLASH download formats
-  +CONFIG_INTELHEX_BINARY=n       : (Only necessary with the "Lite" version)
+  -CONFIG_INTELHEX_BINARY=y                : Suppress generation FLASH download formats
+  +CONFIG_INTELHEX_BINARY=n                : (Only necessary with the "Lite" version)
 
-  -CONFIG_HAVE_CXX=y              : Suppress generation of C++ code
-  +CONFIG_HAVE_CXX=n              : (Only necessary with the "Lite" version)
+  -CONFIG_HAVE_CXX=y                       : Suppress generation of C++ code
+  +CONFIG_HAVE_CXX=n                       : (Only necessary with the "Lite" version)
 
 See the section above on Toolchains, NOTE 2, for explanations for some of
 the configuration settings.  Some of the usual settings are just not supported
@@ -903,98 +885,70 @@ as follow:
 
 Where <subdir> is one of the following:
 
-  ostest:
-  ------
-    This configuration of this directory performs a simple OS test using
-    examples/ostest.  By default, this project assumes that you are
-    executing directly from SRAM.
-
-      CONFIG_LPC43_BOOT_SRAM=y       : Executing in SRAM
-      CONFIG_LPC43_CODEREDW=y        : Code Red under Windows
-
-    This configuration directory, performs a simple test of the USB host
-    HID keyboard class driver using the test logic in examples/hidkbd.
-
-    If you use the Atollic toolchain, then the FPU test can be enabled in the
-    examples/ostest by adding the following your NuttX configuration file:
-
-     -CONFIG_ARCH_FPU=n              : Enable FPU support
-     +CONFIG_ARCH_FPU=y
-
-     -CONFIG_LPC43_CODESOURCERYW=y   : Disable the CodeSourcery toolchain
-     +CONFIG_LPC43_CODESOURCERYW=n
-
-     -CONFIG_LPC43_ATOLLIC_LITE=n    : Enable *one* the Atollic toolchains
-      CONFIG_LPC43_ATOLLIC_PRO=n
-     -CONFIG_LPC43_ATOLLIC_LITE=y    : The "Lite" version, OR
-      CONFIG_LPC43_ATOLLIC_PRO=n     : The "Pro" version (only one)
-
-     -CONFIG_INTELHEX_BINARY=y       : Suppress generation FLASH download formats
-     +CONFIG_INTELHEX_BINARY=n       : (Only necessary with the "Lite" version)
-
-     -CONFIG_HAVE_CXX=y              : Suppress generation of C++ code
-     +CONFIG_HAVE_CXX=n              : (Only necessary with the "Lite" version)
-
-     -CONFIG_SCHED_WAITPID=y         : Enable the waitpid() API needed by the FPU test
-     +CONFIG_SCHED_WAITPID=n
-
-    The FPU test also needs to know the size of the FPU registers save area in
-    bytes (see arch/arm/include/armv7-m/irq_lazyfpu.h):
-
-     +CONFIG_EXAMPLES_OSTEST_FPUSIZE=(4*33)
-
   nsh:
   ----
-    This configuration is the NuttShell (NSH) example at examples/nsh/
-    examples/ostest.    By default, this project assumes that you are
-    executing directly from SRAM.
+    This configuration is the NuttShell (NSH) example at examples/nsh/.
 
-      CONFIG_LPC43_BOOT_SRAM=y       : Executing in SRAM
-      CONFIG_LPC43_CODEREDW=y        : Code Red under Windows
+    NOTES:
 
-    To execute from SPIFI, you would need to set:
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
 
-      CONFIG_LPC43_BOOT_SPIFI=y      : Executing from SPIFI
-      CONFIG_RAM_SIZE=(128*1024)    : SRAM Bank0 size
-      CONFIG_RAM_START=0x10000000   : SRAM Bank0 base address
-      CONFIG_SPIFI_OFFSET=(512*1024) : SPIFI file system offset
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
 
-    CONFIG_MM_REGIONS should also be increased if you want to other SRAM banks
-    to the memory pool.
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
 
-    This configuration has some special options that can be used to
-    create a block device on the SPIFI FLASH.  NOTE:  CONFIG_LPC43_SPIFI=y
-    must also be defined to enable SPIFI setup support:
+    2. By default, this project assumes that you are executing directly from
+       SRAM.
 
-    SPIFI device geometry:
+         CONFIG_LPC43_BOOT_SRAM=y           : Executing in SRAM
+         CONFIG_ARMV7M_TOOLCHAIN_CODEREDW=y : Code Red under Windows
 
-      CONFIG_SPIFI_OFFSET - Offset the beginning of the block driver this many
-        bytes into the device address space.  This offset must be an exact
-        multiple of the erase block size (CONFIG_SPIFI_BLKSIZE). Default 0.
-      CONFIG_SPIFI_BLKSIZE - The size of one device erase block.  If not defined
-        then the driver will try to determine the correct erase block size by
-        examining that data returned from spifi_initialize (which sometimes
-        seems bad).
+    3. To execute from SPIFI, you would need to set:
 
-    Other SPIFI options
+         CONFIG_LPC43_BOOT_SPIFI=y      : Executing from SPIFI
+         CONFIG_RAM_SIZE=(128*1024)     : SRAM Bank0 size
+         CONFIG_RAM_START=0x10000000    : SRAM Bank0 base address
+         CONFIG_SPIFI_OFFSET=(512*1024) : SPIFI file system offset
 
-      CONFIG_SPIFI_SECTOR512 - If defined, then the driver will report a more
-        FAT friendly 512 byte sector size and will manage the read-modify-write
-        operations on the larger erase block.
-      CONFIG_SPIFI_READONLY - Define to support only read-only operations.
-      CONFIG_SPIFI_LIBRARY - Don't use the LPC43xx ROM routines but, instead,
-        use an external library implementation of the SPIFI interface.
-      CONFIG_SPIFI_VERIFY - Verify all spifi_program() operations by reading
-        from the SPI address space after each write.
-      CONFIG_DEBUG_SPIFI_DUMP - Debug option to dump read/write buffers.  You
-        probably do not want to enable this unless you want to dig through a
-        *lot* of debug output!  Also required CONFIG_DEBUG, CONFIG_DEBUG_VERBOSE,
-        and CONFIG_DEBUG_FS,
+       CONFIG_MM_REGIONS should also be increased if you want to other SRAM banks
+       to the memory pool.
 
-    In my experience, there were some missing function pointers in the LPC43xx
-    SPIFI ROM routines and the SPIFI configuration could only be built with
-    CONFIG_SPIFI_LIBRARY=y.  The SPIFI library is proprietary and cannot be
-    provided within NuttX open source repository; SPIFI library binaries can
-    be found on the lpcware.com website.  In this build sceneario, you must
-    also provide the patch to the external SPIFI library be defining the make
-    variable EXTRA_LIBS in the top-level Make.defs file.  Good luck!
+    4. This configuration an also be used create a block device on the SPIFI
+       FLASH.  CONFIG_LPC43_SPIFI=y must also be defined to enable SPIFI setup
+       support:
+
+       SPIFI device geometry:
+
+         CONFIG_SPIFI_OFFSET - Offset the beginning of the block driver this many
+           bytes into the device address space.  This offset must be an exact
+           multiple of the erase block size (CONFIG_SPIFI_BLKSIZE). Default 0.
+         CONFIG_SPIFI_BLKSIZE - The size of one device erase block.  If not defined
+           then the driver will try to determine the correct erase block size by
+           examining that data returned from spifi_initialize (which sometimes
+           seems bad).
+
+       Other SPIFI options
+
+         CONFIG_SPIFI_SECTOR512 - If defined, then the driver will report a more
+           FAT friendly 512 byte sector size and will manage the read-modify-write
+           operations on the larger erase block.
+         CONFIG_SPIFI_READONLY - Define to support only read-only operations.
+         CONFIG_SPIFI_LIBRARY - Don't use the LPC43xx ROM routines but, instead,
+           use an external library implementation of the SPIFI interface.
+         CONFIG_SPIFI_VERIFY - Verify all spifi_program() operations by reading
+           from the SPI address space after each write.
+         CONFIG_DEBUG_SPIFI_DUMP - Debug option to dump read/write buffers.  You
+           probably do not want to enable this unless you want to dig through a
+           *lot* of debug output!  Also required CONFIG_DEBUG, CONFIG_DEBUG_VERBOSE,
+           and CONFIG_DEBUG_FS,
+
+    5. In my experience, there were some missing function pointers in the LPC43xx
+       SPIFI ROM routines and the SPIFI configuration could only be built with
+       CONFIG_SPIFI_LIBRARY=y.  The SPIFI library is proprietary and cannot be
+       provided within NuttX open source repository; SPIFI library binaries can
+       be found on the lpcware.com website.  In this build sceneario, you must
+       also provide the patch to the external SPIFI library be defining the make
+       variable EXTRA_LIBS in the top-level Make.defs file.  Good luck!

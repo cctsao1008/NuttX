@@ -259,9 +259,9 @@ config ARCH_BOARD_MBED
 		that features the NXP LPC1768 microcontroller. This OS is also built
 		with the arm-nuttx-elf toolchain*.  STATUS:  Contributed.
 
-config ARCH_BOARD_MCU123
+config ARCH_BOARD_MCU123_LPC214X
 	bool "mcu123.com LPC2148 Development Board"
-	depends on ARCH_CHIP_LPC2148
+	depends on ARCH_CHIP_LPC214X
 	select ARCH_HAVE_LEDS
 	---help---
 		This port is for the NXP LPC2148 as provided on the mcu123.com
@@ -482,7 +482,7 @@ config ARCH_BOARD_PIC32_STARTERKIT
 		(DM320004) with the Multimedia Expansion Board (MEB, DM320005).
 		See www.microchip.com for further information.
 
-config ARCH_BOARD_PIC32_PIC32MX7MMB
+config ARCH_BOARD_PIC32MX7MMB
 	bool "Mikroelektronika PIC32MX7 MMB"
 	depends on ARCH_CHIP_PIC32MX795F512L
 	select ARCH_HAVE_LEDS
@@ -764,6 +764,7 @@ config ARCH_BOARD_US7032EVB1
 	bool "Hitachi SH-1/US7032EVB1 board"
 	depends on ARCH_CHIP_SH7032
 	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
 	---help---
 		This is a port of the Hitachi SH-1 on the Hitachi SH-1/US7032EVB1 board.
 		STATUS:  Work has just began on this port.
@@ -837,7 +838,7 @@ config ARCH_BOARD_Z8F64200100KIT
 
 config ARCH_BOARD_ZP214XPA
 	bool "The0.net LPC2148 Development Board"
-	depends on ARCH_CHIP_LPC2148
+	depends on ARCH_CHIP_LPC214X
 	---help---
 		This port is for the NXP LPC2148 as provided on the The0.net
 		ZPA213X/4XPA development board. Includes support for the
@@ -911,7 +912,7 @@ config ARCH_BOARD
 	default "lpcxpresso-lpc1768"  if ARCH_BOARD_LPCXPRESSO
 	default "maple"               if ARCH_BOARD_MAPLE
 	default "mbed"                if ARCH_BOARD_MBED
-	default "mcu123-lpc214x"      if ARCH_BOARD_MCU123
+	default "mcu123-lpc214x"      if ARCH_BOARD_MCU123_LPC214X
 	default "micropendous3"       if ARCH_BOARD_MICROPENDOUS3
 	default "mirtoo"              if ARCH_BOARD_MIRTOO
 	default "mx1ads"              if ARCH_BOARD_MX1ADS
@@ -930,7 +931,7 @@ config ARCH_BOARD
 	default "pcblogic-pic32mx"    if ARCH_BOARD_PCBLOGICPIC32MX
 	default "pcduino-a10"         if ARCH_BOARD_PCDUINO_A10
 	default "pic32-starterkit"    if ARCH_BOARD_PIC32_STARTERKIT
-	default "pic32mx7mmb"         if ARCH_BOARD_PIC32_PIC32MX7MMB
+	default "pic32mx7mmb"         if ARCH_BOARD_PIC32MX7MMB
 	default "pirelli_dpl10"       if ARCH_BOARD_PIRELLI_DPL10
 	default "pjrc-8051"           if ARCH_BOARD_PJRC_87C52
 	default "px4fmu-v2_upstream"  if ARCH_BOARD_PX4FMU_V2
@@ -1107,7 +1108,7 @@ endif
 if ARCH_BOARD_MBED
 source "configs/mbed/Kconfig"
 endif
-if ARCH_BOARD_MCU123
+if ARCH_BOARD_MCU123_LPC214X
 source "configs/mcu123-lpc214x/Kconfig"
 endif
 if ARCH_BOARD_MICROPENDOUS3
@@ -1164,7 +1165,7 @@ endif
 if ARCH_BOARD_PIC32_STARTERKIT
 source "configs/pic32-starterkit/Kconfig"
 endif
-if ARCH_BOARD_PIC32_PIC32MX7MMB
+if ARCH_BOARD_PIC32MX7MMB
 source "configs/pic32mx7mmb/Kconfig"
 endif
 if ARCH_BOARD_PIRELLI_DPL10

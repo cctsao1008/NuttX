@@ -851,3 +851,11 @@
 	  'cat' command.  This prevents the NSH prompt from be in the same line
 	  as the final line of the file in the case where there is no newline
 	  at the end of the file (2014-2-27).
+	* netutils/dhcpd/dhcpd.c: allocipaddr() should not call ntohl(), the
+	  returned IP address is already in host order.
+	* apps/netutils/dhcpd/Kconfig: Add missing DHCPD configuratino
+	  settings(2014-3-3).
+	* Support for the legacy configuration mechanism (using appconfig files)
+	  is removed.  Only the newer configuration using the kconfig-frontends
+	  tools is now supported (2014-3-6).
+

@@ -121,10 +121,7 @@ Olimex LPC1766-STK development board
   minicom, whatever) to UART0/RS232_0 and configure the serial port as
   shown above.
 
-  NOTE: The ostest example works fine at 115200, but the other configurations
-  have problems at that rate (probably because they use the interrupt driven
-  serial driver).  Other LPC17xx boards with the same clocking will run at
-  115200.
+  NOTE: These configurations have problems at 115200 baud.
 
   LCD
   ---
@@ -189,12 +186,12 @@ GNU Toolchain Options
   the CodeSourcery or devkitARM toolchain, you simply need add one of the
   following configuration options to your .config (or defconfig) file:
 
-    CONFIG_LPC17_CODESOURCERYW=y   : CodeSourcery under Windows
-    CONFIG_LPC17_CODESOURCERYL=y   : CodeSourcery under Linux
-    CONFIG_LPC17_DEVKITARM=y       : devkitARM under Windows
-    CONFIG_LPC17_BUILDROOT=y       : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y   : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y   : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y       : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y       : NuttX buildroot under Linux or Cygwin (default)
 
-  If you are not using CONFIG_LPC17_BUILDROOT, then you may also have to modify
+  If you are not using CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT, then you may also have to modify
   the PATH in the setenv.h file if your make cannot find the tools.
 
   NOTE: the CodeSourcery (for Windows)and devkitARM are Windows native toolchains.
@@ -866,15 +863,34 @@ the mountpoint /mnt/flash.
 Configurations
 ^^^^^^^^^^^^^^
 
-Each Olimex LPC1766-STK configuration is maintained in a
-sub-directory and can be selected as follow:
+Common Configuration Notes
+--------------------------
 
-    cd tools
-    ./configure.sh olimex-lpc1766stk/<subdir>
-    cd -
-    . ./setenv.sh
+  1. Each Olimex LPC1766-STK configuration is maintained in a
+     sub-directory and can be selected as follow:
 
-Where <subdir> is one of the following:
+       cd tools
+       ./configure.sh olimex-lpc1766stk/<subdir>
+       cd -
+       . ./setenv.sh
+
+     Where <subdir> is one of the sub-directories identified in the following
+     paragraphs.
+
+     Use configure.bat instead of configure.sh if you are building in a
+     Windows native environment.
+
+  2. These configurations use the mconf-based configuration tool.  To
+     change a configuration using that tool, you should:
+
+     a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+        and misc/tools/
+
+     b. Execute 'make menuconfig' in nuttx/ in order to start the
+        reconfiguration process.
+
+Configuration Sub-Directories
+-----------------------------
 
   ftpc:
     This is a simple FTP client shell used to exercise the capabilities
@@ -926,16 +942,7 @@ Where <subdir> is one of the following:
 
     NOTES:
 
-    1. This configuration uses the mconf-based configuration tool.  To
-       change this configuration using that tool, you should:
-
-       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
-          and misc/tools/
-
-       b. Execute 'make menuconfig' in nuttx/ in order to start the
-          reconfiguration process.
-
-    2. Default platform/toolchain: This is how the build is configured by
+    1. Default platform/toolchain: This is how the build is configured by
        be default.  These options can easily be re-confured, however.
 
        CONFIG_HOST_WINDOWS=y                   : Windows
@@ -949,23 +956,14 @@ Where <subdir> is one of the following:
 
     NOTES:
 
-    1. This configuration uses the mconf-based configuration tool.  To
-       change this configuration using that tool, you should:
-
-       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
-          and misc/tools/
-
-       b. Execute 'make menuconfig' in nuttx/ in order to start the
-          reconfiguration process.
-
-    2. Default platform/toolchain: This is how the build is configured by
+    1. Default platform/toolchain: This is how the build is configured by
        be default.  These options can easily be re-confured, however.
 
        CONFIG_HOST_WINDOWS=y                   : Windows
        CONFIG_WINDOWS_CYGWIN=y                 : Cygwin environment on Windows
        CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery under Windows
 
-    3. The mouse is really useless with no display and no cursor.  So this
+    2. The mouse is really useless with no display and no cursor.  So this
        configuration is only suited for low-level testing.  It is also awkward
        to use.  Here are the steps:
 
@@ -991,33 +989,22 @@ Where <subdir> is one of the following:
     go through many retries and timeouts before it finally decides that there
     is not SD card in the slot.
 
-    Configuration Notes:
-
     NOTES:
 
-    1. This configuration uses the mconf-based configuration tool.  To
-       change this configuration using that tool, you should:
-
-       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
-          and misc/tools/
-
-       b. Execute 'make menuconfig' in nuttx/ in order to start the
-          reconfiguration process.
-
-    2. Uses the older, OABI, buildroot toolchain.  But that is easily
+    1. Uses the older, OABI, buildroot toolchain.  But that is easily
        reconfigured:
 
        CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y : Buildroot toolchain
        CONFIG_ARMV7M_OABI_TOOLCHAIN=y      : Older, OABI toolchain
 
-    3. This configuration supports a network.  You may have to change
+    2. This configuration supports a network.  You may have to change
        these settings for your network:
 
        CONFIG_NSH_IPADDR=0x0a000002        : IP address: 10.0.0.2
        CONFIG_NSH_DRIPADDR=0x0a000001      : Gateway:    10.0.0.1
        CONFIG_NSH_NETMASK=0xffffff00       : Netmask:    255.255.255.0
 
-    4. This configuration supports the SPI-based MMC/SD card slot.
+    3. This configuration supports the SPI-based MMC/SD card slot.
        FAT file system support for FAT long file names is built-in but
        can easily be removed if you are concerned about Microsoft patent
        issues (see the section "FAT Long File Names" in the top-level
@@ -1027,12 +1014,11 @@ Where <subdir> is one of the following:
 
   nx:
     An example using the NuttX graphics system (NX).  This example uses
-    the Nokia 6100 LCD driver. NOTE:  The Nokia 6100 driver does not
-    work on this board as of this writing.
+    the Nokia 6100 LCD driver.
 
-  ostest:
-    This configuration directory, performs a simple OS test using
-    apps/examples/ostest.
+    NOTES:
+
+    1. The Nokia 6100 driver does not work on this board as of this writing.
 
   slip-httpd:
     This configuration is identical to the thttpd configuration except that
@@ -1087,9 +1073,14 @@ Where <subdir> is one of the following:
     This builds the THTTPD web server example using the THTTPD and
     the apps/examples/thttpd application.
 
-    NOTE: See note above with regard to the EABI/OABI buildroot
-    toolchains.  This example can only be built using the older
-    OABI toolchain.
+    NOTES:
+
+    1. Uses the newer, EABI, buildroot toolchain.  But that is easily
+       reconfigured:
+
+       CONFIG_HOST_LINUX=y                 : Linux
+       CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y : Buildroot toolchain
+       CONFIG_ARMV7M_OABI_TOOLCHAIN=n      : Newer, EABI toolchain
 
   usbserial:
     This configuration directory exercises the USB serial class

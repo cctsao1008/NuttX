@@ -45,7 +45,7 @@
 #include <nuttx/compiler.h>
 
 #include "chip.h"
-#include "lm_gpio.h"
+#include "tiva_gpio.h"
 
 /************************************************************************************
  * Definitions
@@ -56,12 +56,12 @@
  * expanded).
  */
 
-#if LM_NSSI == 0
+#if TIVA_NSSI == 0
 #  undef CONFIG_SSI0_DISABLE
 #  define CONFIG_SSI0_DISABLE 1
 #  undef CONFIG_SSI1_DISABLE
 #  define CONFIG_SSI1_DISABLE 1
-#elif LM_NSSI == 1
+#elif TIVA_NSSI == 1
 #  undef CONFIG_SSI1_DISABLE
 #  define CONFIG_SSI1_DISABLE 1
 #endif
@@ -130,7 +130,7 @@
  *
  ************************************************************************************/
 
-extern void weak_function lm_ssiinitialize(void);
+void weak_function lm_ssiinitialize(void);
 
 #endif /* __ASSEMBLY__ */
 #endif /* __CONFIGS_LM3S6965_EK_SRC_LM3S6965EK_INTERNAL_H */

@@ -5,11 +5,16 @@ Contents:
 
   o genromfs-0.5.2.tar.gz
   o kconfig-frontends
+    - General Build Instructions
+    - Graphical Configuration Tools
     - --program-prefix=
     - kconfig-frontends-3.3.0-1-libintl.patch
     - kconfig-macos.patch
-    - kconfig-macos.patch
+    - kconfig-mconf Path Issues
+    - gperf
     - kconfig-frontends for Windows
+    - Buildroot
+  o osmocon
 
 genromfs-0.5.2.tar.gz
 =====================
@@ -23,6 +28,9 @@ genromfs-0.5.2.tar.gz
 
 kconfig-frontends
 =================
+
+General Build Instructions
+--------------------------
 
   This is a snapshot of the kconfig-frontends version 3.12.0 tarball taken
   from http://ymorin.is-a-geek.org/projects/kconfig-frontends.
@@ -154,11 +162,16 @@ There two known solutions to this:
    tools like:
 
      ./configure --enable-mconf
-     LD_RUN_PATH=/usr/local/lib make
+     LD_RUN_PATH=/usr/local/lib
+     make
      make install
 
+3) Build the kconfig-frontends tools using only static libraries:
+
+     ./configure --enable-mconf --disable-shared --enable-static
+
 I have also been told that some people see this error until they re-boot, then it
-just goes away.
+just goes away.  I would try that before anything else.
 
 gperf
 -----
@@ -231,6 +244,13 @@ windows IS POSSIBLE, I have done it in a few minutes."
 "Oops, forgot something, I had to bring a gperf binary from the gnuwin32 project."
 
 - Sebastien Lorquet
+
+Buildroot
+---------
+As of 2014-3-7, the kconfig-frontends tools have been included in the
+buildroot tool set.  This means that in one package you can build GCC tools
+that are especially tuned for NuttX and all of the support tools that you
+need ROMFS, configuration, and NXFLAT.
 
 osmocon
 =======

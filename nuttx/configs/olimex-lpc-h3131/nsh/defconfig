@@ -2,7 +2,6 @@
 # Automatically generated file; DO NOT EDIT.
 # Nuttx/ Configuration
 #
-CONFIG_NUTTX_NEWCONFIG=y
 
 #
 # Build Setup
@@ -97,7 +96,6 @@ CONFIG_ARCH_CHIP="lpc31xx"
 # CONFIG_ARCH_HAVE_MPU is not set
 CONFIG_ARCH_HAVE_LOWVECTORS=y
 CONFIG_ARCH_LOWVECTORS=y
-CONFIG_PGTABLE_VADDR=0x0
 CONFIG_ARCH_ROMPGTABLE=y
 
 #

@@ -102,12 +102,12 @@ GNU Toolchain Options
   the CodeSourcery or devkitARM, you simply need to add one of the following
   configuration options to your .config (or defconfig) file:
 
-    CONFIG_LM_CODESOURCERYW=y   : CodeSourcery under Windows
-    CONFIG_LM_CODESOURCERYL=y   : CodeSourcery under Linux
-    CONFIG_LM_DEVKITARM=y       : devkitARM under Windows
-    CONFIG_LM_BUILDROOT=y       : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y   : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y   : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y       : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y       : NuttX buildroot under Linux or Cygwin (default)
 
-  If you are not using CONFIG_LM_BUILDROOT, then you may also have to modify
+  If you are not using CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT, then you may also have to modify
   the PATH in the setenv.h file if your make cannot find the tools.
 
   NOTE: the CodeSourcery (for Windows) and devkitARM are Windows native toolchains.
@@ -179,7 +179,7 @@ IDEs
      on the command line.
 
   Startup files will probably cause you some headaches.  The NuttX startup file
-  is arch/arm/src/lm/lm_vectors.S.
+  is arch/arm/src/tiva/tiva_vectors.S.
 
 NuttX EABI "buildroot" Toolchain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -352,15 +352,15 @@ Stellaris EKK-LM3S9B96 Evaluation Kit Configuration Options
   Additional interrupt support can be disabled if desired to reduce memory
   footprint.
 
-    CONFIG_LM_DISABLE_GPIOA_IRQS=n
-    CONFIG_LM_DISABLE_GPIOB_IRQS=n
-    CONFIG_LM_DISABLE_GPIOC_IRQS=n
-    CONFIG_LM_DISABLE_GPIOD_IRQS=n
-    CONFIG_LM_DISABLE_GPIOE_IRQS=n
-    CONFIG_LM_DISABLE_GPIOF_IRQS=n
-    CONFIG_LM_DISABLE_GPIOG_IRQS=n
-    CONFIG_LM_DISABLE_GPIOH_IRQS=n
-    CONFIG_LM_DISABLE_GPIOJ_IRQS=y
+    CONFIG_TIVA_DISABLE_GPIOA_IRQS=n
+    CONFIG_TIVA_DISABLE_GPIOB_IRQS=n
+    CONFIG_TIVA_DISABLE_GPIOC_IRQS=n
+    CONFIG_TIVA_DISABLE_GPIOD_IRQS=n
+    CONFIG_TIVA_DISABLE_GPIOE_IRQS=n
+    CONFIG_TIVA_DISABLE_GPIOF_IRQS=n
+    CONFIG_TIVA_DISABLE_GPIOG_IRQS=n
+    CONFIG_TIVA_DISABLE_GPIOH_IRQS=n
+    CONFIG_TIVA_DISABLE_GPIOJ_IRQS=y
  
   LM3S9B96 specific device driver settings
 
@@ -385,18 +385,18 @@ Stellaris EKK-LM3S9B96 Evaluation Kit Configuration Options
       value is large, then larger values of this setting may cause
       Rx FIFO overrun errors.  Default: half of the Tx FIFO size (4).
 
-    CONFIG_LM_ETHERNET - This must be set (along with CONFIG_NET)
+    CONFIG_TIVA_ETHERNET - This must be set (along with CONFIG_NET)
       to build the Stellaris Ethernet driver
-    CONFIG_LM_ETHLEDS - Enable to use Ethernet LEDs on the board.
-    CONFIG_LM_BOARDMAC - If the board-specific logic can provide
-      a MAC address (via lm_ethernetmac()), then this should be selected.
-    CONFIG_LM_ETHHDUPLEX - Set to force half duplex operation
-    CONFIG_LM_ETHNOAUTOCRC - Set to suppress auto-CRC generation
-    CONFIG_LM_ETHNOPAD - Set to suppress Tx padding
-    CONFIG_LM_MULTICAST - Set to enable multicast frames
-    CONFIG_LM_PROMISCUOUS - Set to enable promiscuous mode
-    CONFIG_LM_BADCRC - Set to enable bad CRC rejection.
-    CONFIG_LM_DUMPPACKET - Dump each packet received/sent to the console.
+    CONFIG_TIVA_ETHLEDS - Enable to use Ethernet LEDs on the board.
+    CONFIG_TIVA_BOARDMAC - If the board-specific logic can provide
+      a MAC address (via tiva_ethernetmac()), then this should be selected.
+    CONFIG_TIVA_ETHHDUPLEX - Set to force half duplex operation
+    CONFIG_TIVA_ETHNOAUTOCRC - Set to suppress auto-CRC generation
+    CONFIG_TIVA_ETHNOPAD - Set to suppress Tx padding
+    CONFIG_TIVA_MULTICAST - Set to enable multicast frames
+    CONFIG_TIVA_PROMISCUOUS - Set to enable promiscuous mode
+    CONFIG_TIVA_BADCRC - Set to enable bad CRC rejection.
+    CONFIG_TIVA_DUMPPACKET - Dump each packet received/sent to the console.
 
 Configurations
 ^^^^^^^^^^^^^^
@@ -419,9 +419,4 @@ Where <subdir> is one of the following:
     Otherwise, the NSH prompt will not come up because the Ethernet
     driver is waiting for the network to come up.  That is probably
     a bug in the Ethernet driver behavior!
-
-  ostest:
-    This configuration directory, performs a simple OS test using
-    examples/ostest.
-
 

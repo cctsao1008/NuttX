@@ -251,12 +251,12 @@ GNU Toolchain Options
   the other toolchain, you simply need add one of the following configuration
   options to your .config (or defconfig) file:
 
-    CONFIG_LPC17_CODESOURCERYW=y   : CodeSourcery under Windows
-    CONFIG_LPC17_CODESOURCERYL=y   : CodeSourcery under Linux
-    CONFIG_LPC17_DEVKITARM=y       : devkitARM under Windows
-    CONFIG_LPC17_BUILDROOT=y       : NuttX buildroot under Linux or Cygwin (default)
-    CONFIG_LPC17_CODEREDW=n        : Code Red toolchain under Windows
-    CONFIG_LPC17_CODEREDL=y        : Code Red toolchain under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y   : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y   : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y       : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y       : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODEREDW=n        : Code Red toolchain under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODEREDL=y        : Code Red toolchain under Linux
 
   You may also have to modify the PATH in the setenv.h file if your make cannot
   find the tools.
@@ -749,67 +749,116 @@ Where <subdir> is one of the following:
     (for execution from FLASH.) See apps/examples/README.txt for information
     about the dhcpd example.
 
-    Jumpers: Nothing special.  Use the default base board jumper
-    settings.
+    NOTES:
+
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. Jumpers: Nothing special.  Use the default base board jumper
+       settings.
 
   nsh:
     Configures the NuttShell (nsh) located at apps/examples/nsh.  The
     Configuration enables both the serial and telnet NSH interfaces.
-    Support for the board's SPI-based MicroSD card is included
-    (but not passing tests as of this writing).
 
-    NOTE: At present, the value for the SD SPI frequency is too
-    high and the SD will fail.  Setting that frequency to 400000
-    removes the problem. TODO:  Tune this frequency to some optimal
-    value.
+    NOTES:
 
-    Jumpers: J55 must be set to provide chip select PIO1_11 signal as
-    the SD slot chip select.
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. This configuration has been used for testing the microSD card.
+       This support is, however, disabled in the base configuration.
+
+       At last attempt, the SPI-based mircroSD does not work at
+       higher fequencies.  Setting the SPI frequency to 400000
+       removes the problem.   There must be some more optimal
+       value that could be determined with additional experimetnation.
+
+       Jumpers: J55 must be set to provide chip select PIO1_11 signal as
+       the SD slot chip select.
 
   nx:
     And example using the NuttX graphics system (NX).  This example
     uses the UG-9664HSWAG01 driver.
 
-    Jumpers:  There are several jumper settings needed by the OLED.
-    All are the default settings:
-    
-    J42: Close to select the SPI interface (Default: closed)
-    J43: Close to support OLED command/data select (Default: closed)
-    J44: Close to allow control of OLED voltage (Default: closed)
-    J45: Close to select SPI clock (Default: closed)
-    J46: Close SPI data input (MOSI) (Default:closed)
+    NOTES:
 
-  ostest:
-    This configuration directory, performs a simple OS test using
-    apps/examples/ostest.
- 
-    Jumpers: Nothing special.  Use the default base board jumper
-    settings.
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. Jumpers:  There are several jumper settings needed by the OLED.
+       All are the default settings:
+    
+         J42: Close to select the SPI interface (Default: closed)
+         J43: Close to support OLED command/data select (Default: closed)
+         J44: Close to allow control of OLED voltage (Default: closed)
+         J45: Close to select SPI clock (Default: closed)
+         J46: Close SPI data input (MOSI) (Default:closed)
 
   thttpd:
     This builds the THTTPD web server example using the THTTPD and
     the apps/examples/thttpd application.
 
-    NOTE:  You will need to build the NXFLAT toolchain as described
-    above in order to use this example.
+    NOTES:
 
-    See also note above with regard to the EABI/OABI buildroot
-    toolchains.  This example can only be built using the older
-    OABI toolchain.
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
 
-    Jumpers: Nothing special.  Use the default base board jumper
-    settings.
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. You will need to build the NXFLAT toolchain as described above in
+       order to use this example.
+
+    3. Build setup (easily reconfigured):
+
+       CONFIG_HOST_LINUX=y                : Linux
+       CONFIG_ARMV7M_TOOLCHAIN_CODEREDL=y : CodeRed for Linux
+
+    4. Jumpers: Nothing special.  Use the default base board jumper
+       settings.
 
   usbmsc:
     This configuration directory exercises the USB mass storage
     class driver at apps/system/usbmsc.  See apps/examples/README.txt
     for more information.
 
-    NOTE: At present, the value for the SD SPI frequency is too
-    high and the SD will fail.  Setting that frequency to 400000
-    removes the problem. TODO:  Tune this frequency to some optimal
-    value.
+    NOTES:
+
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
+
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
+
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
+
+    2. At present, the value for the SD SPI frequency is too high and the
+       SD will fail.  Setting that frequency to 400000 removes the problem.
+       TODO:  Tune this frequency to some optimal value.
  
-    Jumpers: J55 must be set to provide chip select PIO1_11 signal as
-    the SD slot chip select.
+    3. Jumpers: J55 must be set to provide chip select PIO1_11 signal as
+       the SD slot chip select.
 

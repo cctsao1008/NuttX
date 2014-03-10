@@ -37,7 +37,7 @@ config DEFAULT_MODE
 endchoice
 
 config CODE_BASE
-	hex "Execuation Base Address"
+	hex "Execution Base Address"
 	default 0x00000000
 	---help---
 		This must match the expected address for the selected "Memory
@@ -45,7 +45,7 @@ config CODE_BASE
 
 		EXTMEM_MODE:  0x8000:0000
 		RAM_MODE:     0x4000:0000
-		DEFAULT)MODE: 0x0000:0000
+		DEFAULT_MODE: 0x0000:0000
 
 config PLL_SETUP
 	bool "Configure the PLL"
@@ -117,10 +117,17 @@ config LPC214X_USBDEV_DMA
 	bool "USB Device DMA Support"
 	default n
 
+if LPC214X_USBDEV_DMA
+
+config LPC214X_USBDEV_DMAINTMASK
+	hex "DMA interrupt mask"
+	default 0
+
 config LPC214X_USBDEV_NDMADESCRIPTORS
 	int "Number of USB DMA Descriptors"
 	default 8
-	depends on LPC214X_USBDEV_DMA
+
+endif # LPC214X_USBDEV_DMA
 
 config LPC214X_USBDEV_EPFAST_INTERRUPT
 	bool "USB Device Fast Endpoint Interrupts"

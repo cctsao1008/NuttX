@@ -1031,117 +1031,102 @@ selected as follow:
 
 Where <subdir> is one of the following:
 
-  ostest:
-  =======
-    Description.
-    ------------
-    This configuration directory, performs a simple OS test using
-    apps/examples/ostest.
-
-    Serial Output.
-    --------------
-    The OS test produces all of its test output on the serial console.
-    This configuration has UART1 enabled as a serial console.  I have
-    been unable to get this UART work on the MEB.  But on the Expansion
-    I/O board, this maps to RX = J11 pin 41 and TX = J11 pin 43
-
   nsh:
-  ====
-    Description.
-    ------------
+
     This is the NuttShell (NSH) using the NSH startup logic at
     apps/examples/nsh.
 
-    Serial Output.
-    --------------
-    The OS test produces all of its test output on the serial console.
-    This configuration has UART1 enabled as a serial console.  I have
-    been unable to get this UART work on the MEB.  But on the Expansion
-    I/O board, this maps to RX = J11 pin 41 and TX = J11 pin 43
-
-    USB Configuations.
-    -----------------
-    Several USB device configurations can be enabled and included
-    as NSH built-in built in functions.  
-
-    To use USB device, connect the starter kit to the host using a cable
-    with a Type-B micro-plug to the starter kit’s micro-A/B port J5, located
-    on the bottom side of the starter kit. The other end of the cable
-    must have a Type-A plug. Connect it to a USB host. Jumper JP2 should be
-    removed.
-
-    All USB device configurations require the following basic setup in
-    your NuttX configuration file to enable USB device support:
- 
-      CONFIG_USBDEV=y         : Enable basic USB device support
-      CONFIG_PIC32MX_USBDEV=y : Enable PIC32 USB device support
-
-    examples/usbterm - This option can be enabled by uncommenting
-    the following line in the appconfig file:
-
-      CONFIGURED_APPS += examples/usbterm
-
-    And by enabling one of the USB serial devices:
-
-      CONFIG_PL2303=y         : Enable the Prolifics PL2303 emulation
-      CONFIG_CDCACM=y         : or the CDC/ACM serial driver (not both)
-
-    system/cdcacm -  The system/cdcacm program can be included as an 
-    function by uncommenting the following line in the appconfig file:
-    
-      CONFIGURED_APPS += system/cdcacm
-
-    and defining the following in your .config file:
-
-      CONFIG_CDCACM=y         : Enable the CDCACM device
-
-    system/usbmsc - There are some hooks in the appconfig file
-    to enable the USB mass storage device.  However, this device cannot
-    work until support for the SD card is also incorporated.
-
-    Networking Configuations.
-    -------------------------
-    Several Networking configurations can be enabled and included
-    as NSH built-in built in functions.  The following additional
-    configuration settings are required:
-
-      CONFIG_NET=y              : Enable networking support
-      CONFIG_PIC32MX_ETHERNET=y : Enable the PIC32 Ethernet driver
-      CONFIG_NSH_TELNET=y       : Enable the Telnet NSH console (optional)
-
     NOTES:
-    1. This logic will assume that a network is connected.  During its
-       initialization, it will try to negotiate the link speed.  If you have
-       no network connected when you reset the board, there will be a long
-       delay (maybe 30 seconds?) before anything happens.  That is the timeout
-       before the networking finally gives up and decides that no network is
-       available.
 
-    2. This example can support an FTP client.  In order to build in FTP client
-       support simply uncomment the following lines in the appconfig file (before
-       configuring) or in the apps/.config file (after configuring):
+    1. This configuration uses the mconf-based configuration tool.  To
+       change this configurations using that tool, you should:
 
-       #CONFIGURED_APPS += netutils/ftpc
-       #CONFIGURED_APPS += examples/ftpc
+       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+          and misc/tools/
 
-    3. This example can support an FTP server.  In order to build in FTP server
-       support simply uncomment the following lines in the appconfig file (before
-       configuring) or in the apps/.config file (after configuring):
+       b. Execute 'make menuconfig' in nuttx/ in order to start the
+          reconfiguration process.
 
-       #CONFIGURED_APPS += netutils/ftpd
-       #CONFIGURED_APPS += examples/ftpd
+    2. Serial Output
 
-       And enable poll() support in the NuttX configuration file:
+       The OS test produces all of its test output on the serial console.
+       This configuration has UART1 enabled as a serial console.  I have
+       been unable to get this UART work on the MEB.  But on the Expansion
+       I/O board, this maps to RX = J11 pin 41 and TX = J11 pin 43
 
-       CONFIG_DISABLE_POLL=n
+    3. SB Configurations
+
+       Several USB device configurations can be enabled and included
+       as NSH built-in built in functions.  
+
+       To use USB device, connect the starter kit to the host using a cable
+       with a Type-B micro-plug to the starter kit’s micro-A/B port J5, located
+       on the bottom side of the starter kit. The other end of the cable
+       must have a Type-A plug. Connect it to a USB host. Jumper JP2 should be
+       removed.
+
+       All USB device configurations require the following basic setup in
+       your NuttX configuration file to enable USB device support:
+ 
+         CONFIG_USBDEV=y         : Enable basic USB device support
+         CONFIG_PIC32MX_USBDEV=y : Enable PIC32 USB device support
+
+       examples/usbterm - This option can be enabled by adding the
+       following line in the NuttX configuration file:
+
+         CONFIG_EXAMPLES_USBTERM=y
+
+       And by enabling one of the USB serial devices:
+
+         CONFIG_PL2303=y         : Enable the Prolifics PL2303 emulation
+         CONFIG_CDCACM=y         : or the CDC/ACM serial driver (not both)
+
+       system/cdcacm -  The system/cdcacm program can be included by
+       adding the following to the configuration file:
+    
+         CONFIG_CDCACM=y         : Enable the CDCACM device
+         CONFIG_EXAMPLES_CDCACM=y
+
+    3. Networking Configurations
+
+       Several Networking configurations can be enabled and included
+       as NSH built-in built in functions.  The following additional
+       configuration settings are required:
+
+         CONFIG_NET=y              : Enable networking support
+         CONFIG_PIC32MX_ETHERNET=y : Enable the PIC32 Ethernet driver
+         CONFIG_NSH_TELNET=y       : Enable the Telnet NSH console (optional)
+
+       NOTES:
+
+       a. This logic will assume that a network is connected.  During its
+          initialization, it will try to negotiate the link speed.  If you have
+          no network connected when you reset the board, there will be a long
+          delay (maybe 30 seconds?) before anything happens.  That is the timeout
+          before the networking finally gives up and decides that no network is
+          available.
+
+       b. This example can support an FTP client.  In order to build in FTP client
+          support simply add the following to the Nuttx configuration file:
+
+         CONFIG_NETUTILS_FTPC=y
+         CONFIG_EXAMPLES_FTPC=y
+
+       c. This example can support an FTP server.  In order to build in FTP server
+          support simply add the following to the Nuttx configuration file:
+
+         CONFIG_DISABLE_POLL=n
+         CONFIG_NETUTILS_FTPD=y
+         CONFIG_EXAMPLES_FTPD=y
 
   nsh2:
-  =====
 
     This is an alternative NSH configuration.  Without the Expansion I/O board,
     there is no way to connect a serial console.  This NSH alternative supports
     only a Telnet console.  The nsh2 differs from the nsh configuration in the
     following ways:
+
+    NOTES:
 
     1. Networking is enabled:
 
@@ -1206,12 +1191,9 @@ Where <subdir> is one of the following:
       -CONFIG_SYSTEM_USBMSC_DEVPATH1="/dev/mmcsd0"
       +CONFIG_SYSTEM_USBMSC_DEVPATH1="/dev/ram0"
 
-  2. Changes to apps/.config.
+    e) Enable building of the system/usbmsc:
 
-    a) Enable building of the system/usbmsc:
-
-      -# CONFIGURED_APPS += system/usbmsc
-      +  CONFIGURED_APPS += system/usbmsc
+      +CONFIG_SYSTEM_USBMSC=y
 
   3. When NSH first comes up, you must manually create the RAM disk
      before exporting it:

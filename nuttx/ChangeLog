@@ -6688,4 +6688,284 @@
 	  otherwise the CLE will be selected by default the next time that
 	  make menuconfig is used (2014-2-28).
 	* include/cxx/cstdbool:  Ignore _Bool8 if CONFIG_C99_BOOL8=y. (2014-2-28).
- 
+	* configs/*/defconfig:  Set CONFIG_DEFAULT_SMALL on all tiny MCU
+	  configurations (2014-2-28).
+	* configs/stm3240g-eval/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-2-28).
+	* configs/*/ostest:  Removed most OS test configurations (except in a few
+	  cases where there wass some good argument to retain the ostest
+	  configuration) (2014-2-28)
+	* configurations (2014-2-28).
+	* configs/stm3240g-eval/nsh2: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/stm3220g-eval/nsh2: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/stm3210e-eval/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/stm3210e-eval/nsh2: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/lincoln60/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/lpcxpresso-lpc1768/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/nucleus2g/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/vsn/nsh: Configuration converted to use the kconfig-frontends
+	  tools (2014-3-1).
+	* configs/mirtoo/nsh: Configuration converted to use the kconfig-frontends
+	  tools (2014-3-1).
+	* configs/pic32-starterkit/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/pic32-starterkit/nsh2: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1)
+	* configs/pic32mx7mmb/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/ubw32/nsh: Configuration converted to use the kconfig-frontends
+	  tools (2014-3-1).
+	* configs/sim/nsh2: Configuration converted to use the kconfig-frontends
+	  tools (2014-3-1).
+	* configs/lm3s6432-s2e/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1)
+	* configs/lm3s8962-ek/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/eagle100/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/stm32f4discovery/src/Makefile: Fix type: stm32_pwm.c not
+	  stm32_psm.c.  Noted by Max Kriegleder (2014-3-1).
+	* configs/lpc4330-xplorer/nsh Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	*  configs/ea3152/ostest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-1).
+	* configs/stm3210e-eval/RIDE, nxlines, and nxtext:  Remove some old
+	  style configurations that are not worth converting to use the
+	  kconfig-frontends tools (2014-3-2).
+	* configs/stm3210e-eval/nx: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-2).
+	* configs/mirtoo/nxffs: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-2).
+	* arch/arm/src/lpc2378/Kconfig: Create Kconfig file for the LPC2378.
+	  Change most configuration variable names to avoid collisions with
+	  other platforms  (2014-3-2)
+	* configs/olimex-lpc2378/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-2)
+	* configs/olimex-lpc1766stk/nx: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-2)
+	* configs/lpcxpresso-lpc1768/nx: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-2)
+	* configs/lm3s8962-ek/nx: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-2)
+	* configs/sim/nx: Configuration converted to use the kconfig-frontends
+	  tools (2014-3-2)
+	* configs/c5471evm/nettest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/olimex-strp11/nettest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/eagle100/nettest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3).
+	* configs/ez80f910200zco/nettest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3).
+	* configs/stm3220g-eval/nettest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3).
+	* configs/stm3240g-eval/nettest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3).
+	* configs/sim/nettest: Configuration converted to use the kconfig-frontends
+	  tools (2014-3-3).
+	* configs/ez80f910200zco/dhcpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3).
+	* configs/stm3220g-eval/dhcpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3).
+	* configs/stm3240g-eval/dhcpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3).
+	* configs/lpcxpresso-lpc1768/dhcpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/olimex-lpc1766stk/usbmsc: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/nucleus2g/usbmsc: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/lpcxpresso-lpc1768/usbmsc: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/stm3210e-eval/usbmsc: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/hymini-stm32v/usbmsc: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/ea3131/usbmsc: Configuration removed.  It could not possible
+	  useful because there is no MCI driver for the EA3131 (2014-3-3)
+	* configs/mcu123-lpc214x/usbmsc: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-3)
+	* configs/teensy/nettest: Configuration converted to use the kconfig-frontends
+	  tools (2014-3-3).
+	* configs/*/dhcpd:  Add missing DHCPD configuration settings (2014-3-3).
+	* configs/stm32f4discovery/pm: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/stm3210e-eval/pm: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/stm3240g-eval/nxconsole: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/stm3210e-eval/nxconsole: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/stm3240g-eval/telnetd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/stm3220g-eval/telnetd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* fs/fat/fs_fat32.c:  Fix an error in the FAT logic that can cause file
+	  corruption.  The error conditions are rare and only seen with very
+	  large files.  From Andrew Tridgell.  This replaces a previous, partial
+	  fix for the same problem (2014-3-4).
+	* configs/hymini-stm32v/usbserial: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/ea3131/usbserial: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/mcu123-lpc214x/usbserial: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/olimex-lpc1766stk/thttpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/lpcxpresso-lpc1768/thttpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/eagle100/thttpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/eagle100/httpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/ez80f910200zco/httpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/c5471evm/httpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/eagle100/nxflat: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/sim/touchscreen: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/sim/pashello: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/sim/nx11: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/ez80f910200zco/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/ez80f910200zco/poll: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/olimex-lpc1766stk/slip-httpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-4)
+	* configs/c5471evm/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/compal_e99/nsh_compalram: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/compal_e99/nsh_highram: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/mcu123-lpc214x/composite: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/olimex-strp711/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/amber/hello: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/micropendous3/hello: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/teensy/hello: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/teensy/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* arch/avr/Kconfig, avr32/Kconfig, at32uc3/Kconfig, atmega/Kconfig, and
+	  at90usb/Kconfig:  Reshuffle lots of AVR-related configuration names to
+	  make space for AVR32.  Populate AVR32 Kconfig file (2014-3-5).
+	* configs/avr32dev1/ostest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/avr32dev1/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/ntosd-dm320/nettest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/ntosd-dm320/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/ntosd-dm320/poll: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/ntosd-dm320/thttpd: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/ntosd-dm320/udp: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/ntosd-dm320/uip: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* arch/Kconfig, arch/arm/Kconfig, configs/ea3131/Kconfig,
+	  configs/ea3131/pgnsh/defconfig, configs/ea3131/src/up_fillpage.c,
+	  configs/ea3152/Kconfig, nuttx/configs/ea3152/src/up_fillpage.c,
+	  include/nuttx/page.h, and tools/cfgdefine.c:  Add configuration
+	  settings for the on-demand paging option (2014-3-5).
+	* configs/ea3131/pgnsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/qemu-i486/ostest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* configs/qemu-i486/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-5)
+	* Many files:  Use common naming for all buildroot toolchains
+	  (2014-3-5).
+	* Many files:  Use common naming for rest of the toolchains (2014-3-5).
+	* configs/ne64badge/ostest and demo9s12nec64/ostest: Configurations
+	  converted to use the kconfig-frontends tools (2014-3-5)
+	* fs/nxffs/nxffs_open.c: Missing call to nxffs_freeentry() causes
+	  memory leak.  From Lzyy (2014-3-6).
+	* fs/nxffs/nxffs_stat.c: Looks like stat() has the same problem as
+	  the one reported by Lzyy (2014-3-6).
+	* configs/skp16c26/ostest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/us7032evb1/ostest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/us7032evb1/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/mx1ads/ostest: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/pjrc-8051: Configuration converted to use the kconfig-frontends
+	  tools (2014-3-6)
+	* configs/rgmp/arm/default: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/rgmp/arm/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/rgmp/x86/default: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/rgmp/x86/nsh: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/rgmp/x86/helloxx: Configuration converted to use the
+	  kconfig-frontends tools (2014-3-6)
+	* configs/rgmp/x86/cxxtest: Configuration converted to use the
+	  kconfig-frontends tools.  This completes the conversion of all
+	  configurations to the newer format (2014-3-6)
+	* Removed the CONFIG_NUTTX_NEWCONFIG setting from every defconfig
+	  file (2014-3-6).
+	* The legacy, manual configuration is no longer supported by the
+	  NuttX build system.  Only the newer configurations generated by
+	  the kconfig-frontends tools will generate viable NuttX
+	  configurations.  All board configurations in the NuttX source tree
+	  have bee converted to use the newer configuration, but if you have
+	  some older style configurations for you board, you will need to
+	  convert those configurations to use the kconfig-frontends tools.
+	  See http://www.nuttx.org/doku.php?id=wiki:howtos:convertconfig for
+	  some guidelines (2014-3-6).
+	* drivers/serial/Kconfig:  Correct an error introduced in this file
+	  in very recent commits (2013-3-6).
+	* configs/*sam*:  Refresh all SAM* configurations with the latest
+	  Kconfig files (2014-3-6).
+	* configs/stm32f4discovery:  Refresh all configurations (except
+	  winbuild) with the latest Kconfig files (2014-3-6).
+	* configs/viewtool-stm32f107:  Refresh all configurations with the
+	  latest Kconfig files (2014-3-6).
+	* configs/16z, mikroe-stm32f4, olimex-lpc1766stk, px4fmu-v2_upstream,
+	  sim, and stm32f429i-disco: Refresh all configurations (2014-3-6).
+	* Documentation/NuttShell.html:  Update per recommendations from Max
+	  Kriegleder (2014-3-6).
+	* configs/pic32-starterkit, pic32mx7mmb, stm3210e-eval, stm3220g-eval,
+	  and stm3240g-eval:  Refresh all configurations with the latest
+	  Kconfig files (2014-3-7).
+	* configs/qemu-i486/src:  Files renamed to correspond with current
+	  thinking about naming (2014-3-8).
+	* arch/x86/src/qemu/qemu_keypad.c and qemu_vga.c:  New QEMU keyboard
+	  and VGA drivers from Lizhuoyi (2014-3-8).
+	* configs/olimex-lpc2378/src:  Files renamed to correspond with current
+	  thinking about naming (2014-3-8).
+	* arch/arm/src/lpc2378/lpc23xx_i2c.c and lpc23xx_spi.c:  I2C and SPI
+	  drivers for the LPC23xx from Lizhuoyi (2014-3-8).
+	* arch/arm/include/tiva and src/tiva:  The old lm/ directories were
+	  renamed tiva/ to better support new products coming down the pipe
+	  from TI (2014-3-8).
+	* arch/arm/include/tiva, src/tiva, and configs/:  All files and all
+	  all functions beginning with the name lm_ changed to tiva_
+	  (2014-3-8).
+	* configs/: Refresh all LM3/4/Tiva configurations (2014-3-9).
+	* arch/arm/src/tiva/chip/tm4c_pinmap.h:  Add pin multiplex definitions
+	  for the TM4C123 (2014-3-9).
+	* arch/arm/src/tiva/chip/tm4c_memorymap.h:  Add memory map for the
+	  TM4C123 (2014-3-9).
+

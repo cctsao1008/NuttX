@@ -45,13 +45,13 @@ GNU Toolchain Options
   add one of the following configuration options to your .config (or defconfig)
   file:
 
-    CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
-    CONFIG_STM32_CODESOURCERYL=y  : CodeSourcery under Linux
-    CONFIG_STM32_DEVKITARM=y      : devkitARM under Windows
-    CONFIG_STM32_RAISONANCE=y     : Raisonance RIDE7 under Windows
-    CONFIG_STM32_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y  : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y  : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y      : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_RAISONANCE=y     : Raisonance RIDE7 under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
 
-  If you are not using CONFIG_STM32_BUILDROOT, then you may also have to modify
+  If you are not using CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT, then you may also have to modify
   the PATH in the setenv.h file if your make cannot find the tools.
 
   NOTE: the CodeSourcery (for Windows), devkitARM, and Raisonance toolchains are
@@ -644,10 +644,12 @@ Where <subdir> is one of the following:
     (5) Option CONFIG_NSH_ARCHINIT must be enabled in order to call the SDIO slot
         initialization code.
 
-  ostest:
-  ------
-    This configuration directory, performs a simple OS test using
-    apps/examples/ostest.
+  usbmsc:
+  -------
+
+    This configuration directory exercises the USB mass storage
+    class driver at system/usbmsc.  See examples/README.txt for
+    more information.
 
   usbnsh:
   -------
@@ -699,3 +701,55 @@ Where <subdir> is one of the following:
       CONFIG_CDCACM_CONSOLE=y       : The CDC/ACM serial device is NOT the console
       CONFIG_PL2303=y               : The Prolifics PL2303 emulation is enabled
       CONFIG_PL2303_CONSOLE=y       : The PL2303 serial device is the console
+
+  usbserial:
+  ---------
+    This configuration directory exercises the USB serial class
+    driver at examples/usbserial.  See examples/README.txt for
+    more information.
+
+      CONFIG_HOST_LINUX=y                      : Linux host
+      CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y  : CodeSourcery toolchain under Linux
+
+    USB debug output can be enabled as by changing the following
+    settings in the configuration file:
+
+      -CONFIG_DEBUG=n
+      -CONFIG_DEBUG_VERBOSE=n
+      -CONFIG_DEBUG_USB=n
+      +CONFIG_DEBUG=y
+      +CONFIG_DEBUG_VERBOSE=y
+      +CONFIG_DEBUG_USB=y
+
+      -CONFIG_EXAMPLES_USBSERIAL_TRACEINIT=n
+      -CONFIG_EXAMPLES_USBSERIAL_TRACECLASS=n
+      -CONFIG_EXAMPLES_USBSERIAL_TRACETRANSFERS=n
+      -CONFIG_EXAMPLES_USBSERIAL_TRACECONTROLLER=n
+      -CONFIG_EXAMPLES_USBSERIAL_TRACEINTERRUPTS=n
+      +CONFIG_EXAMPLES_USBSERIAL_TRACEINIT=y
+      +CONFIG_EXAMPLES_USBSERIAL_TRACECLASS=y
+      +CONFIG_EXAMPLES_USBSERIAL_TRACETRANSFERS=y
+      +CONFIG_EXAMPLES_USBSERIAL_TRACECONTROLLER=y
+      +CONFIG_EXAMPLES_USBSERIAL_TRACEINTERRUPTS=y
+
+    By default, the usbserial example uses the Prolific PL2303
+    serial/USB converter emulation.  The example can be modified
+    serial/USB converter emulation.  The example can be modified
+    to use the CDC/ACM serial class by making the following changes
+    to the configuration file:
+
+      -CONFIG_PL2303=y
+      +CONFIG_PL2303=n
+
+      -CONFIG_CDCACM=n
+      +CONFIG_CDCACM=y
+
+    The example can also be converted to use the alternative
+    USB serial example at apps/examples/usbterm by changing the
+    following:
+
+      -CONFIG_EXAMPLES_USBSERIAL=y
+      +CONFIG_EXAMPLES_USBSERIAL=n
+
+      -CONFIG_EXAMPLES_USBTERM=n
+      +CONFIG_EXAMPLES_USBTERM=y

@@ -5,6 +5,17 @@
 
 comment "Common LCD Settings"
 
+config LCD_CONSOLE
+	bool "LCD console output"
+	default n
+	---help---
+		It is possible to use an LCD to provide console output.  This option
+		enables that possibility.
+
+		At present, only one architecture supports this option (M16C).
+		However, this feature could be provided by other architectures in
+		the future.
+
 config LCD_NOGETRUN
 	bool "Write-only LCD"
 	default n
@@ -138,18 +149,17 @@ config NOKIA6100_FREQUENCY
 	---help---
 		Define to use a different bus frequency
 
-config NOKIA6100_BLINIT
-	bool "Back light initial"
-	default n
-	---help---
-		Initial backlight setting
-		The following may need to be tuned for your hardware:
-
 config NOKIA6100_BPP
 	int "Display bits per pixel"
 	default 8
 	---help---
 		Device supports 8, 12, and 16 bits per pixel.
+
+config NOKIA6100_BLINIT
+	int "Back light initial"
+	default 40
+	---help---
+		Initial backlight setting
 
 config NOKIA6100_INVERT
 	int "Display inversion"

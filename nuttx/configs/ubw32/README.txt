@@ -579,17 +579,15 @@ selected as follow:
 
 Where <subdir> is one of the following:
 
-  ostest:
-  =======
-    Description.
-    ------------
-    This configuration directory, performs a simple OS test using
-    apps/examples/ostest.
+  nsh:
+
+    This is the NuttShell (NSH) using the NSH startup logic at
+    apps/examples/nsh.
 
     NOTES:
-    ------ 
+
     1. This configuration uses the mconf-based configuration tool.  To
-       change this configuration using that tool, you should:
+       change this configurations using that tool, you should:
 
        a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
           and misc/tools/
@@ -597,59 +595,42 @@ Where <subdir> is one of the following:
        b. Execute 'make menuconfig' in nuttx/ in order to start the
           reconfiguration process.
 
-    2. Serial Output.
+    2. Serial Output
 
        The OS test produces all of its test output on the serial console.
-       This configuration has UART1 enabled as a serial console. 
+       This configuration has UART1 enabled as a serial console.
 
        TX  -- J4 pin 31: U1TX/RF8
        RX  -- J4 pin 30: U1RX/RF2
        GND -- J4 pin 40: GND
        Vcc -- J4 pin 39: 5V
  
-  nsh:
-  ====
-    Description.
-    ------------
-    This is the NuttShell (NSH) using the NSH startup logic at
-    apps/examples/nsh.
+    3. USB Configuations
 
-    Serial Output.
-    --------------
-    The OS test produces all of its test output on the serial console.
-    This configuration has UART1 enabled as a serial console.
+       Several USB device configurations can be enabled and included
+       as NSH built-in built in functions.
 
-    TX  -- J4 pin 31: U1TX/RF8
-    RX  -- J4 pin 30: U1RX/RF2
-    GND -- J4 pin 40: GND
-    Vcc -- J4 pin 39: 5V
- 
-    USB Configuations.
-    -----------------
-    Several USB device configurations can be enabled and included
-    as NSH built-in built in functions.
+       All USB device configurations require the following basic setup in
+       your NuttX configuration file to enable USB device support:
 
-    All USB device configurations require the following basic setup in
-    your NuttX configuration file to enable USB device support:
+         CONFIG_USBDEV=y         : Enable basic USB device support
+         CONFIG_PIC32MX_USBDEV=y : Enable PIC32 USB device support
 
-      CONFIG_USBDEV=y         : Enable basic USB device support
-      CONFIG_PIC32MX_USBDEV=y : Enable PIC32 USB device support
+       examples/usbterm - This option can be enabled by adding the
+       following to the NuttX configuration file:
 
-    examples/usbterm - This option can be enabled by uncommenting
-    the following line in the appconfig file:
+         CONFIG_EXAMPLES_USBTERM=y
 
-      CONFIGURED_APPS += examples/usbterm
+       And by enabling one of the USB serial devices:
 
-    And by enabling one of the USB serial devices:
+         CONFIG_PL2303=y         : Enable the Prolifics PL2303 emulation
+         CONFIG_CDCACM=y         : or the CDC/ACM serial driver (not both)
 
-      CONFIG_PL2303=y         : Enable the Prolifics PL2303 emulation
-      CONFIG_CDCACM=y         : or the CDC/ACM serial driver (not both)
+       system/cdcacm -  The system/cdcacm program can be included as an
+       function by adding the  following to the NuttX configuration file:
 
-    system/cdcacm -  The system/cdcacm program can be included as an
-    function by uncommenting the following line in the appconfig file:
+         CONFIG_SYSTEM_CDCACM=y
 
-      CONFIGURED_APPS += system/cdcacm
+       and defining the following in your .config file:
 
-    and defining the following in your .config file:
-
-      CONFIG_CDCACM=y         : Enable the CDCACM device
+         CONFIG_CDCACM=y         : Enable the CDCACM device

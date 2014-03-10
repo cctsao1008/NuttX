@@ -63,13 +63,12 @@ GNU Toolchain Options
   add one of the following configuration options to your .config (or defconfig)
   file:
 
-    CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
-    CONFIG_STM32_CODESOURCERYL=y  : CodeSourcery under Linux
-    CONFIG_STM32_ATOLLIC_LITE=y   : The free, "Lite" version of Atollic toolchain under Windows
-    CONFIG_STM32_ATOLLIC_PRO=y    : The paid, "Pro" version of Atollic toolchain under Windows
-    CONFIG_STM32_DEVKITARM=y      : devkitARM under Windows
-    CONFIG_STM32_RAISONANCE=y     : Raisonance RIDE7 under Windows
-    CONFIG_STM32_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y  : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y  : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_ATOLLIC=y        : The Atollic toolchain under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y      : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_RAISONANCE=y     : Raisonance RIDE7 under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
 
   If you change the default toolchain, then you may also have to modify the PATH in
   the setenv.h file if your make cannot find the tools.
@@ -463,29 +462,14 @@ There are two version of the FPU support built into the STM32 port.
 CFLAGS
 ------
 
-Only the Atollic toolchain has built-in support for the Cortex-M4 FPU.  You will see
+Only recent GCC toolchains have built-in support for the Cortex-M4 FPU.  You will see
 the following lines in each Make.defs file:
 
-  ifeq ($(CONFIG_STM32_ATOLLIC_LITE),y)
-    # Atollic toolchain under Windows
-    ...
   ifeq ($(CONFIG_ARCH_FPU),y)
     ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
   else
     ARCHCPUFLAGS = -mcpu=cortex-m3 -mthumb -mfloat-abi=soft
   endif
-  endif
-
-If you are using a toolchain other than the Atollic toolchain, then to use the FPU
-you will also have to modify the CFLAGS to enable compiler support for the ARMv7-M
-FPU.  As of this writing, there are not many GCC toolchains that will support the
-ARMv7-M FPU.
-
-As a minimum you will need to add CFLAG options to (1) enable hardware floating point
-code generation, and to (2) select the FPU implementation.  You might try the same
-options as used with the Atollic toolchain in the Make.defs file:
-
-  ARCHCPUFLAGS = -mcpu=cortex-m4 -mthumb -march=armv7e-m -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 
 Configuration Changes
 ---------------------
@@ -496,13 +480,11 @@ in order to successfully build NuttX using the Atollic toolchain WITH FPU suppor
   -CONFIG_ARCH_FPU=n              : Enable FPU support
   +CONFIG_ARCH_FPU=y
 
-  -CONFIG_STM32_CODESOURCERYW=y   : Disable the CodeSourcery toolchain
-  +CONFIG_STM32_CODESOURCERYW=n
+  -CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y   : Disable the CodeSourcery toolchain
+  +CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=n
 
-  -CONFIG_STM32_ATOLLIC_LITE=n   : Enable *one* the Atollic toolchains
-   CONFIG_STM32_ATOLLIC_PRO=n
-  -CONFIG_STM32_ATOLLIC_LITE=y   : The "Lite" version
-   CONFIG_STM32_ATOLLIC_PRO=n    : The "Pro" version
+  -CONFIG_ARMV7M_TOOLCHAIN_ATOLLIC=n         : Enable the Atollic toolchain
+  +CONFIG_ARMV7M_TOOLCHAIN_ATOLLIC=y        :
 
   -CONFIG_INTELHEX_BINARY=y       : Suppress generation FLASH download formats
   +CONFIG_INTELHEX_BINARY=n       : (Only necessary with the "Lite" version)
@@ -1089,8 +1071,7 @@ Where <subdir> is one of the following:
   elf:
   ---
 
-    This configuration derives from the ostest configuration.  It has
-    been modified to us apps/examples/elf in order to test the ELF
+    This configuration uses apps/examples/elf in order to test the ELF
     loader.
 
     NOTES:
@@ -1106,9 +1087,9 @@ Where <subdir> is one of the following:
 
     2. Default platform/toolchain:
 
-       CONFIG_HOST_WINDOWS=y         : Windows
-       CONFIG_WINDOWS_CYGWIN=y       : Cygwin environment on Windows
-       CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
+       CONFIG_HOST_WINDOWS=y                   : Windows
+       CONFIG_WINDOWS_CYGWIN=y                 : Cygwin environment on Windows
+       CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery under Windows
 
     3. By default, this project assumes that you are *NOT* using the DFU
        bootloader.
@@ -1412,8 +1393,8 @@ Where <subdir> is one of the following:
     An example using the NuttX graphics system (NX).   This example focuses on
     placing lines on the background in various orientations.
 
-      CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
-      CONFIG_LCD_LANDSCAPE=y        : 320x240 landscape orientation
+      CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery under Windows
+      CONFIG_LCD_LANDSCAPE=y                  : 320x240 landscape orientation
 
     The STM32F4Discovery board does not have any graphics capability.  This
     configuration assumes that you have connected an SD1289-based LCD as
@@ -1480,10 +1461,14 @@ Where <subdir> is one of the following:
      http://www.nuttx.org/doku.php?id=wiki:graphics:nxgraphics for a description
      of the fat, flat line bug.
 
-  ostest:
-  ------
-    This configuration directory, performs a simple OS test using
-    apps/examples/ostest.
+  pm:
+  --
+    This is a configuration that is used to test STM32 power management, i.e.,
+    to test that the board can go into lower and lower states of power usage
+    as a result of inactivity.  This configuration is based on the nsh2
+    configuration with modifications for testing power management.  This
+    configuration should provide some guidelines for power management in your
+    STM32 application.
 
     NOTES:
 
@@ -1496,87 +1481,49 @@ Where <subdir> is one of the following:
        b. Execute 'make menuconfig' in nuttx/ in order to start the
           reconfiguration process.
 
-    2. Default toolchain:
+    2. Default configuration is Cygwin under windows using the CodeSourcery
+       toolchain:
 
-       CONFIG_STM32_CODESOURCERYL=y  : CodeSourcery under Linux / Mac OS X
+         CONFIG_HOST_WINDOWS=y                   : Windows
+         CONFIG_WINDOWS_CYGWIN=y                 : Cygwin
+         CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery under Windows
 
-    3. By default, this project assumes that you are *NOT* using the DFU
-       bootloader.
+    3. CONFIG_ARCH_CUSTOM_PMINIT and CONFIG_ARCH_IDLE_CUSTOM are necessary
+       parts of the PM configuration:
 
-    4. If you use the Atollic toolchain, then the FPU test can be enabled in the
-      examples/ostest by adding the following your NuttX configuration file:
+         CONFIG_ARCH_CUSTOM_PMINIT=y
 
-      -CONFIG_ARCH_FPU=n              : Enable FPU support
-      +CONFIG_ARCH_FPU=y
+       CONFIG_ARCH_CUSTOM_PMINIT moves the PM initialization from
+       arch/arm/src/stm32/stm32_pminitialiaze.c to configs/stm3210-eval/src/stm32_pm.c.
+       This allows us to support board-specific PM initialization.
 
-      -CONFIG_STM32_CODESOURCERYW=y   : Disable the CodeSourcery toolchain
-      +CONFIG_STM32_CODESOURCERYW=n
+         CONFIG_ARCH_IDLE_CUSTOM=y
 
-      -CONFIG_STM32_ATOLLIC_LITE=n   : Enable *one* the Atollic toolchains
-       CONFIG_STM32_ATOLLIC_PRO=n
-      -CONFIG_STM32_ATOLLIC_LITE=y   : The "Lite" version
-       CONFIG_STM32_ATOLLIC_PRO=n    : The "Pro" version
+       The bulk of the PM activities occur in the IDLE loop.  The IDLE loop
+       is special because it is what runs when there is no other task running.
+       Therefore when the IDLE executes, we can be assure that nothing else
+       is going on; this is the ideal condition for doing reduced power
+       management.
 
-      -CONFIG_INTELHEX_BINARY=y       : Suppress generation FLASH download formats
-      +CONFIG_INTELHEX_BINARY=n       : (Only necessary with the "Lite" version)
+       The configuration CONFIG_ARCH_IDLE_CUSTOM allows us to "steal" the
+       normal STM32 IDLE loop (of arch/arm/src/stm32/stm32_idle.c) and replace
+       this with our own custom IDLE loop (at configs/stm3210-eval/src/up_idle.c).
 
-      -CONFIG_HAVE_CXX=y              : Suppress generation of C++ code
-      +CONFIG_HAVE_CXX=n              : (Only necessary with the "Lite" version)
+    4. Here are some additional things to note in the configuration:
 
-      -CONFIG_SCHED_WAITPID=y         : Enable the waitpid() API needed by the FPU test
-      +CONFIG_SCHED_WAITPID=n
+        CONFIG_PM_BUTTONS=y
 
-      The FPU test also needs to know the size of the FPU registers save area in
-      bytes (see arch/arm/include/armv7-m/irq_lazyfpu.h):
+       CONFIG_PM_BUTTONS enables button support for PM testing.  Buttons can
+       drive EXTI interrupts and EXTI interrrupts can be used to wakeup for
+       certain reduced power modes (STOP mode).  The use of the buttons here
+       is for PM testing purposes only; buttons would normally be part the
+       application code and CONFIG_PM_BUTTONS would not be defined.
 
-      -CONFIG_EXAMPLES_OSTEST_FPUSIZE=(4*33)
+         CONFIG_RTC_ALARM=y
 
-  pm:
-  --
-    This is a configuration that is used to test STM32 power management, i.e.,
-    to test that the board can go into lower and lower states of power usage
-    as a result of inactivity.  This configuration is based on the nsh2
-    configuration with modifications for testing power management.  This
-    configuration should provide some guideline for power management in your
-    STM32 application.
-
-      CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
-
-    CONFIG_PM_CUSTOMINIT and CONFIG_IDLE_CUSTOM are necessary parts of the
-    PM configuration:
-
-      CONFIG_PM_CUSTOMINIT=y
-
-    CONFIG_PM_CUSTOMINIT moves the PM initialization from arch/arm/src/stm32/stm32_pminitialiaze.c
-    to configs/stm3210-eval/src/up_pm.c.  This allows us to support board-
-    specific PM initialization.
-
-      CONFIG_IDLE_CUSTOM=y
-
-    The bulk of the PM activities occur in the IDLE loop.  The IDLE loop is
-    special because it is what runs when there is no other task running.  Therefore
-    when the IDLE executes, we can be assure that nothing else is going on; this
-    is the ideal condition for doing reduced power management.
-
-    The configuration CONFIG_IDLE_CUSTOM allows us to "steal" the normal STM32
-    IDLE loop (of arch/arm/src/stm32/stm32_idle.c) and replace this with our own
-    custom IDLE loop (at configs/stm3210-eval/src/up_idle.c).
-
-    Here are some additional things to note in the configuration:
-
-      CONFIG_PM_BUTTONS=y
-
-    CONFIG_PM_BUTTONS enables button support for PM testing.  Buttons can drive
-    EXTI interrupts and EXTI interrrupts can be used to wakeup for certain reduced
-    power modes (STOP mode).  The use of the buttons here is for PM testing purposes
-    only; buttons would normally be part the application code and CONFIG_PM_BUTTONS
-    would not be defined.
-
-      CONFIG_RTC_ALARM=y
-
-    The RTC alarm is used to wake up from STOP mode and to transition to
-    STANDBY mode.  This used of the RTC alarm could conflict with other uses of
-    the RTC alarm in your application.
+       The RTC alarm is used to wake up from STOP mode and to transition to
+       STANDBY mode.  This used of the RTC alarm could conflict with other
+       uses of the RTC alarm in your application.
 
   posix_spawn:
   ------------
@@ -1596,9 +1543,9 @@ Where <subdir> is one of the following:
 
     2. Default toolchain:
 
-       CONFIG_HOST_WINDOWS=y         : Builds under windows
-       CONFIG_WINDOWS_CYGWIN=y       : Using Cygwin and
-       CONFIG_STM32_CODESOURCERYW=y  : The native Windows CodeSourcery toolchain
+       CONFIG_HOST_WINDOWS=y                   : Builds under windows
+       CONFIG_WINDOWS_CYGWIN=y                 : Using Cygwin and
+       CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y : The native Windows CodeSourcery toolchain
 
     3. By default, this project assumes that you are *NOT* using the DFU
        bootloader.
@@ -1706,9 +1653,9 @@ Where <subdir> is one of the following:
       standard issue, CMD.exe shell:  ConEmu which can be downloaded from:
       http://code.google.com/p/conemu-maximus5/
 
-       CONFIG_HOST_WINDOWS=y         : Windows
-       CONFIG_WINDOWS_NATIVE=y       : Native Windows environment
-       CONFIG_STM32_CODESOURCERYW=y  : CodeSourcery under Windows
+       CONFIG_HOST_WINDOWS=y                   : Windows
+       CONFIG_WINDOWS_NATIVE=y                 : Native Windows environment
+       CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y : CodeSourcery under Windows
 
       Build Tools.  The build still relies on some Unix-like commands.  I use
       the GNUWin32 tools that can be downloaded from http://gnuwin32.sourceforge.net/.

@@ -107,43 +107,57 @@ ARM/C5471-specific Configuration Options
   C5471 Ethernet Driver settings
 
 	CONFIG_C5471_NET_STATS
-	CONFIG_C5471_ETHERNET_PHY={ETHERNET_PHY_LU3X31T_T64,ETHERNET_PHY_AC101L}
-	CONFIG_NET_C5471_AUTONEGOTIATION
-	CONFIG_NET_C5471_BASET100
-	CONFIG_NET_C5471_BASET10
+	CONFIG_C5471_PHY_AC101L or C5471_PHY_LU3X31T_T64
+	CONFIG_C5471_AUTONEGOTIATION
+	CONFIG_C5471_BASET100
+	CONFIG_C5471_BASET10
 
-defconfig
-^^^^^^^^^
-The default configuration file, defconfig, performs a
-simple OS test using examples/ostest.  This can be
-configuration as follows:
+Configurations
+^^^^^^^^^^^^^^
 
-	cd tools
-	./configure.sh c5471evm
-	cd -
-	. ./setenv.sh
+Common Configuration Notes
+--------------------------
 
-netconfig
-^^^^^^^^^
-This alternative configuration file, netconfig, may be used
-instead of the default configuration (defconfig). This
-configuration enables networking using the c5471's built-in
-Ethernet interface.  It uses examples/nettest to excercise
-the TCP/IP network.
+  1. Each C5471 configuration is maintained in a sub-directory and
+     can be selected as follow:
 
-nshconfig
-^^^^^^^^^
-This configuration file builds NSH (examples/nsh) using the
-TELNET server front end
+       cd tools
+       ./configure.sh c5471evm/<subdir>
+       cd -
+       . ./setenv.sh
 
-dhcpconfig
-^^^^^^^^^^
-This configuration exercises the DHCP client of netutils/dhcpc
-using examples/uip.
+     Where <subdir> is one of the configuration sub-directories described in
+     the following paragraph.
 
-These alternative configurations can be selected by (using
-uipconfig as example):
+  2. These configurations use the mconf-based configuration tool.  To
+     change a configurations using that tool, you should:
 
-	(Seleted the default configuration as show above)
-	cp config/c5471evm/uiponfig .config
+     a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
+        and misc/tools/
 
+     b. Execute 'make menuconfig' in nuttx/ in order to start the
+        reconfiguration process.
+
+  3. By default, all configurations assume the NuttX Buildroot toolchain
+     under Linux (should work under Windows with Cygwin as well).  This
+     is easily reconfigured:
+
+        CONFIG_HOST_LINUX=y
+        CONFIG_ARM_TOOLCHAIN_BUILDROOT=y
+
+Configuration Sub-Directories
+-----------------------------
+
+  nettest
+
+    This configuration enables networking using the c5471's built-in Ethernet
+    interface.  It uses examples/nettest to exercise the TCP/IP network.
+
+  nsh
+
+    This configuration file builds NSH (examples/nsh) using the TELNET server
+    front end
+
+  httpd
+
+    This configuration uses the tiny webserver for uiP.

@@ -307,12 +307,12 @@ GNU Toolchain Options
   use the devkitARM or the NuttX GNU toolchain, you simply need to change the
   the following configuration options to your .config (or defconfig) file:
 
-    CONFIG_KINETIS_CODESOURCERYW=y  : CodeSourcery under Windows
-    CONFIG_KINETIS_CODESOURCERYL=y  : CodeSourcery under Linux
-    CONFIG_KINETIS_DEVKITARM=y      : devkitARM under Windows
-    CONFIG_KINETIS_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYW=y  : CodeSourcery under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_CODESOURCERYL=y  : CodeSourcery under Linux
+    CONFIG_ARMV7M_TOOLCHAIN_DEVKITARM=y      : devkitARM under Windows
+    CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y      : NuttX buildroot under Linux or Cygwin (default)
 
-  If you are not using CONFIG_KINETIS_BUILDROOT, then you may also have to modify
+  If you are not using CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT, then you may also have to modify
   the PATH in the setenv.h file if your make cannot find the tools.
 
   NOTE: the CodeSourcery (for Windows) and devkitARM toolchains are
@@ -656,29 +656,6 @@ can be selected as follow:
     . ./setenv.sh
 
 Where <subdir> is one of the following:
-
-  ostest:
-  ------
-    This configuration directory, performs a simple OS test using
-    examples/ostest.
-
-    NOTES:
-
-    1. This configuration uses the mconf-based configuration tool.  To
-       change this configuration using that tool, you should:
-
-       a. Build and install the kconfig-mconf tool.  See nuttx/README.txt
-          and misc/tools/
-
-       b. Execute 'make menuconfig' in nuttx/ in order to start the
-          reconfiguration process.
-
-    2. Default platform/toolchain:
-
-       CONFIG_HOST_LINUX=y                 : Linux (Cygwin under Windows okay too).
-       CONFIG_ARMV7M_TOOLCHAIN_BUILDROOT=y : Buildroot (arm-nuttx-elf-gcc)
-       CONFIG_ARMV7M_OABI_TOOLCHAIN=y      : The older OABI version
-       CONFIG_RAW_BINARY=y                 : Output formats: ELF and raw binary
 
   nsh:
   ---
